@@ -23,6 +23,11 @@ public class ChatViewModel : ObservableObject
     private string? _errorMessage;
     private string? _searchQuery;
     private ObservableCollection<object> _searchResults = null!;
+    private bool _showBlock;
+    private bool _showUnblock;
+    private bool _showGoToProfile;
+    private bool _showGoToCompanyProfile;
+    private bool _showGoToJobPost;
 
     private readonly ChatService _chatService;
     private readonly JobService _jobService;
@@ -111,6 +116,36 @@ public class ChatViewModel : ObservableObject
         set => SetProperty(ref _searchResults, value);
     }
 
+    public bool ShowBlock
+    {
+        get => _showBlock;
+        set => SetProperty(ref _showBlock, value);
+    }
+
+    public bool ShowUnblock
+    {
+        get => _showUnblock;
+        set => SetProperty(ref _showUnblock, value);
+    }
+
+    public bool ShowGoToProfile
+    {
+        get => _showGoToProfile;
+        set => SetProperty(ref _showGoToProfile, value);
+    }
+
+    public bool ShowGoToCompanyProfile
+    {
+        get => _showGoToCompanyProfile;
+        set => SetProperty(ref _showGoToCompanyProfile, value);
+    }
+
+    public bool ShowGoToJobPost
+    {
+        get => _showGoToJobPost;
+        set => SetProperty(ref _showGoToJobPost, value);
+    }
+
     public void LoadChats()
     {
         var chats = _sessionContext.CurrentMode == AppMode.UserMode
@@ -178,6 +213,31 @@ public class ChatViewModel : ObservableObject
         {
             LinkedJob = null;
         }
+
+        UpdateVisibility();
+    }
+
+    private void UpdateVisibility()
+    {
+        if (SelectedChat is null)
+        {
+            ShowBlock = false;
+            ShowUnblock = false;
+            ShowGoToProfile = false;
+            ShowGoToCompanyProfile = false;
+            ShowGoToJobPost = false;
+            return;
+        }
+
+        int currentCallerId = _sessionContext.CurrentMode == AppMode.UserMode
+            ? _sessionContext.CurrentUserId.Value
+            : _sessionContext.CurrentCompanyId.Value;
+
+        ShowBlock = !SelectedChat.IsBlocked;
+        ShowUnblock = SelectedChat.IsBlocked && SelectedChat.BlockedByUserId == currentCallerId;
+        ShowGoToProfile = SelectedChat.SecondUserId.HasValue;
+        ShowGoToCompanyProfile = SelectedChat.CompanyId.HasValue;
+        ShowGoToJobPost = SelectedChat.JobId.HasValue;
     }
 
     public void SendMessage()
@@ -383,6 +443,101 @@ public class ChatViewModel : ObservableObject
         // Clear search
         SearchQuery = null;
         SearchResults.Clear();
+    }
+
+    public void BlockUser()
+    {
+        if (SelectedChat is null || SelectedChat.IsBlocked)
+            return;
+
+        int blockerId = _sessionContext.CurrentMode == AppMode.UserMode
+            ? _sessionContext.CurrentUserId.Value
+            : _sessionContext.CurrentCompanyId.Value;
+
+        try
+        {
+            _chatService.BlockUser(SelectedChat.ChatId, blockerId);
+            SelectedChat.IsBlocked = true;
+            UpdateVisibility();
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = ex.Message;
+        }
+    }
+
+    public void UnblockUser()
+    {
+        if (SelectedChat is null || !SelectedChat.IsBlocked)
+            return;
+
+        int currentCallerId = _sessionContext.CurrentMode == AppMode.UserMode
+            ? _sessionContext.CurrentUserId.Value
+            : _sessionContext.CurrentCompanyId.Value;
+
+        try
+        {
+            _chatService.UnblockUser(SelectedChat.ChatId, currentCallerId);
+            SelectedChat.IsBlocked = false;
+            UpdateVisibility();
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = ex.Message;
+        }
+    }
+
+    public void DeleteChat()
+    {
+        if (SelectedChat is null)
+            return;
+
+        int callerId = _sessionContext.CurrentMode == AppMode.UserMode
+            ? _sessionContext.CurrentUserId.Value
+            : _sessionContext.CurrentCompanyId.Value;
+
+        try
+        {
+            _chatService.DeleteChat(SelectedChat.ChatId, callerId);
+
+            // Remove from both collections
+            Chats.Remove(SelectedChat);
+            FilteredChats.Remove(SelectedChat);
+
+            // Clear selection
+            SelectedChat = null;
+            Messages.Clear();
+
+            UpdateVisibility();
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = ex.Message;
+        }
+    }
+
+    public void GoToProfile()
+    {
+        if (SelectedChat?.SecondUserId is null)
+            return;
+
+        // No implementation yet. Waiting for other team.
+    }
+
+    public void GoToCompanyProfile()
+    {
+        if (SelectedChat?.CompanyId is null)
+            return;
+
+        // No implementation yet. Waiting for other team.
+    }
+
+    public void GoToJobPost()
+    {
+        if (SelectedChat?.JobId is null)
+            return;
+
+        // No implementation yet. Waiting for other team.
     }
 }
 
