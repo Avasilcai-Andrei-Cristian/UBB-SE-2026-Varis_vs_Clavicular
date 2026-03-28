@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using matchmaking.Domain.Entities;
 using matchmaking.Domain.Session;
 using matchmaking.Domain.Enums;
+using matchmaking.Repositories;
 using matchmaking.Services;
 
 namespace matchmaking.ViewModels;
@@ -19,20 +21,27 @@ public class ChatViewModel : ObservableObject
     private string? _messageText;
     private MessageType _selectedMessageType = MessageType.Text;
     private string? _errorMessage;
+    private string? _searchQuery;
+    private ObservableCollection<object> _searchResults = null!;
 
     private readonly ChatService _chatService;
     private readonly JobService _jobService;
     private readonly SessionContext _sessionContext;
+    private readonly UserRepository _userRepository;
+    private readonly CompanyRepository _companyRepository;
 
-    public ChatViewModel(ChatService chatService, JobService jobService, SessionContext sessionContext)
+    public ChatViewModel(ChatService chatService, JobService jobService, SessionContext sessionContext, UserRepository userRepository, CompanyRepository companyRepository)
     {
         _chatService = chatService;
         _jobService = jobService;
         _sessionContext = sessionContext;
+        _userRepository = userRepository;
+        _companyRepository = companyRepository;
 
         _chats = new ObservableCollection<Chat>();
         _filteredChats = new ObservableCollection<Chat>();
         _messages = new ObservableCollection<Message>();
+        _searchResults = new ObservableCollection<object>();
         _activeTab = "Users";
     }
 
@@ -88,6 +97,18 @@ public class ChatViewModel : ObservableObject
     {
         get => _errorMessage;
         set => SetProperty(ref _errorMessage, value);
+    }
+
+    public string? SearchQuery
+    {
+        get => _searchQuery;
+        set => SetProperty(ref _searchQuery, value);
+    }
+
+    public ObservableCollection<object> SearchResults
+    {
+        get => _searchResults;
+        set => SetProperty(ref _searchResults, value);
     }
 
     public void LoadChats()
@@ -233,6 +254,135 @@ public class ChatViewModel : ObservableObject
 
         MessageText = filePath;
         SendMessage();
+    }
+
+    public void SearchContacts()
+    {
+        SearchResults.Clear();
+
+        if (string.IsNullOrWhiteSpace(SearchQuery))
+            return;
+
+        List<object> results = new();
+
+        if (_sessionContext.CurrentMode == AppMode.UserMode)
+        {
+            if (ActiveTab == "Users")
+            {
+                // Search users
+                var users = _chatService.SearchUsers(SearchQuery);
+                results.AddRange(users);
+
+                // Filter FilteredChats for user-to-user chats matching the query
+                var matchingChats = FilteredChats
+                    .Where(c => c.SecondUserId.HasValue && 
+                                _userRepository.GetById(c.SecondUserId.Value)?.Name.Contains(SearchQuery, StringComparison.OrdinalIgnoreCase) == true)
+                    .ToList();
+
+                foreach (var chat in matchingChats)
+                {
+                    results.Insert(0, chat);
+                }
+            }
+            else if (ActiveTab == "Company")
+            {
+                // Search companies
+                var companies = _chatService.SearchCompanies(SearchQuery);
+                results.AddRange(companies);
+
+                // Filter FilteredChats for user-to-company chats matching the query
+                var matchingChats = FilteredChats
+                    .Where(c => c.CompanyId.HasValue && 
+                                _companyRepository.GetById(c.CompanyId.Value)?.CompanyName.Contains(SearchQuery, StringComparison.OrdinalIgnoreCase) == true)
+                    .ToList();
+
+                foreach (var chat in matchingChats)
+                {
+                    results.Insert(0, chat);
+                }
+            }
+        }
+        else if (_sessionContext.CurrentMode == AppMode.CompanyMode)
+        {
+            // Search users
+            var users = _chatService.SearchUsers(SearchQuery);
+            results.AddRange(users);
+
+            // Filter Chats for company-to-user chats matching the query
+            var matchingChats = Chats
+                .Where(c => c.UserId > 0 && 
+                            _userRepository.GetById(c.UserId)?.Name.Contains(SearchQuery, StringComparison.OrdinalIgnoreCase) == true)
+                .ToList();
+
+            foreach (var chat in matchingChats)
+            {
+                results.Insert(0, chat);
+            }
+        }
+
+        foreach (var result in results)
+        {
+            SearchResults.Add(result);
+        }
+    }
+
+    public void StartChat(object? selectedResult)
+    {
+        if (selectedResult is null)
+            return;
+
+        Chat chat;
+
+        if (selectedResult is Chat existingChat)
+        {
+            chat = existingChat;
+        }
+        else if (selectedResult is User user)
+        {
+            chat = _chatService.FindOrCreateUserUserChat(_sessionContext.CurrentUserId.Value, user.UserId);
+        }
+        else if (selectedResult is Company company)
+        {
+            chat = _chatService.FindOrCreateUserCompanyChat(_sessionContext.CurrentUserId.Value, company.CompanyId, null);
+        }
+        else
+        {
+            return;
+        }
+
+        // Add chat to Chats if not already present
+        if (!Chats.Contains(chat))
+        {
+            Chats.Insert(0, chat);
+        }
+
+        // In UserMode: set the correct active tab and apply filter
+        if (_sessionContext.CurrentMode == AppMode.UserMode)
+        {
+            if (chat.SecondUserId.HasValue)
+            {
+                ActiveTab = "Users";
+            }
+            else if (chat.CompanyId.HasValue)
+            {
+                ActiveTab = "Company";
+            }
+
+            ApplyTabFilter();
+
+            // Add to FilteredChats if not already present
+            if (!FilteredChats.Contains(chat))
+            {
+                FilteredChats.Insert(0, chat);
+            }
+        }
+
+        // Select and load the chat
+        SelectChat(chat);
+
+        // Clear search
+        SearchQuery = null;
+        SearchResults.Clear();
     }
 }
 
