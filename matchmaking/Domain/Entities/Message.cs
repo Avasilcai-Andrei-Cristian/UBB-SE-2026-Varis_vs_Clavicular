@@ -11,5 +11,5 @@ public class Message
     public DateTime Timestamp { get; set; }
     public int ChatId { get; set; }
     public MessageType Type { get; set; }
-    public bool IsRead { get; set; }
+    public bool IsRead { get; set; } = false;
 }
