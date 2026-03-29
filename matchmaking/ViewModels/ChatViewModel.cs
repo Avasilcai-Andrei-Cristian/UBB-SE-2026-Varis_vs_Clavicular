@@ -18,6 +18,9 @@ public class ChatViewModel : ObservableObject
     private ObservableCollection<Message> _messages = null!;
     private Job? _linkedJob;
     private string _activeTab = "Users";
+    private bool _isUsersTabActive = true;
+    private bool _isCompaniesTabActive;
+    private bool _isSyncingTabState;
     private string? _messageText;
     private MessageType _selectedMessageType = MessageType.Text;
     private string? _errorMessage;
@@ -83,7 +86,67 @@ public class ChatViewModel : ObservableObject
     public string ActiveTab
     {
         get => _activeTab;
-        set => SetProperty(ref _activeTab, value);
+        set
+        {
+            if (SetProperty(ref _activeTab, value))
+            {
+                SyncTabTogglesFromActiveTab();
+            }
+        }
+    }
+
+    public bool IsUsersTabActive
+    {
+        get => _isUsersTabActive;
+        set
+        {
+            if (_isSyncingTabState)
+            {
+                SetProperty(ref _isUsersTabActive, value);
+                return;
+            }
+
+            if (!SetProperty(ref _isUsersTabActive, value))
+                return;
+
+            if (value && _sessionContext.CurrentMode == AppMode.UserMode && ActiveTab != "Users")
+            {
+                SwitchTab("Users");
+            }
+            else if (!value && !_isCompaniesTabActive)
+            {
+                _isSyncingTabState = true;
+                SetProperty(ref _isUsersTabActive, true);
+                _isSyncingTabState = false;
+            }
+        }
+    }
+
+    public bool IsCompaniesTabActive
+    {
+        get => _isCompaniesTabActive;
+        set
+        {
+            if (_isSyncingTabState)
+            {
+                SetProperty(ref _isCompaniesTabActive, value);
+                return;
+            }
+
+            if (!SetProperty(ref _isCompaniesTabActive, value))
+                return;
+
+            if (value && _sessionContext.CurrentMode == AppMode.UserMode && ActiveTab != "Company")
+            {
+                SwitchTab("Company");
+            }
+            else if (!value && !_isUsersTabActive)
+            {
+                _isSyncingTabState = true;
+                SetProperty(ref _isCompaniesTabActive, true);
+                _isSyncingTabState = false;
+            }
+        }
     }
 
     public string? MessageText
@@ -465,9 +528,27 @@ public class ChatViewModel : ObservableObject
 
         ShowBlock = !SelectedChat.IsBlocked;
         ShowUnblock = SelectedChat.IsBlocked && SelectedChat.BlockedByUserId == currentCallerId;
-        ShowGoToProfile = SelectedChat.SecondUserId.HasValue;
-        ShowGoToCompanyProfile = SelectedChat.CompanyId.HasValue;
+
+        if (_sessionContext.CurrentMode == AppMode.CompanyMode)
+        {
+            ShowGoToProfile = true;
+            ShowGoToCompanyProfile = false;
+        }
+        else
+        {
+            ShowGoToProfile = SelectedChat.SecondUserId.HasValue;
+            ShowGoToCompanyProfile = SelectedChat.CompanyId.HasValue;
+        }
+
         ShowGoToJobPost = SelectedChat.JobId.HasValue;
+    }
+
+    private void SyncTabTogglesFromActiveTab()
+    {
+        _isSyncingTabState = true;
+        SetProperty(ref _isUsersTabActive, ActiveTab == "Users", nameof(IsUsersTabActive));
+        SetProperty(ref _isCompaniesTabActive, ActiveTab == "Company", nameof(IsCompaniesTabActive));
+        _isSyncingTabState = false;
     }
 
     public void HandleAttachmentSelected(string filePath, string extension)

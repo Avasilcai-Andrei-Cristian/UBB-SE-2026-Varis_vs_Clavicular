@@ -22,6 +22,12 @@
             <converters:ReadReceiptConverter x:Key="ReadReceiptConverter" />
             <converters:StringToVisibilityConverter x:Key="StringToVisibilityConverter" />
             <converters:InverseBoolConverter x:Key="InverseBoolConverter" />
+            <converters:IntToVisibilityConverter x:Key="IntToVisibilityConverter" />
+            <converters:ChatAvatarCornerRadiusConverter x:Key="ChatAvatarCornerRadiusConverter" />
+            <converters:ChatAvatarBgConverter x:Key="ChatAvatarBgConverter" />
+            <converters:ChatAvatarFgConverter x:Key="ChatAvatarFgConverter" />
+            <converters:ChatInitialsConverter x:Key="ChatInitialsConverter" />
+            <converters:ChatSubtitleConverter x:Key="ChatSubtitleConverter" />
             <session:SessionContext x:Key="SessionContext" />
 
             <x:Double x:Key="SpacingXS">8</x:Double>
