@@ -6,14 +6,14 @@ using matchmaking.DTOs;
 
 namespace matchmaking.Services;
 
-public class CompanyRecommendationService
+public class CompanyStatusService
 {
     private readonly MatchService _matchService;
     private readonly UserService _userService;
     private readonly JobService _jobService;
     private readonly SkillService _skillService;
 
-    public CompanyRecommendationService(
+    public CompanyStatusService(
         MatchService matchService,
         UserService userService,
         JobService jobService,
@@ -25,9 +25,9 @@ public class CompanyRecommendationService
         _skillService = skillService;
     }
 
-    public Task<IReadOnlyList<UserApplicationResult>> GetApplicantsForCompanyAsync(int companyId)
+    public async Task<IReadOnlyList<UserApplicationResult>> GetApplicantsForCompanyAsync(int companyId)
     {
-        var matches = _matchService.GetByCompanyId(companyId);
+        var matches = await _matchService.GetByCompanyIdAsync(companyId);
         var results = new List<UserApplicationResult>(matches.Count);
 
         foreach (var match in matches)
@@ -49,7 +49,7 @@ public class CompanyRecommendationService
             .ThenByDescending(result => result.CompatibilityScore)
             .ToList();
 
-        return Task.FromResult<IReadOnlyList<UserApplicationResult>>(ordered);
+        return ordered;
     }
 
     public async Task<UserApplicationResult?> GetApplicantByMatchIdAsync(int companyId, int matchId)

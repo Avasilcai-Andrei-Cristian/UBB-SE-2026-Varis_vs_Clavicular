@@ -9,13 +9,13 @@ namespace matchmaking.Services;
 
 public class TestingModuleAdapterStub : ITestingModuleAdapter
 {
-    public Task<TestResult?> GetResultForMatch(int matchId)
+    public Task<TestResult?> GetResultForMatchAsync(int matchId)
     {
         // Placeholder link until match -> (external_user_id, position_id) mapping is integrated.
-        return GetLatestResultForCandidate(externalUserId: matchId, positionId: matchId);
+        return GetLatestResultForCandidateAsync(externalUserId: matchId, positionId: matchId);
     }
 
-    public Task<TestResult?> GetLatestResultForCandidate(int externalUserId, int positionId)
+    public Task<TestResult?> GetLatestResultForCandidateAsync(int externalUserId, int positionId)
     {
         var now = DateTime.UtcNow;
         var testId = positionId * 10 + 1;
@@ -108,9 +108,9 @@ public class TestingModuleAdapterStub : ITestingModuleAdapter
         return Task.FromResult<TestResult?>(result);
     }
 
-    public async Task<IReadOnlyList<TestResult>> GetResultHistoryForCandidate(int externalUserId, int positionId)
+    public async Task<IReadOnlyList<TestResult>> GetResultHistoryForCandidateAsync(int externalUserId, int positionId)
     {
-        var latest = await GetLatestResultForCandidate(externalUserId, positionId);
+        var latest = await GetLatestResultForCandidateAsync(externalUserId, positionId);
         if (latest is null)
         {
             return [];

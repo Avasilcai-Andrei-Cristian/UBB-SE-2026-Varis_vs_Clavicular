@@ -21,7 +21,7 @@ public class MatchService
 
     public Match? GetById(int matchId) => _matchRepository.GetById(matchId);
 
-    public IReadOnlyList<Match> GetByCompanyId(int companyId)
+    public Task<IReadOnlyList<Match>> GetByCompanyIdAsync(int companyId)
     {
         var companyJobIds = _jobService
             .GetByCompanyId(companyId)
@@ -30,14 +30,16 @@ public class MatchService
 
         if (companyJobIds.Count == 0)
         {
-            return [];
+            return Task.FromResult<IReadOnlyList<Match>>([]);
         }
 
-        return _matchRepository
+        var matches = _matchRepository
             .GetAll()
             .Where(match => companyJobIds.Contains(match.JobId))
             .OrderByDescending(match => match.Timestamp)
             .ToList();
+
+        return Task.FromResult<IReadOnlyList<Match>>(matches);
     }
 
     public Task SubmitDecisionAsync(int matchId, MatchStatus decision, string feedback)

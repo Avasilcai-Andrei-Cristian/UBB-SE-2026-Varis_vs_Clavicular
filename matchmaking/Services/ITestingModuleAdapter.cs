@@ -6,9 +6,9 @@ namespace matchmaking.Services;
 
 public interface ITestingModuleAdapter
 {
-    Task<TestResult?> GetResultForMatch(int matchId);
+    Task<TestResult?> GetResultForMatchAsync(int matchId);
 
-    Task<TestResult?> GetLatestResultForCandidate(int externalUserId, int positionId);
+    Task<TestResult?> GetLatestResultForCandidateAsync(int externalUserId, int positionId);
 
-    Task<IReadOnlyList<TestResult>> GetResultHistoryForCandidate(int externalUserId, int positionId);
+    Task<IReadOnlyList<TestResult>> GetResultHistoryForCandidateAsync(int externalUserId, int positionId);
 }
