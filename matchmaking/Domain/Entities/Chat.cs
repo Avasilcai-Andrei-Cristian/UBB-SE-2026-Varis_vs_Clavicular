@@ -11,4 +11,7 @@ public class Chat
     public int? BlockedByUserId { get; set; }
     public bool IsDeletedByUser { get; set; } = false;
     public bool IsDeletedBySecondParty { get; set; } = false;
+    public string LastMessageSnippet { get; set; } = string.Empty;
+    public string LastMessageTime { get; set; } = string.Empty;
+    public string LastMessage { get; set; } = string.Empty;
 }

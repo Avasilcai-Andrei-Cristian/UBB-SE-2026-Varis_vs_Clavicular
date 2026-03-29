@@ -11,6 +11,11 @@ public sealed partial class ShellView : UserControl
     {
         InitializeComponent();
         DataContext = new ShellViewModel();
+
+        HeaderControl.RecommendationsRequested += OnRecommendationsRequested;
+        HeaderControl.MyStatusRequested += OnMyStatusRequested;
+        HeaderControl.ChatRequested += OnChatRequested;
+
         Loaded += OnLoaded;
     }
 
@@ -18,7 +23,22 @@ public sealed partial class ShellView : UserControl
     {
         if (ContentHostFrame.Content is null)
         {
-            ContentHostFrame.Navigate(typeof(SampleFormPage));
+            ContentHostFrame.Navigate(typeof(ChatPageView));
         }
+    }
+
+    private void OnRecommendationsRequested(object? sender, System.EventArgs e)
+    {
+        ContentHostFrame.Navigate(typeof(SampleFormPage));
+    }
+
+    private void OnMyStatusRequested(object? sender, System.EventArgs e)
+    {
+        ContentHostFrame.Navigate(typeof(SampleFormPage));
+    }
+
+    private void OnChatRequested(object? sender, System.EventArgs e)
+    {
+        ContentHostFrame.Navigate(typeof(ChatPageView));
     }
 }

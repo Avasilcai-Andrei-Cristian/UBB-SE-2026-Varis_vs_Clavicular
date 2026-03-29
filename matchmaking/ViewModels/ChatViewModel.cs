@@ -116,6 +116,16 @@ public class ChatViewModel : ObservableObject
         set => SetProperty(ref _searchResults, value);
     }
 
+    public ObservableCollection<Chat> CurrentChatList
+    {
+        get => _sessionContext.CurrentMode == AppMode.UserMode ? FilteredChats : Chats;
+    }
+
+    public bool IsUserMode
+    {
+        get => _sessionContext.CurrentMode == AppMode.UserMode;
+    }
+
     public bool ShowBlock
     {
         get => _showBlock;
@@ -155,6 +165,7 @@ public class ChatViewModel : ObservableObject
         Chats.Clear();
         foreach (var chat in chats)
         {
+            PopulateChatPreview(chat);
             Chats.Add(chat);
         }
 
@@ -199,6 +210,8 @@ public class ChatViewModel : ObservableObject
             Messages.Add(message);
         }
 
+        UpdateChatPreviewFromMessages(SelectedChat, messages);
+
         int currentCallerId = _sessionContext.CurrentMode == AppMode.UserMode
             ? _sessionContext.CurrentUserId.Value
             : _sessionContext.CurrentCompanyId.Value;
@@ -215,6 +228,223 @@ public class ChatViewModel : ObservableObject
         }
 
         UpdateVisibility();
+    }
+
+    public void SendMessage()
+    {
+        ErrorMessage = null;
+
+        if (SelectedChat is null || string.IsNullOrWhiteSpace(MessageText))
+            return;
+
+        if (SelectedChat.IsBlocked)
+        {
+            ErrorMessage = "Cannot send message in a blocked chat.";
+            return;
+        }
+
+        int senderId = _sessionContext.CurrentMode == AppMode.UserMode
+            ? _sessionContext.CurrentUserId.Value
+            : _sessionContext.CurrentCompanyId.Value;
+
+        try
+        {
+            _chatService.SendMessage(SelectedChat.ChatId, MessageText, senderId, SelectedMessageType);
+            
+            MessageText = string.Empty;
+            SelectedMessageType = MessageType.Text;
+
+            RefreshInboxAndSelectedChat();
+
+            if (SelectedChat is not null && Chats.Count > 0 && Chats[0] != SelectedChat)
+            {
+                Chats.Remove(SelectedChat);
+                Chats.Insert(0, SelectedChat);
+            }
+
+            if (_sessionContext.CurrentMode == AppMode.UserMode && SelectedChat is not null && FilteredChats.Count > 0 && FilteredChats[0] != SelectedChat)
+            {
+                FilteredChats.Remove(SelectedChat);
+                FilteredChats.Insert(0, SelectedChat);
+            }
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = ex.Message;
+        }
+    }
+
+    public void RefreshInboxAndSelectedChat()
+    {
+        var selectedChatId = SelectedChat?.ChatId;
+
+        var latestChats = _sessionContext.CurrentMode == AppMode.UserMode
+            ? _chatService.GetChatsForUser(_sessionContext.CurrentUserId.Value)
+            : _chatService.GetChatsForCompany(_sessionContext.CurrentCompanyId.Value);
+
+        foreach (var chat in latestChats)
+        {
+            PopulateChatPreview(chat);
+        }
+
+        var chatsChanged = MergeChats(latestChats);
+
+        if (_sessionContext.CurrentMode == AppMode.UserMode && chatsChanged)
+        {
+            ApplyTabFilter();
+        }
+
+        if (!selectedChatId.HasValue)
+            return;
+
+        var refreshedSelectedChat = Chats.FirstOrDefault(c => c.ChatId == selectedChatId.Value);
+        if (refreshedSelectedChat is null)
+        {
+            SelectedChat = null;
+            Messages.Clear();
+            UpdateVisibility();
+            return;
+        }
+
+        if (SelectedChat?.ChatId != refreshedSelectedChat.ChatId || !ReferenceEquals(SelectedChat, refreshedSelectedChat))
+        {
+            SelectedChat = refreshedSelectedChat;
+        }
+
+        var latestMessages = _chatService.GetMessages(refreshedSelectedChat.ChatId);
+        if (HaveMessagesChanged(latestMessages))
+        {
+            Messages.Clear();
+            foreach (var message in latestMessages)
+            {
+                Messages.Add(message);
+            }
+
+            int currentCallerId = _sessionContext.CurrentMode == AppMode.UserMode
+                ? _sessionContext.CurrentUserId.Value
+                : _sessionContext.CurrentCompanyId.Value;
+
+            _chatService.MarkMessageAsRead(refreshedSelectedChat.ChatId, currentCallerId);
+        }
+
+        UpdateChatPreviewFromMessages(refreshedSelectedChat, latestMessages);
+
+        if (SelectedChat.JobId.HasValue)
+        {
+            LinkedJob = _jobService.GetById(SelectedChat.JobId.Value);
+        }
+        else
+        {
+            LinkedJob = null;
+        }
+
+        UpdateVisibility();
+    }
+
+    private bool MergeChats(IReadOnlyList<Chat> latestChats)
+    {
+        var changed = false;
+        var latestById = latestChats.ToDictionary(c => c.ChatId);
+
+        for (var i = Chats.Count - 1; i >= 0; i--)
+        {
+            if (!latestById.ContainsKey(Chats[i].ChatId))
+            {
+                Chats.RemoveAt(i);
+                changed = true;
+            }
+        }
+
+        for (var i = 0; i < Chats.Count; i++)
+        {
+            var current = Chats[i];
+            if (latestById.TryGetValue(current.ChatId, out var updated) && IsChatDifferent(current, updated))
+            {
+                Chats[i] = updated;
+                changed = true;
+            }
+        }
+
+        foreach (var latest in latestChats)
+        {
+            if (!Chats.Any(c => c.ChatId == latest.ChatId))
+            {
+                Chats.Insert(0, latest);
+                changed = true;
+            }
+        }
+
+        return changed;
+    }
+
+    private static bool IsChatDifferent(Chat current, Chat updated)
+    {
+        return current.UserId != updated.UserId ||
+               current.CompanyId != updated.CompanyId ||
+               current.SecondUserId != updated.SecondUserId ||
+               current.JobId != updated.JobId ||
+               current.IsBlocked != updated.IsBlocked ||
+               current.BlockedByUserId != updated.BlockedByUserId ||
+               current.IsDeletedByUser != updated.IsDeletedByUser ||
+               current.IsDeletedBySecondParty != updated.IsDeletedBySecondParty ||
+               !string.Equals(current.LastMessage, updated.LastMessage, StringComparison.Ordinal) ||
+               !string.Equals(current.LastMessageSnippet, updated.LastMessageSnippet, StringComparison.Ordinal) ||
+               !string.Equals(current.LastMessageTime, updated.LastMessageTime, StringComparison.Ordinal);
+    }
+
+    private bool HaveMessagesChanged(IReadOnlyList<Message> latestMessages)
+    {
+        if (Messages.Count != latestMessages.Count)
+            return true;
+
+        for (var i = 0; i < latestMessages.Count; i++)
+        {
+            var current = Messages[i];
+            var latest = latestMessages[i];
+
+            if (current.MessageId != latest.MessageId ||
+                current.IsRead != latest.IsRead ||
+                current.Content != latest.Content ||
+                current.Timestamp != latest.Timestamp ||
+                current.SenderId != latest.SenderId ||
+                current.Type != latest.Type)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private void PopulateChatPreview(Chat chat)
+    {
+        var messages = _chatService.GetMessages(chat.ChatId);
+        UpdateChatPreviewFromMessages(chat, messages);
+    }
+
+    private static void UpdateChatPreviewFromMessages(Chat chat, IReadOnlyList<Message> messages)
+    {
+        var lastMessage = messages.Count > 0
+            ? messages[^1]
+            : null;
+
+        if (lastMessage is null)
+        {
+            chat.LastMessage = string.Empty;
+            chat.LastMessageSnippet = string.Empty;
+            chat.LastMessageTime = string.Empty;
+            return;
+        }
+
+        chat.LastMessage = lastMessage.Content;
+        chat.LastMessageSnippet = lastMessage.Content.Length > 60
+            ? $"{lastMessage.Content[..57]}..."
+            : lastMessage.Content;
+
+        var localTime = lastMessage.Timestamp.ToLocalTime();
+        chat.LastMessageTime = localTime.Date == DateTime.Now.Date
+            ? localTime.ToString("HH:mm")
+            : localTime.ToString("dd MMM");
     }
 
     private void UpdateVisibility()
@@ -240,69 +470,21 @@ public class ChatViewModel : ObservableObject
         ShowGoToJobPost = SelectedChat.JobId.HasValue;
     }
 
-    public void SendMessage()
+    public void HandleAttachmentSelected(string filePath, string extension)
     {
-        ErrorMessage = null;
-
-        if (SelectedChat is null || string.IsNullOrWhiteSpace(MessageText))
-            return;
-
-        if (SelectedChat.IsBlocked)
-        {
-            ErrorMessage = "Cannot send message in a blocked chat.";
-            return;
-        }
-
-        int senderId = _sessionContext.CurrentMode == AppMode.UserMode
-            ? _sessionContext.CurrentUserId.Value
-            : _sessionContext.CurrentCompanyId.Value;
-
-        try
-        {
-            _chatService.SendMessage(SelectedChat.ChatId, MessageText, senderId, SelectedMessageType);
-            
-            // Clear compose state
-            MessageText = string.Empty;
-            SelectedMessageType = MessageType.Text;
-            
-            // Reload messages
-            SelectChat(SelectedChat);
-            
-            // Move SelectedChat to position 0 in Chats
-            if (Chats.Count > 0 && Chats[0] != SelectedChat)
-            {
-                Chats.Remove(SelectedChat);
-                Chats.Insert(0, SelectedChat);
-            }
-            
-            // Move SelectedChat to position 0 in FilteredChats (UserMode only)
-            if (_sessionContext.CurrentMode == AppMode.UserMode && FilteredChats.Count > 0 && FilteredChats[0] != SelectedChat)
-            {
-                FilteredChats.Remove(SelectedChat);
-                FilteredChats.Insert(0, SelectedChat);
-            }
-        }
-        catch (Exception ex)
-        {
-            ErrorMessage = ex.Message;
-        }
-    }
-
-    public void HandleAttachmentSelected(string filePath)
-    {
-        if (string.IsNullOrWhiteSpace(filePath))
+        if (string.IsNullOrWhiteSpace(filePath) || string.IsNullOrWhiteSpace(extension))
         {
             ErrorMessage = "No file selected.";
             return;
         }
 
-        string extension = System.IO.Path.GetExtension(filePath).ToLower();
+        var normalizedExtension = extension.ToLowerInvariant();
 
-        if (extension == ".jpg" || extension == ".jpeg" || extension == ".png")
+        if (normalizedExtension == ".jpg" || normalizedExtension == ".jpeg" || normalizedExtension == ".png")
         {
             SelectedMessageType = MessageType.Image;
         }
-        else if (extension == ".pdf" || extension == ".doc" || extension == ".docx")
+        else if (normalizedExtension == ".pdf" || normalizedExtension == ".doc" || normalizedExtension == ".docx")
         {
             SelectedMessageType = MessageType.File;
         }
@@ -314,6 +496,11 @@ public class ChatViewModel : ObservableObject
 
         MessageText = filePath;
         SendMessage();
+    }
+
+    public void HandleAttachmentSelected(string filePath)
+    {
+        HandleAttachmentSelected(filePath, System.IO.Path.GetExtension(filePath));
     }
 
     public void SearchContacts()
@@ -454,11 +641,25 @@ public class ChatViewModel : ObservableObject
             ? _sessionContext.CurrentUserId.Value
             : _sessionContext.CurrentCompanyId.Value;
 
+        var selectedChatId = SelectedChat.ChatId;
+
         try
         {
-            _chatService.BlockUser(SelectedChat.ChatId, blockerId);
-            SelectedChat.IsBlocked = true;
-            UpdateVisibility();
+            _chatService.BlockUser(selectedChatId, blockerId);
+
+            LoadChats();
+
+            var refreshedChat = Chats.FirstOrDefault(c => c.ChatId == selectedChatId);
+            if (refreshedChat is not null)
+            {
+                SelectChat(refreshedChat);
+            }
+            else
+            {
+                SelectedChat = null;
+                Messages.Clear();
+                UpdateVisibility();
+            }
         }
         catch (Exception ex)
         {
@@ -475,11 +676,25 @@ public class ChatViewModel : ObservableObject
             ? _sessionContext.CurrentUserId.Value
             : _sessionContext.CurrentCompanyId.Value;
 
+        var selectedChatId = SelectedChat.ChatId;
+
         try
         {
-            _chatService.UnblockUser(SelectedChat.ChatId, currentCallerId);
-            SelectedChat.IsBlocked = false;
-            UpdateVisibility();
+            _chatService.UnblockUser(selectedChatId, currentCallerId);
+
+            LoadChats();
+
+            var refreshedChat = Chats.FirstOrDefault(c => c.ChatId == selectedChatId);
+            if (refreshedChat is not null)
+            {
+                SelectChat(refreshedChat);
+            }
+            else
+            {
+                SelectedChat = null;
+                Messages.Clear();
+                UpdateVisibility();
+            }
         }
         catch (Exception ex)
         {

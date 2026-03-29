@@ -33,13 +33,13 @@
                     Orientation="Horizontal"
                     VerticalAlignment="Center">
             <Button Content="Recommendations"
-                    Command="{Binding RecommendationsCommand}"
+                    Click="Recommendations_Click"
                     Style="{StaticResource HeaderNavButtonStyle}" />
             <Button Content="My Status"
-                    Command="{Binding MyStatusCommand}"
+                    Click="MyStatus_Click"
                     Style="{StaticResource HeaderNavButtonStyle}" />
             <Button Content="Chat"
-                    Command="{Binding ChatCommand}"
+                    Click="Chat_Click"
                     Style="{StaticResource HeaderNavButtonStyle}" />
         </StackPanel>
 

@@ -1,0 +1,322 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page
+    x:Class="matchmaking.Views.Pages.ChatPageView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:local="using:matchmaking.Domain.Enums"
+    mc:Ignorable="d">
+
+    <Grid RowDefinitions="Auto,*" ColumnDefinitions="300,*" Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+
+        <!-- Left Panel: Conversation List -->
+        <StackPanel Grid.Row="0" Grid.Column="0" Grid.RowSpan="2" Spacing="0">
+
+            <!-- Tab Switcher (UserMode only) -->
+            <StackPanel x:Name="TabSwitcher" 
+                        Visibility="{Binding IsUserMode, Converter={StaticResource BoolToVisibilityConverter}}"
+                        Orientation="Horizontal" 
+                        Spacing="0"
+                        Background="{ThemeResource SurfaceStrongBrush}"
+                        Padding="12">
+
+                <Button x:Name="UsersTabButton"
+                        Content="Users"
+                        Click="UsersTab_Click"
+                        Background="Transparent"
+                        Foreground="{ThemeResource TextPrimaryBrush}"
+                        Padding="12,8"
+                        HorizontalAlignment="Stretch"
+                        HorizontalContentAlignment="Center"
+                        BorderThickness="0,2,0,0"
+                        BorderBrush="{ThemeResource AccentBrush}"
+                        Style="{StaticResource TextBlockButtonStyle}" />
+
+                <Button x:Name="CompanyTabButton"
+                        Content="Company"
+                        Click="CompanyTab_Click"
+                        Background="Transparent"
+                        Foreground="{ThemeResource TextSecondaryBrush}"
+                        Padding="12,8"
+                        HorizontalAlignment="Stretch"
+                        HorizontalContentAlignment="Center"
+                        BorderThickness="0"
+                        Style="{StaticResource TextBlockButtonStyle}" />
+            </StackPanel>
+
+            <!-- Search Bar -->
+            <AutoSuggestBox x:Name="SearchBox"
+                            Text="{Binding SearchQuery, Mode=TwoWay}"
+                            PlaceholderText="Search contacts..."
+                            TextChanged="SearchBox_TextChanged"
+                            SuggestionChosen="SearchBox_SuggestionChosen"
+                            QuerySubmitted="SearchBox_QuerySubmitted"
+                            ItemsSource="{Binding SearchResults}"
+                            Margin="12,12,12,0"
+                            Padding="12">
+                <AutoSuggestBox.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel Orientation="Horizontal" Spacing="12">
+                            <Ellipse Width="40" Height="40" Fill="{ThemeResource AccentBrush}" />
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock Text="{Binding Converter={StaticResource ChatNameConverter}}" FontWeight="SemiBold" Foreground="{ThemeResource TextPrimaryBrush}" />
+                                <TextBlock Text="{Binding LastMessage}" Foreground="{ThemeResource TextSecondaryBrush}" FontSize="12" />
+                            </StackPanel>
+                        </StackPanel>
+                    </DataTemplate>
+                </AutoSuggestBox.ItemTemplate>
+            </AutoSuggestBox>
+
+            <!-- Conversation List -->
+            <ListView x:Name="ConversationList"
+                      ItemsSource="{Binding CurrentChatList}"
+                      SelectedItem="{Binding SelectedChat, Mode=TwoWay}"
+                      SelectionChanged="ConversationList_SelectionChanged"
+                      Margin="0,12,0,0"
+                      Background="Transparent">
+
+                <ListView.ItemTemplate>
+                    <DataTemplate>
+                        <Grid Padding="12" ColumnDefinitions="50,*,Auto" HorizontalAlignment="Stretch">
+
+                            <!-- Avatar -->
+                            <Ellipse Grid.Column="0" 
+                                     Width="50" 
+                                     Height="50" 
+                                     Fill="{ThemeResource AccentBrush}" />
+
+                            <!-- Chat Info -->
+                            <StackPanel Grid.Column="1" Spacing="4" VerticalAlignment="Center">
+                                <TextBlock Text="{Binding Converter={StaticResource ChatNameConverter}}"
+                                           FontWeight="SemiBold" 
+                                           FontSize="14" />
+                                <TextBlock Text="{Binding LastMessageSnippet}" 
+                                           Foreground="{ThemeResource TextSecondaryBrush}" 
+                                           FontSize="12"
+                                           TextTrimming="CharacterEllipsis" />
+                            </StackPanel>
+
+                            <!-- Timestamp -->
+                            <TextBlock Grid.Column="2"
+                                       Text="{Binding LastMessageTime}"
+                                       Foreground="{ThemeResource TextSecondaryBrush}"
+                                       FontSize="12"
+                                       VerticalAlignment="Center" />
+                        </Grid>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+
+                <ListView.ItemContainerStyle>
+                    <Style TargetType="ListViewItem">
+                        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                        <Setter Property="Background" Value="Transparent" />
+                    </Style>
+                </ListView.ItemContainerStyle>
+            </ListView>
+        </StackPanel>
+
+        <!-- Right Panel: Message Thread -->
+        <Grid Grid.Row="0" Grid.Column="1" Grid.RowSpan="2" RowDefinitions="Auto,*,Auto" Background="{ThemeResource SurfaceWeakBrush}">
+
+            <!-- Chat Header -->
+            <Border Grid.Row="0" 
+                    Background="{ThemeResource SurfaceStrongBrush}"
+                    BorderBrush="{ThemeResource DividerBrush}"
+                    BorderThickness="0,0,0,1"
+                    Padding="20">
+
+                <Grid ColumnDefinitions="*,Auto">
+                    <!-- Party Info -->
+                    <StackPanel Grid.Column="0" Spacing="8">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <TextBlock x:Name="PartyNameBlock"
+                                       Text="{Binding SelectedChat, Converter={StaticResource ChatPartyNameConverter}}"
+                                       FontSize="18"
+                                       FontWeight="SemiBold" />
+                            <TextBlock Text="Blocked"
+                                       Foreground="Red"
+                                       FontSize="12"
+                                       VerticalAlignment="Center"
+                                       Visibility="{Binding SelectedChat.IsBlocked, Converter={StaticResource BoolToVisibilityConverter}}" />
+                        </StackPanel>
+
+                        <!-- Job Banner -->
+                        <Border x:Name="JobBanner"
+                                Visibility="{Binding SelectedChat.JobId, Converter={StaticResource ObjectToVisibilityConverter}}"
+                                Background="{ThemeResource AccentBrush}"
+                                CornerRadius="4"
+                                Padding="8,4">
+                            <TextBlock Text="{Binding LinkedJob.Title}"
+                                       FontSize="12"
+                                       Foreground="White" />
+                        </Border>
+                    </StackPanel>
+
+                    <!-- Dropdown Menu Button -->
+                    <Button Grid.Column="1"
+                            Content="⋮"
+                            FontSize="20"
+                            Background="Transparent"
+                            Padding="8">
+
+                        <Button.Flyout>
+                            <MenuFlyout>
+                                <MenuFlyoutItem Text="View Profile"
+                                                Visibility="{Binding ShowGoToProfile, Converter={StaticResource BoolToVisibilityConverter}}"
+                                                Click="HandleGoToProfileClick" />
+
+                                <MenuFlyoutItem Text="View Company"
+                                                Visibility="{Binding ShowGoToCompanyProfile, Converter={StaticResource BoolToVisibilityConverter}}"
+                                                Click="HandleGoToCompanyProfileClick" />
+
+                                <MenuFlyoutItem Text="View Job"
+                                                Visibility="{Binding ShowGoToJobPost, Converter={StaticResource BoolToVisibilityConverter}}"
+                                                Click="HandleGoToJobPostClick" />
+
+                                <MenuFlyoutSeparator />
+
+                                <MenuFlyoutItem Text="Block"
+                                                Visibility="{Binding ShowBlock, Converter={StaticResource BoolToVisibilityConverter}}"
+                                                Click="HandleBlockButtonClick"
+                                                Foreground="Red" />
+
+                                <MenuFlyoutItem Text="Unblock"
+                                                Visibility="{Binding ShowUnblock, Converter={StaticResource BoolToVisibilityConverter}}"
+                                                Click="HandleUnblockButtonClick"
+                                                Foreground="Green" />
+
+                                <MenuFlyoutItem Text="Delete Chat"
+                                                Visibility="{Binding SelectedChat, Converter={StaticResource ObjectToVisibilityConverter}}"
+                                                Click="HandleDeleteChatButtonClick"
+                                                Foreground="Red" />
+                            </MenuFlyout>
+                        </Button.Flyout>
+                    </Button>
+                </Grid>
+            </Border>
+
+            <!-- Message List -->
+            <ListView Grid.Row="1"
+                      ItemsSource="{Binding Messages}"
+                      Background="Transparent"
+                      SelectionMode="None"
+                      IsItemClickEnabled="False"
+                      Padding="20">
+
+                <ListView.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel Margin="0,8" Orientation="Vertical">
+
+                            <!-- Left-aligned (Other Party) -->
+                            <StackPanel x:Name="LeftMessage"
+                                        Visibility="{Binding Converter={StaticResource IsOtherPartyMessageConverter}, ConverterParameter={StaticResource SessionContext}}"
+                                        Orientation="Horizontal"
+                                        Spacing="12"
+                                        HorizontalAlignment="Left"
+                                        MaxWidth="400">
+
+                                <!-- Avatar -->
+                                <Ellipse Width="32" Height="32" Fill="{ThemeResource AccentBrush}" VerticalAlignment="Bottom" />
+
+                                <!-- Message Bubble -->
+                                <StackPanel Spacing="4">
+                                    <Border Background="{ThemeResource SurfaceStrongBrush}"
+                                            CornerRadius="12,12,12,0"
+                                            Padding="12">
+                                        <TextBlock Text="{Binding Content}"
+                                                   FontSize="14"
+                                                   TextWrapping="Wrap"
+                                                   Foreground="{ThemeResource TextPrimaryBrush}" />
+                                    </Border>
+
+                                    <!-- Timestamp (right of bubble) -->
+                                    <TextBlock Text="{Binding Timestamp}"
+                                               FontSize="11"
+                                               Foreground="{ThemeResource TextSecondaryBrush}"
+                                               Margin="12,0,0,0" />
+                                </StackPanel>
+                            </StackPanel>
+
+                            <!-- Right-aligned (Current User) -->
+                            <StackPanel x:Name="RightMessage"
+                                        Visibility="{Binding Converter={StaticResource IsCurrentUserMessageConverter}, ConverterParameter={StaticResource SessionContext}}"
+                                        Orientation="Horizontal"
+                                        Spacing="12"
+                                        HorizontalAlignment="Right"
+                                        MaxWidth="400">
+
+                                <!-- Message Bubble -->
+                                <StackPanel Spacing="4" HorizontalAlignment="Right">
+                                    <Border Background="{ThemeResource AccentBrush}"
+                                            CornerRadius="12,12,0,12"
+                                            Padding="12">
+                                        <TextBlock Text="{Binding Content}"
+                                                   FontSize="14"
+                                                   TextWrapping="Wrap"
+                                                   Foreground="White" />
+                                    </Border>
+
+                                    <!-- Timestamp + Read Receipt (left of bubble) -->
+                                    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+                                        <TextBlock Text="{Binding Timestamp}"
+                                                   FontSize="11"
+                                                   Foreground="{ThemeResource TextSecondaryBrush}" />
+
+                                        <TextBlock Text="{Binding IsRead, Converter={StaticResource ReadReceiptConverter}}"
+                                                   FontSize="11"
+                                                   Foreground="{ThemeResource TextSecondaryBrush}"
+                                                   Margin="0,0,12,0" />
+                                    </StackPanel>
+                                </StackPanel>
+
+                                <!-- Avatar -->
+                                <Ellipse Width="32" Height="32" Fill="{ThemeResource AccentBrush}" VerticalAlignment="Bottom" />
+                            </StackPanel>
+                        </StackPanel>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+
+            <!-- Compose Area -->
+            <Border Grid.Row="2"
+                    Background="{ThemeResource SurfaceStrongBrush}"
+                    BorderBrush="{ThemeResource DividerBrush}"
+                    BorderThickness="0,1,0,0"
+                    Padding="20">
+
+                <StackPanel Spacing="12">
+                    <TextBlock Text="{Binding ErrorMessage}"
+                               Foreground="Red"
+                               FontSize="12"
+                               Visibility="{Binding ErrorMessage, Converter={StaticResource StringToVisibilityConverter}}" />
+
+                    <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
+                        <Button Grid.Column="0"
+                                Content="📎"
+                                Width="40"
+                                Height="40"
+                                CornerRadius="20"
+                                Click="HandleAttachmentButtonClick"
+                                IsEnabled="{Binding SelectedChat.IsBlocked, Converter={StaticResource InverseBoolConverter}}"
+                                ToolTipService.ToolTip="Attach file" />
+
+                        <TextBox Grid.Column="1"
+                                 PlaceholderText="type a message"
+                                 Text="{Binding MessageText, Mode=TwoWay}"
+                                 KeyDown="MessageInput_KeyDown"
+                                 IsEnabled="{Binding SelectedChat.IsBlocked, Converter={StaticResource InverseBoolConverter}}"
+                                 AcceptsReturn="False" />
+
+                        <Button Grid.Column="2"
+                                Content="Send"
+                                Width="72"
+                                Height="40"
+                                Click="HandleSendButtonClick"
+                                IsEnabled="{Binding SelectedChat.IsBlocked, Converter={StaticResource InverseBoolConverter}}" />
+                    </Grid>
+                </StackPanel>
+            </Border>
+        </Grid>
+    </Grid>
+</Page>

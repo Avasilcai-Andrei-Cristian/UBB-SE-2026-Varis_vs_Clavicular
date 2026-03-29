@@ -84,9 +84,8 @@ public class SqlChatRepository(string connectionString) : SqlRepositoryBase(conn
     {
         using var connection = OpenConnection();
         using var command = new SqlCommand(
-            "INSERT INTO Chat (ChatId, UserId, CompanyId, SecondUserId, JobId, IsBlocked, BlockedByUserId, IsDeletedByUser, IsDeletedBySecondParty) VALUES (@ChatId, @UserId, @CompanyId, @SecondUserId, @JobId, @IsBlocked, @BlockedByUserId, @IsDeletedByUser, @IsDeletedBySecondParty)",
+            "INSERT INTO Chat (UserId, CompanyId, SecondUserId, JobId, IsBlocked, BlockedByUserId, IsDeletedByUser, IsDeletedBySecondParty) VALUES (@UserId, @CompanyId, @SecondUserId, @JobId, @IsBlocked, @BlockedByUserId, @IsDeletedByUser, @IsDeletedBySecondParty)",
             connection);
-        command.Parameters.AddWithValue("@ChatId", chat.ChatId);
         command.Parameters.AddWithValue("@UserId", chat.UserId);
         command.Parameters.AddWithValue("@CompanyId", (object?)chat.CompanyId ?? DBNull.Value);
         command.Parameters.AddWithValue("@SecondUserId", (object?)chat.SecondUserId ?? DBNull.Value);

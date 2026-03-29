@@ -32,6 +32,7 @@ namespace matchmaking
         private Window? _window;
         public static AppConfiguration Configuration { get; private set; } = new();
         public static SessionContext Session { get; private set; } = new();
+        public static Window? MainWindow { get; private set; }
 
         /// <summary>
         /// Initializes the singleton application object.  This is the first line of authored code
@@ -51,8 +52,11 @@ namespace matchmaking
         /// <param name="args">Details about the launch request and process.</param>
         protected override void OnLaunched(Microsoft.UI.Xaml.LaunchActivatedEventArgs args)
         {
-            _window = new MainWindow();
-            _window.Activate();
+            // hardcode preview mode for now
+            Session.LoginAsUser(1);        // or Session.LoginAsCompany(1)
+
+            MainWindow = new MainWindow();
+            MainWindow.Activate();
         }
     }
 }
