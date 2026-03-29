@@ -1,3 +1,4 @@
+using System;
 using System.Windows.Input;
 
 namespace matchmaking.ViewModels;
@@ -8,10 +9,13 @@ public class ShellViewModel : ObservableObject
     public ICommand MyStatusCommand { get; }
     public ICommand ChatCommand { get; }
 
-    public ShellViewModel()
+    public ShellViewModel(
+        Action onRecommendations,
+        Action onMyStatus,
+        Action onChat)
     {
-        RecommendationsCommand = new RelayCommand(() => { });
-        MyStatusCommand = new RelayCommand(() => { });
-        ChatCommand = new RelayCommand(() => { });
+        RecommendationsCommand = new RelayCommand(onRecommendations);
+        MyStatusCommand = new RelayCommand(onMyStatus);
+        ChatCommand = new RelayCommand(onChat);
     }
 }

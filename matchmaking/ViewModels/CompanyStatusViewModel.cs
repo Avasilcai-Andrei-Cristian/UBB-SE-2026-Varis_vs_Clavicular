@@ -56,6 +56,7 @@ public class CompanyStatusViewModel : ObservableObject
     }
 
     public ObservableCollection<UserApplicationResult> Applications { get; } = [];
+    public ObservableCollection<MatchStatus> DecisionOptions { get; } = [MatchStatus.Accepted, MatchStatus.Rejected];
 
     public UserApplicationResult? SelectedApplicant
     {
@@ -217,11 +218,11 @@ public class CompanyStatusViewModel : ObservableObject
 
             if (selectedMatchId is int matchId && Applications.Any(item => item.Match.MatchId == matchId))
             {
-                await LoadEvaluationAsync(matchId);
+                SelectedApplicant = Applications.First(item => item.Match.MatchId == matchId);
             }
             else if (Applications.Count > 0)
             {
-                await LoadEvaluationAsync(Applications[0].Match.MatchId);
+                SelectedApplicant = Applications[0];
             }
             else
             {
@@ -249,23 +250,21 @@ public class CompanyStatusViewModel : ObservableObject
             return;
         }
 
-        _selectedApplicant = result;
-        _selectedMatch = result.Match;
+        SelectedMatch = result.Match;
 
         if (result.Match.Status == MatchStatus.Applied)
         {
-            _selectedDecision = null;
+            SelectedDecision = null;
         }
         else
         {
-            _selectedDecision = result.Match.Status;
+            SelectedDecision = result.Match.Status;
         }
 
-        _feedbackMessage = result.Match.FeedbackMessage;
-        _isContactUnmasked = false;
+        FeedbackMessage = result.Match.FeedbackMessage;
+        IsContactUnmasked = false;
 
         ValidateAll();
-        UpdateContactMasks();
 
         LastTestResult = await LoadLatestTestResultAsync(result);
 
@@ -339,11 +338,11 @@ public class CompanyStatusViewModel : ObservableObject
 
     public void CancelEvaluation()
     {
-        _selectedApplicant = null;
-        _selectedMatch = null;
-        _selectedDecision = null;
-        _feedbackMessage = string.Empty;
-        _isContactUnmasked = false;
+        SetProperty(ref _selectedApplicant, null, nameof(SelectedApplicant));
+        SelectedMatch = null;
+        SelectedDecision = null;
+        FeedbackMessage = string.Empty;
+        IsContactUnmasked = false;
         LastTestResult = null;
 
         UpdateContactMasks();
