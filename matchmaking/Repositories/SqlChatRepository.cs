@@ -11,7 +11,7 @@ public class SqlChatRepository(string connectionString) : SqlRepositoryBase(conn
     {
         using var connection = OpenConnection();
         using var command = new SqlCommand(
-            "SELECT ChatId, UserId, CompanyId, SecondUserId, JobId, IsBlocked, BlockedByUserId, IsDeletedByUser, IsDeletedBySecondParty FROM Chat WHERE UserId = @UserId OR SecondUserId = @UserId",
+            "SELECT ChatId, UserId, CompanyId, SecondUserId, JobId, IsBlocked, BlockedByUserId, IsDeletedByUser, IsDeletedBySecondParty FROM Chat WHERE (UserId = @UserId OR SecondUserId = @UserId) AND IsDeletedByUser = 0 ORDER BY ISNULL((SELECT MAX(m.[Timestamp]) FROM Message m WHERE m.ChatId = Chat.ChatId), '19000101') DESC, ChatId DESC",
             connection);
         command.Parameters.AddWithValue("@UserId", userId);
 
@@ -29,7 +29,7 @@ public class SqlChatRepository(string connectionString) : SqlRepositoryBase(conn
     {
         using var connection = OpenConnection();
         using var command = new SqlCommand(
-            "SELECT ChatId, UserId, CompanyId, SecondUserId, JobId, IsBlocked, BlockedByUserId, IsDeletedByUser, IsDeletedBySecondParty FROM Chat WHERE CompanyId = @CompanyId",
+            "SELECT ChatId, UserId, CompanyId, SecondUserId, JobId, IsBlocked, BlockedByUserId, IsDeletedByUser, IsDeletedBySecondParty FROM Chat WHERE CompanyId = @CompanyId AND IsDeletedBySecondParty = 0 ORDER BY ISNULL((SELECT MAX(m.[Timestamp]) FROM Message m WHERE m.ChatId = Chat.ChatId), '19000101') DESC, ChatId DESC",
             connection);
         command.Parameters.AddWithValue("@CompanyId", companyId);
 
@@ -69,13 +69,23 @@ public class SqlChatRepository(string connectionString) : SqlRepositoryBase(conn
         return reader.Read() ? Map(reader) : null;
     }
 
+    public Chat GetChatById(int chatId)
+    {
+        using var connection = OpenConnection();
+        using var command = new SqlCommand(
+            "SELECT ChatId, UserId, CompanyId, SecondUserId, JobId, IsBlocked, BlockedByUserId, IsDeletedByUser, IsDeletedBySecondParty FROM Chat WHERE ChatId = @ChatId",
+            connection);
+        command.Parameters.AddWithValue("@ChatId", chatId);
+        using var reader = command.ExecuteReader();
+        return reader.Read() ? Map(reader) : throw new KeyNotFoundException($"Chat with id {chatId} was not found.");
+    }
+
     public void Add(Chat chat)
     {
         using var connection = OpenConnection();
         using var command = new SqlCommand(
-            "INSERT INTO Chat (ChatId, UserId, CompanyId, SecondUserId, JobId, IsBlocked, BlockedByUserId, IsDeletedByUser, IsDeletedBySecondParty) VALUES (@ChatId, @UserId, @CompanyId, @SecondUserId, @JobId, @IsBlocked, @BlockedByUserId, @IsDeletedByUser, @IsDeletedBySecondParty)",
+            "INSERT INTO Chat (UserId, CompanyId, SecondUserId, JobId, IsBlocked, BlockedByUserId, IsDeletedByUser, IsDeletedBySecondParty) OUTPUT INSERTED.ChatId VALUES (@UserId, @CompanyId, @SecondUserId, @JobId, @IsBlocked, @BlockedByUserId, @IsDeletedByUser, @IsDeletedBySecondParty)",
             connection);
-        command.Parameters.AddWithValue("@ChatId", chat.ChatId);
         command.Parameters.AddWithValue("@UserId", chat.UserId);
         command.Parameters.AddWithValue("@CompanyId", (object?)chat.CompanyId ?? DBNull.Value);
         command.Parameters.AddWithValue("@SecondUserId", (object?)chat.SecondUserId ?? DBNull.Value);
@@ -84,7 +94,8 @@ public class SqlChatRepository(string connectionString) : SqlRepositoryBase(conn
         command.Parameters.AddWithValue("@BlockedByUserId", (object?)chat.BlockedByUserId ?? DBNull.Value);
         command.Parameters.AddWithValue("@IsDeletedByUser", chat.IsDeletedByUser);
         command.Parameters.AddWithValue("@IsDeletedBySecondParty", chat.IsDeletedBySecondParty);
-        command.ExecuteNonQuery();
+
+        chat.ChatId = Convert.ToInt32(command.ExecuteScalar());
     }
 
     public void BlockChat(int chatId, int blockerId)
@@ -128,6 +139,37 @@ public class SqlChatRepository(string connectionString) : SqlRepositoryBase(conn
             connection);
         command.Parameters.AddWithValue("@ChatId", chatId);
         command.Parameters.AddWithValue("@CallerId", callerId);
+        command.ExecuteNonQuery();
+    }
+
+    public void RestoreDeletedByUser(int chatId)
+    {
+        using var connection = OpenConnection();
+        using var command = new SqlCommand(
+            "UPDATE Chat SET IsDeletedByUser = 0 WHERE ChatId = @ChatId",
+            connection);
+        command.Parameters.AddWithValue("@ChatId", chatId);
+        command.ExecuteNonQuery();
+    }
+
+    public void RestoreDeletedBySecondParty(int chatId)
+    {
+        using var connection = OpenConnection();
+        using var command = new SqlCommand(
+            "UPDATE Chat SET IsDeletedBySecondParty = 0 WHERE ChatId = @ChatId",
+            connection);
+        command.Parameters.AddWithValue("@ChatId", chatId);
+        command.ExecuteNonQuery();
+    }
+
+    public void UpdateJobId(int chatId, int jobId)
+    {
+        using var connection = OpenConnection();
+        using var command = new SqlCommand(
+            "UPDATE Chat SET JobId = @JobId WHERE ChatId = @ChatId",
+            connection);
+        command.Parameters.AddWithValue("@ChatId", chatId);
+        command.Parameters.AddWithValue("@JobId", jobId);
         command.ExecuteNonQuery();
     }
 
