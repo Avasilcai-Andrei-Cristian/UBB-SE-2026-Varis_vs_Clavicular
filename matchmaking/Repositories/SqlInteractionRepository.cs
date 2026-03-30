@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.Data.SqlClient;
 using matchmaking.Domain.Entities;
+using matchmaking.Domain.Enums;
 
 namespace matchmaking.Repositories;
 
@@ -81,7 +82,7 @@ public class SqlInteractionRepository(string connectionString) : SqlRepositoryBa
         command.Parameters.AddWithValue("@InteractionId", interaction.InteractionId);
         command.Parameters.AddWithValue("@DeveloperId", interaction.DeveloperId);
         command.Parameters.AddWithValue("@PostId", interaction.PostId);
-        command.Parameters.AddWithValue("@Type", interaction.Type);
+        command.Parameters.AddWithValue("@Type", (int)interaction.Type);
         command.ExecuteNonQuery();
     }
 
@@ -94,7 +95,7 @@ public class SqlInteractionRepository(string connectionString) : SqlRepositoryBa
         command.Parameters.AddWithValue("@InteractionId", interaction.InteractionId);
         command.Parameters.AddWithValue("@DeveloperId", interaction.DeveloperId);
         command.Parameters.AddWithValue("@PostId", interaction.PostId);
-        command.Parameters.AddWithValue("@Type", interaction.Type);
+        command.Parameters.AddWithValue("@Type", (int)interaction.Type);
         command.ExecuteNonQuery();
     }
 
@@ -110,12 +111,30 @@ public class SqlInteractionRepository(string connectionString) : SqlRepositoryBa
 
     private static Interaction Map(SqlDataReader reader)
     {
+        var rawType = reader.GetValue(3);
+        var interactionType = rawType switch
+        {
+            bool isLike => isLike ? InteractionType.Like : InteractionType.Dislike,
+            byte numericType => Enum.IsDefined(typeof(InteractionType), (int)numericType)
+                ? (InteractionType)numericType
+                : InteractionType.Dislike,
+            short numericType => Enum.IsDefined(typeof(InteractionType), (int)numericType)
+                ? (InteractionType)numericType
+                : InteractionType.Dislike,
+            int numericType => Enum.IsDefined(typeof(InteractionType), numericType)
+                ? (InteractionType)numericType
+                : InteractionType.Dislike,
+            long numericType when numericType is >= int.MinValue and <= int.MaxValue
+                && Enum.IsDefined(typeof(InteractionType), (int)numericType) => (InteractionType)numericType,
+            _ => InteractionType.Dislike
+        };
+
         return new Interaction
         {
             InteractionId = reader.GetInt32(0),
             DeveloperId = reader.GetInt32(1),
             PostId = reader.GetInt32(2),
-            Type = reader.GetBoolean(3)
+            Type = interactionType
         };
     }
 }

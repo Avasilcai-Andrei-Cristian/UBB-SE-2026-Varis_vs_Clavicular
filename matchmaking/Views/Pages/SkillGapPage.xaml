@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page
+    x:Class="matchmaking.Views.Pages.SkillGapPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:converters="using:matchmaking.Converters"
+    Background="#F0F2F5">
+
+    <Page.Resources>
+        <converters:BoolToVisibilityConverter x:Key="BoolToVisibility"/>
+
+        <Style x:Key="NavButtonStyle" TargetType="Button">
+            <Setter Property="Background"      Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Foreground"      Value="#333333"/>
+            <Setter Property="Padding"         Value="4,0"/>
+        </Style>
+
+        <!-- ── Skills-to-Improve card DataTemplate ──────────────────────── -->
+        <DataTemplate x:Key="UnderscoredSkillTemplate">
+            <Border Background="White" CornerRadius="8" Padding="18"
+                    BorderBrush="#E6E6E6" BorderThickness="1" Margin="0,0,0,0">
+                <StackPanel Spacing="10">
+
+                    <!-- Skill name + gap badge -->
+                    <Grid ColumnDefinitions="*,Auto">
+                        <TextBlock Grid.Column="0"
+                                   Text="{Binding SkillName}"
+                                   FontSize="14" FontWeight="SemiBold"
+                                   VerticalAlignment="Center"/>
+                        <Border Grid.Column="1"
+                                Background="#FFF3E0" CornerRadius="6"
+                                Padding="8,3" VerticalAlignment="Center" Margin="10,0,0,0">
+                            <TextBlock Text="{Binding GapText}"
+                                       FontSize="11" FontWeight="SemiBold"
+                                       Foreground="#E65100"/>
+                        </Border>
+                    </Grid>
+
+                    <!-- Progress bar -->
+                    <ProgressBar Value="{Binding UserScore}" Maximum="100"
+                                 Foreground="#0097A7" Height="8"/>
+
+                    <!-- Score labels -->
+                    <Grid ColumnDefinitions="*,Auto">
+                        <TextBlock Grid.Column="0"
+                                   Text="{Binding UserScoreText}"
+                                   FontSize="12" Foreground="#787878"/>
+                        <TextBlock Grid.Column="1"
+                                   Text="{Binding AverageRequiredScoreText}"
+                                   FontSize="12" Foreground="#787878"
+                                   HorizontalAlignment="Right"/>
+                    </Grid>
+
+                </StackPanel>
+            </Border>
+        </DataTemplate>
+
+        <!-- ── Missing-Skill card DataTemplate ──────────────────────────── -->
+        <DataTemplate x:Key="MissingSkillTemplate">
+            <Border Background="White" CornerRadius="8"
+                    BorderBrush="#E6E6E6" BorderThickness="1" Margin="0,0,0,0">
+                <Grid ColumnDefinitions="5,*">
+                    <Border Grid.Column="0" Background="#D32F2F" CornerRadius="7,0,0,7"/>
+                    <StackPanel Grid.Column="1" Spacing="4" Padding="16,14">
+                        <TextBlock Text="{Binding SkillName}"
+                                   FontSize="14" FontWeight="SemiBold"/>
+                        <TextBlock Text="{Binding JobCountText}"
+                                   FontSize="12" Foreground="#969696" TextWrapping="Wrap"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </DataTemplate>
+
+    </Page.Resources>
+
+    <Grid RowDefinitions="56,*">
+
+        <!-- Top Navigation Bar -->
+        <Border Grid.Row="0" Background="White" BorderBrush="Black" BorderThickness="0,0,0,2">
+            <Grid Padding="24,0" ColumnDefinitions="Auto,*,Auto" VerticalAlignment="Center">
+                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                    <Image Source="/Assets/div.nav-logo-mark.png" Width="28" Height="28" VerticalAlignment="Center"/>
+                    <TextBlock FontSize="18" FontWeight="Bold" VerticalAlignment="Center">
+                        <Run Text="Tinder" Foreground="Black"/>
+                        <Run Text="Jobs"   Foreground="#888888"/>
+                    </TextBlock>
+                </StackPanel>
+                <StackPanel Grid.Column="1" Orientation="Horizontal"
+                            HorizontalAlignment="Center" Spacing="28" VerticalAlignment="Center">
+                    <Button Content="Recommendations" Style="{StaticResource NavButtonStyle}"/>
+                    <Button Content="My Status"       Style="{StaticResource NavButtonStyle}"
+                            Click="BackToStatus_Click"/>
+                    <Button Content="Chat"            Style="{StaticResource NavButtonStyle}"/>
+                </StackPanel>
+                <PersonPicture Grid.Column="2" Width="34" Height="34" Initials="AJ" VerticalAlignment="Center"/>
+            </Grid>
+        </Border>
+
+        <!-- Body -->
+        <Grid Grid.Row="1" Padding="40,28">
+            <Grid RowDefinitions="Auto,*">
+
+                <!-- Header -->
+                <Grid Grid.Row="0" Margin="0,0,0,24">
+                    <Button Content="← Back to My Status"
+                            VerticalAlignment="Center" Click="BackToStatus_Click"/>
+                    <TextBlock Text="Skill Gap Analysis" FontSize="22" FontWeight="Bold"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    <Button Content="Refresh"
+                            HorizontalAlignment="Right" VerticalAlignment="Center"
+                            Click="RefreshButton_Click"/>
+                </Grid>
+
+                <!-- Loading -->
+                <ProgressRing Grid.Row="1" IsActive="True"
+                              Width="48" Height="48"
+                              HorizontalAlignment="Center" VerticalAlignment="Center"
+                              Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibility}}"/>
+
+                <!-- Content (shown after loading completes) -->
+                <ScrollViewer Grid.Row="1"
+                              Visibility="{Binding ShowContent, Converter={StaticResource BoolToVisibility}}">
+                    <StackPanel Spacing="24" MaxWidth="720" Padding="0,0,0,20">
+
+                        <!-- Summary message (no rejections / no gaps / error) -->
+                        <Border Background="White" CornerRadius="10" Padding="28"
+                                Visibility="{Binding HasSummaryMessage, Converter={StaticResource BoolToVisibility}}">
+                            <TextBlock Text="{Binding SummaryMessage}"
+                                       FontSize="14" HorizontalAlignment="Center"
+                                       TextAlignment="Center" TextWrapping="Wrap"/>
+                        </Border>
+
+                        <!-- Skill data (only when there are actual gaps) -->
+                        <StackPanel Spacing="24"
+                                    Visibility="{Binding HasSkillData, Converter={StaticResource BoolToVisibility}}">
+
+                            <!-- Stat cards -->
+                            <StackPanel Orientation="Horizontal" Spacing="16">
+                                <Border Background="#FFEBEB" CornerRadius="10" Padding="24,18" MinWidth="160"
+                                        BorderBrush="#D32F2F" BorderThickness="0,0,0,3">
+                                    <StackPanel Spacing="4">
+                                        <TextBlock Text="{Binding MissingCount}"
+                                                   FontSize="40" FontWeight="Bold" Foreground="#D32F2F"/>
+                                        <TextBlock Text="Missing Skills"
+                                                   FontSize="13" Foreground="#505050"/>
+                                    </StackPanel>
+                                </Border>
+                                <Border Background="#FFF3F0" CornerRadius="10" Padding="24,18" MinWidth="160"
+                                        BorderBrush="#E65100" BorderThickness="0,0,0,3">
+                                    <StackPanel Spacing="4">
+                                        <TextBlock Text="{Binding ImproveCount}"
+                                                   FontSize="40" FontWeight="Bold" Foreground="#E65100"/>
+                                        <TextBlock Text="Skills to Improve"
+                                                   FontSize="13" Foreground="#505050"/>
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
+
+                            <!-- Skills to Improve list -->
+                            <StackPanel Spacing="12"
+                                        Visibility="{Binding HasSkillsToImprove, Converter={StaticResource BoolToVisibility}}">
+                                <TextBlock Text="Skills to Improve" FontSize="17" FontWeight="Bold"/>
+                                <ItemsControl ItemsSource="{Binding SkillsToImprove}"
+                                              ItemTemplate="{StaticResource UnderscoredSkillTemplate}">
+                                    <ItemsControl.ItemContainerStyle>
+                                        <Style TargetType="ContentPresenter">
+                                            <Setter Property="Margin" Value="0,0,0,10"/>
+                                        </Style>
+                                    </ItemsControl.ItemContainerStyle>
+                                </ItemsControl>
+                            </StackPanel>
+
+                            <!-- Missing Skills list -->
+                            <StackPanel Spacing="12"
+                                        Visibility="{Binding HasMissingSkills, Converter={StaticResource BoolToVisibility}}">
+                                <TextBlock Text="Missing Skills" FontSize="17" FontWeight="Bold"/>
+                                <ItemsControl ItemsSource="{Binding MissingSkills}"
+                                              ItemTemplate="{StaticResource MissingSkillTemplate}">
+                                    <ItemsControl.ItemContainerStyle>
+                                        <Style TargetType="ContentPresenter">
+                                            <Setter Property="Margin" Value="0,0,0,10"/>
+                                        </Style>
+                                    </ItemsControl.ItemContainerStyle>
+                                </ItemsControl>
+                            </StackPanel>
+
+                        </StackPanel>
+
+                    </StackPanel>
+                </ScrollViewer>
+
+            </Grid>
+        </Grid>
+    </Grid>
+</Page>

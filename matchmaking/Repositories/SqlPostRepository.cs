@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.Data.SqlClient;
 using matchmaking.Domain.Entities;
+using matchmaking.Domain.Enums;
 
 namespace matchmaking.Repositories;
 
@@ -62,7 +63,7 @@ public class SqlPostRepository(string connectionString) : SqlRepositoryBase(conn
             connection);
         command.Parameters.AddWithValue("@PostId", post.PostId);
         command.Parameters.AddWithValue("@DeveloperId", post.DeveloperId);
-        command.Parameters.AddWithValue("@Parameter", post.Parameter);
+        command.Parameters.AddWithValue("@Parameter", PostParameterTypeMapper.ToStorageValue(post.ParameterType));
         command.Parameters.AddWithValue("@Value", post.Value);
         command.ExecuteNonQuery();
     }
@@ -75,7 +76,7 @@ public class SqlPostRepository(string connectionString) : SqlRepositoryBase(conn
             connection);
         command.Parameters.AddWithValue("@PostId", post.PostId);
         command.Parameters.AddWithValue("@DeveloperId", post.DeveloperId);
-        command.Parameters.AddWithValue("@Parameter", post.Parameter);
+        command.Parameters.AddWithValue("@Parameter", PostParameterTypeMapper.ToStorageValue(post.ParameterType));
         command.Parameters.AddWithValue("@Value", post.Value);
         command.ExecuteNonQuery();
     }
@@ -96,7 +97,7 @@ public class SqlPostRepository(string connectionString) : SqlRepositoryBase(conn
         {
             PostId = reader.GetInt32(0),
             DeveloperId = reader.GetInt32(1),
-            Parameter = reader.GetString(2),
+            ParameterType = PostParameterTypeMapper.FromStorageValue(reader.GetString(2)),
             Value = reader.GetString(3)
         };
     }

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page
+    x:Class="matchmaking.Views.Pages.SampleFormPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <Border Background="{StaticResource CardBackgroundBrush}"
+            CornerRadius="8"
+            Padding="24"
+            MaxWidth="640"
+            HorizontalAlignment="Stretch"
+            VerticalAlignment="Top">
+        <StackPanel Spacing="16">
+            <TextBlock Text="{Binding FormTitle}"
+                       FontSize="26"
+                       FontWeight="SemiBold" />
+
+            <TextBox Header="First Field"
+                     PlaceholderText="Enter first value"
+                     Text="{Binding FirstField, Mode=TwoWay}" />
+
+            <TextBox Header="Second Field"
+                     PlaceholderText="Enter second value"
+                     Text="{Binding SecondField, Mode=TwoWay}" />
+
+            <StackPanel Orientation="Horizontal" Spacing="12">
+                <Button Content="Primary Action"
+                        Command="{Binding PrimaryActionCommand}"
+                        Style="{StaticResource PrimaryActionButtonStyle}" />
+                <Button Content="Secondary Action"
+                        Command="{Binding SecondaryActionCommand}"
+                        Style="{StaticResource SecondaryActionButtonStyle}" />
+            </StackPanel>
+        </StackPanel>
+    </Border>
+</Page>

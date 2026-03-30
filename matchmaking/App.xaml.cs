@@ -17,6 +17,7 @@ using Windows.Foundation;
 using Windows.Foundation.Collections;
 using matchmaking.Config;
 using matchmaking.Domain.Session;
+using matchmaking.algorithm;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -41,6 +42,7 @@ namespace matchmaking
             InitializeComponent();
             Configuration = AppConfigurationLoader.Load();
             Session = new SessionContext();
+            
         }
 
         /// <summary>
