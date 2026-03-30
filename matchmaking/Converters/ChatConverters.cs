@@ -3,6 +3,7 @@ using System.IO;
 using System.Reflection;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Data;
+using Microsoft.UI.Xaml.Media.Imaging;
 using matchmaking.Domain.Entities;
 using matchmaking.Domain.Enums;
 using matchmaking.Repositories;
@@ -175,6 +176,64 @@ public class MessageAttachmentVisibilityConverter : IValueConverter
             return Visibility.Collapsed;
 
         return message.Type == MessageType.Text ? Visibility.Collapsed : Visibility.Visible;
+    }
+
+    public object ConvertBack(object value, Type targetType, object parameter, string language)
+    {
+        throw new NotImplementedException();
+    }
+}
+
+public class MessageFileAttachmentVisibilityConverter : IValueConverter
+{
+    public object Convert(object value, Type targetType, object parameter, string language)
+    {
+        if (value is not Message message)
+            return Visibility.Collapsed;
+
+        return message.Type == MessageType.File ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    public object ConvertBack(object value, Type targetType, object parameter, string language)
+    {
+        throw new NotImplementedException();
+    }
+}
+
+public class MessageImageVisibilityConverter : IValueConverter
+{
+    public object Convert(object value, Type targetType, object parameter, string language)
+    {
+        if (value is not Message message)
+            return Visibility.Collapsed;
+
+        return message.Type == MessageType.Image ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    public object ConvertBack(object value, Type targetType, object parameter, string language)
+    {
+        throw new NotImplementedException();
+    }
+}
+
+public class MessageImageSourceConverter : IValueConverter
+{
+    public object? Convert(object value, Type targetType, object parameter, string language)
+    {
+        if (value is not Message message || message.Type != MessageType.Image || string.IsNullOrWhiteSpace(message.Content))
+            return null;
+
+        try
+        {
+            if (!File.Exists(message.Content))
+                return null;
+
+            return new BitmapImage(new Uri(message.Content));
+        }
+        catch
+        {
+            return null;
+        }
     }
 
     public object ConvertBack(object value, Type targetType, object parameter, string language)

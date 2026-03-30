@@ -21,6 +21,9 @@
             <converters:IsCurrentUserMessageConverter x:Key="IsCurrentUserMessageConverter" />
             <converters:MessageTextVisibilityConverter x:Key="MessageTextVisibilityConverter" />
             <converters:MessageAttachmentVisibilityConverter x:Key="MessageAttachmentVisibilityConverter" />
+            <converters:MessageFileAttachmentVisibilityConverter x:Key="MessageFileAttachmentVisibilityConverter" />
+            <converters:MessageImageVisibilityConverter x:Key="MessageImageVisibilityConverter" />
+            <converters:MessageImageSourceConverter x:Key="MessageImageSourceConverter" />
             <converters:ReadReceiptConverter x:Key="ReadReceiptConverter" />
             <converters:MessageContentDisplayConverter x:Key="MessageContentDisplayConverter" />
             <converters:StringToVisibilityConverter x:Key="StringToVisibilityConverter" />
