@@ -14,8 +14,8 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <controls:AppHeaderControl x:Name="AppHeader"
-                       Grid.Row="0" />
+        <controls:AppHeaderControl x:Name="HeaderControl"
+                                   Grid.Row="0" />
 
         <Frame x:Name="ContentHostFrame"
                Grid.Row="1"

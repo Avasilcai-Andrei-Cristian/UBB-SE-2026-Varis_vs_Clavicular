@@ -35,6 +35,7 @@ namespace matchmaking
         public static SessionContext Session { get; private set; } = new();
         public static bool IsDatabaseConnectionAvailable { get; private set; }
         public static string DatabaseConnectionError { get; private set; } = string.Empty;
+        public static Window? MainWindow { get; private set; }
 
         /// <summary>
         /// Initializes the singleton application object.  This is the first line of authored code
@@ -85,6 +86,7 @@ namespace matchmaking
         protected override void OnLaunched(Microsoft.UI.Xaml.LaunchActivatedEventArgs args)
         {
             _window = new MainWindow();
+            MainWindow = _window;
             _window.Activate();
         }
     }

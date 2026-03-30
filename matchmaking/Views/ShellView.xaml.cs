@@ -18,8 +18,11 @@ public sealed partial class ShellView : UserControl
             onMyStatus: NavigateToMyStatus,
             onChat: NavigateToChat);
         DataContext = _viewModel;
-        AppHeader.MyStatusRequested += OnMyStatusRequested;
-        AppHeader.ChatRequested += OnChatRequested;
+
+        HeaderControl.RecommendationsRequested += OnRecommendationsRequested;
+        HeaderControl.MyStatusRequested += OnMyStatusRequested;
+        HeaderControl.ChatRequested += OnChatRequested;
+
         Loaded += OnLoaded;
     }
 
@@ -33,6 +36,7 @@ public sealed partial class ShellView : UserControl
 
     private void NavigateToRecommendations()
     {
+        Navigate(typeof(SampleFormPage));
     }
 
     private void NavigateToMyStatus()
@@ -42,7 +46,7 @@ public sealed partial class ShellView : UserControl
 
     private void NavigateToChat()
     {
-        Navigate(typeof(SampleFormPage));
+        Navigate(typeof(ChatPageView));
     }
 
     private void Navigate(Type pageType)
@@ -53,6 +57,11 @@ public sealed partial class ShellView : UserControl
         }
 
         ContentHostFrame.Navigate(pageType);
+    }
+
+    private void OnRecommendationsRequested(object? sender, EventArgs e)
+    {
+        NavigateToRecommendations();
     }
 
     private void OnMyStatusRequested(object? sender, EventArgs e)
