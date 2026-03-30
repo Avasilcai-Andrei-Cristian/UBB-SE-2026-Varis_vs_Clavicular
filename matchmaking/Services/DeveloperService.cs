@@ -1,11 +1,8 @@
-﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using matchmaking.Domain.Entities;
-using matchmaking.Repositories;
 using matchmaking.Domain.Enums;
+using matchmaking.Repositories;
 
 namespace matchmaking.Services;
 
@@ -21,7 +18,7 @@ public class DeveloperService
         _postRepository = postRepository;
         _interactionRepository = interactionRepository;
     }
-    
+
     public IReadOnlyList<Post> GetPosts()
     {
         return _postRepository.GetAll();
@@ -30,6 +27,11 @@ public class DeveloperService
     public IReadOnlyList<Interaction> GetInteractions()
     {
         return _interactionRepository.GetAll();
+    }
+
+    public Developer? GetDeveloperById(int developerId)
+    {
+        return _developerRepository.GetById(developerId);
     }
 
     public void addPost(int developerId, string parameter, string value)
@@ -43,7 +45,7 @@ public class DeveloperService
         _postRepository.Add(post);
     }
 
-    public void addInteraction( int developerId, int postId, InteractionType type)
+    public void addInteraction(int developerId, int postId, InteractionType type)
     {
         var interaction = new Interaction
         {
@@ -53,5 +55,9 @@ public class DeveloperService
         };
         _interactionRepository.Add(interaction);
     }
-}
 
+    public void removeInteraction(int interactionId)
+    {
+        _interactionRepository.Remove(interactionId);
+    }
+}

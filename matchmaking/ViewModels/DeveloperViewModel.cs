@@ -37,8 +37,23 @@ public class DeveloperViewModel : ObservableObject
         var developerId = _session.CurrentDeveloperId
             ?? throw new InvalidOperationException("No developer session is active.");
 
+        var existing = _developerService.GetInteractions()
+            .FirstOrDefault(i => i.DeveloperId == developerId && i.PostId == postId);
 
-        _developerService.addInteraction(developerId, postId, InteractionType.Like);
+        if (existing == null)
+        {
+            _developerService.addInteraction(developerId, postId, InteractionType.Like);
+        }
+        else if (existing.Type == InteractionType.Like)
+        {
+            _developerService.removeInteraction(existing.InteractionId);
+        }
+        else
+        {
+            _developerService.removeInteraction(existing.InteractionId);
+            _developerService.addInteraction(developerId, postId, InteractionType.Like);
+        }
+
         LoadData();
     }
 
@@ -47,8 +62,23 @@ public class DeveloperViewModel : ObservableObject
         var developerId = _session.CurrentDeveloperId
             ?? throw new InvalidOperationException("No developer session is active.");
 
+        var existing = _developerService.GetInteractions()
+            .FirstOrDefault(i => i.DeveloperId == developerId && i.PostId == postId);
 
-        _developerService.addInteraction(developerId, postId, InteractionType.Dislike);
+        if (existing == null)
+        {
+            _developerService.addInteraction(developerId, postId, InteractionType.Dislike);
+        }
+        else if (existing.Type == InteractionType.Dislike)
+        {
+            _developerService.removeInteraction(existing.InteractionId);
+        }
+        else
+        {
+            _developerService.removeInteraction(existing.InteractionId);
+            _developerService.addInteraction(developerId, postId, InteractionType.Dislike);
+        }
+
         LoadData();
     }
 
