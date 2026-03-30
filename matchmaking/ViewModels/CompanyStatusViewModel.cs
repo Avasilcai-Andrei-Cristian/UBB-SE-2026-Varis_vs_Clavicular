@@ -21,23 +21,19 @@ public class CompanyStatusViewModel : ObservableObject
     private readonly RelayCommand _refreshCommand;
     private readonly RelayCommand _submitDecisionCommand;
     private readonly RelayCommand _cancelEvaluationCommand;
-    private readonly RelayCommand _unmaskContactCommand;
 
     private UserApplicationResult? _selectedApplicant;
     private Match? _selectedMatch;
     private MatchStatus? _selectedDecision;
     private string _feedbackMessage = string.Empty;
-    private bool _isContactUnmasked;
-    private string _maskedEmail = string.Empty;
-    private string _maskedPhone = string.Empty;
-    private string _unmaskedEmail = string.Empty;
-    private string _unmaskedPhone = string.Empty;
     private bool _isLoading;
     private string _validationErrorDecision = string.Empty;
     private string _validationErrorFeedback = string.Empty;
     private bool _hasValidationErrors;
     private TestResult? _lastTestResult;
     private string _pageMessage = string.Empty;
+
+    public event Action<string>? ErrorOccurred;
 
     public CompanyStatusViewModel(
         CompanyStatusService companyStatusService,
@@ -53,7 +49,6 @@ public class CompanyStatusViewModel : ObservableObject
         _refreshCommand = new RelayCommand(async () => await RefreshAsync(), () => !IsLoading);
         _submitDecisionCommand = new RelayCommand(async () => await SubmitDecisionAsync(), CanSubmitDecision);
         _cancelEvaluationCommand = new RelayCommand(CancelEvaluation, () => SelectedApplicant is not null);
-        _unmaskContactCommand = new RelayCommand(UnmaskContactInfo, CanUnmaskContact);
     }
 
     public ObservableCollection<UserApplicationResult> Applications { get; } = [];
@@ -71,9 +66,7 @@ public class CompanyStatusViewModel : ObservableObject
                     SelectedMatch = null;
                     SelectedDecision = null;
                     FeedbackMessage = string.Empty;
-                    IsContactUnmasked = false;
                     LastTestResult = null;
-                    UpdateContactMasks();
                 }
 
                 RaiseCommandStates();
@@ -111,43 +104,6 @@ public class CompanyStatusViewModel : ObservableObject
                 RaiseCommandStates();
             }
         }
-    }
-
-    public bool IsContactUnmasked
-    {
-        get => _isContactUnmasked;
-        private set
-        {
-            if (SetProperty(ref _isContactUnmasked, value))
-            {
-                UpdateContactMasks();
-                RaiseCommandStates();
-            }
-        }
-    }
-
-    public string MaskedEmail
-    {
-        get => _maskedEmail;
-        private set => SetProperty(ref _maskedEmail, value);
-    }
-
-    public string MaskedPhone
-    {
-        get => _maskedPhone;
-        private set => SetProperty(ref _maskedPhone, value);
-    }
-
-    public string UnmaskedEmail
-    {
-        get => _unmaskedEmail;
-        private set => SetProperty(ref _unmaskedEmail, value);
-    }
-
-    public string UnmaskedPhone
-    {
-        get => _unmaskedPhone;
-        private set => SetProperty(ref _unmaskedPhone, value);
     }
 
     public bool IsLoading
@@ -195,7 +151,6 @@ public class CompanyStatusViewModel : ObservableObject
     public ICommand RefreshCommand => _refreshCommand;
     public ICommand SubmitDecisionCommand => _submitDecisionCommand;
     public ICommand CancelEvaluationCommand => _cancelEvaluationCommand;
-    public ICommand UnmaskContactCommand => _unmaskContactCommand;
 
     public async Task LoadApplicationsAsync()
     {
@@ -203,7 +158,7 @@ public class CompanyStatusViewModel : ObservableObject
         {
             Applications.Clear();
             CancelEvaluation();
-            PageMessage = "Company mode is not active.";
+            ReportError("Company mode is not active.");
             return;
         }
 
@@ -227,12 +182,24 @@ public class CompanyStatusViewModel : ObservableObject
             {
                 PageMessage = "No applicants found for this company yet.";
             }
+            else
+            {
+                var pendingCount = Applications.Count(result => result.Match.Status == MatchStatus.Applied);
+                if (pendingCount == 0)
+                {
+                    PageMessage = "No applicants are currently pending review. All are already accepted or rejected.";
+                }
+                else
+                {
+                    PageMessage = $"{pendingCount} applicant(s) pending review.";
+                }
+            }
         }
         catch (Exception ex)
         {
             Applications.Clear();
             CancelEvaluation();
-            PageMessage = $"Could not load applicants: {ex.Message}";
+            ReportError($"Could not load applicants: {ex.Message}");
         }
         finally
         {
@@ -246,6 +213,7 @@ public class CompanyStatusViewModel : ObservableObject
     {
         if (_session.CurrentCompanyId is null)
         {
+            ReportError("Company context is not available.");
             return false;
         }
 
@@ -254,7 +222,7 @@ public class CompanyStatusViewModel : ObservableObject
             var result = await _companyStatusService.GetApplicantByMatchIdAsync(_session.CurrentCompanyId.Value, matchId);
             if (result is null)
             {
-                PageMessage = "Selected applicant could not be loaded.";
+                ReportError("Selected applicant could not be loaded.");
                 return false;
             }
 
@@ -272,7 +240,6 @@ public class CompanyStatusViewModel : ObservableObject
             }
 
             FeedbackMessage = result.Match.FeedbackMessage;
-            IsContactUnmasked = false;
 
             ValidateAll();
 
@@ -284,7 +251,7 @@ public class CompanyStatusViewModel : ObservableObject
         }
         catch (Exception ex)
         {
-            PageMessage = $"Could not load applicant details: {ex.Message}";
+            ReportError($"Could not load applicant details: {ex.Message}");
             return false;
         }
     }
@@ -349,19 +316,9 @@ public class CompanyStatusViewModel : ObservableObject
         }
         catch (Exception ex)
         {
-            PageMessage = $"Could not submit decision: {ex.Message}";
+            ReportError($"Could not submit decision: {ex.Message}");
             return false;
         }
-    }
-
-    public void UnmaskContactInfo()
-    {
-        if (SelectedApplicant is null)
-        {
-            return;
-        }
-
-        IsContactUnmasked = true;
     }
 
     public void CancelEvaluation()
@@ -370,10 +327,7 @@ public class CompanyStatusViewModel : ObservableObject
         SelectedMatch = null;
         SelectedDecision = null;
         FeedbackMessage = string.Empty;
-        IsContactUnmasked = false;
         LastTestResult = null;
-
-        UpdateContactMasks();
         ClearValidationErrors();
         RaiseCommandStates();
     }
@@ -419,26 +373,6 @@ public class CompanyStatusViewModel : ObservableObject
         }
     }
 
-    private void UpdateContactMasks()
-    {
-        var email = SelectedApplicant?.User.Email ?? string.Empty;
-        var phone = SelectedApplicant?.User.Phone ?? string.Empty;
-
-        if (IsContactUnmasked)
-        {
-            UnmaskedEmail = email;
-            UnmaskedPhone = phone;
-        }
-        else
-        {
-            UnmaskedEmail = string.Empty;
-            UnmaskedPhone = string.Empty;
-        }
-
-        MaskedEmail = MaskEmail(email);
-        MaskedPhone = MaskPhone(phone);
-    }
-
     private void ClearValidationErrors()
     {
         ValidationErrorDecision = string.Empty;
@@ -451,7 +385,6 @@ public class CompanyStatusViewModel : ObservableObject
         _refreshCommand.RaiseCanExecuteChanged();
         _submitDecisionCommand.RaiseCanExecuteChanged();
         _cancelEvaluationCommand.RaiseCanExecuteChanged();
-        _unmaskContactCommand.RaiseCanExecuteChanged();
     }
 
     private bool CanSubmitDecision()
@@ -459,42 +392,9 @@ public class CompanyStatusViewModel : ObservableObject
         return !IsLoading && SelectedMatch is not null && SelectedDecision is not null;
     }
 
-    private bool CanUnmaskContact()
+    private void ReportError(string message)
     {
-        return !IsLoading && SelectedApplicant is not null && !IsContactUnmasked;
-    }
-
-    private static string MaskEmail(string email)
-    {
-        if (string.IsNullOrWhiteSpace(email) || !email.Contains('@'))
-        {
-            return string.Empty;
-        }
-
-        var atIndex = email.IndexOf('@');
-        if (atIndex <= 1)
-        {
-            return "***" + email[atIndex..];
-        }
-
-        return email[0] + new string('*', atIndex - 1) + email[atIndex..];
-    }
-
-    private static string MaskPhone(string phone)
-    {
-        if (string.IsNullOrWhiteSpace(phone))
-        {
-            return string.Empty;
-        }
-
-        var trimmed = phone.Trim();
-        if (trimmed.Length <= 4)
-        {
-            return new string('*', trimmed.Length);
-        }
-
-        var prefix = trimmed[..2];
-        var suffix = trimmed[^2..];
-        return prefix + new string('*', trimmed.Length - 4) + suffix;
+        PageMessage = string.Empty;
+        ErrorOccurred?.Invoke(message);
     }
 }
