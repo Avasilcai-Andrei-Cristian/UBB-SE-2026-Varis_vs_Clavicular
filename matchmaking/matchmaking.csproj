@@ -5,6 +5,8 @@
     <TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
     <RootNamespace>matchmaking</RootNamespace>
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <!-- CLI `dotnet build` defaults to AnyCPU; MSIX-packaged WinUI needs a real platform + win-$(Platform).pubxml. -->
+    <Platform Condition="'$(Platform)' == 'AnyCPU'">ARM64</Platform>
     <Platforms>x86;x64;ARM64</Platforms>
     <RuntimeIdentifiers>win-x86;win-x64;win-arm64</RuntimeIdentifiers>
     <PublishProfile>win-$(Platform).pubxml</PublishProfile>
