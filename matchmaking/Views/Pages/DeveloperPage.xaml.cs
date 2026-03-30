@@ -1,4 +1,3 @@
-using System;
 using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -6,6 +5,7 @@ using Microsoft.UI.Xaml.Media;
 using matchmaking.Repositories;
 using matchmaking.Services;
 using matchmaking.ViewModels;
+using System;
 
 namespace matchmaking.Views.Pages;
 
@@ -35,12 +35,12 @@ public sealed partial class DeveloperPage : Page
             HorizontalAlignment = HorizontalAlignment.Stretch,
             MinWidth = 380
         };
-        _parameterComboBox.Items.Add(new ComboBoxItem { Content = "mitigation factor",                  Tag = "mitigation_factor" });
-        _parameterComboBox.Items.Add(new ComboBoxItem { Content = "weighted distance score weight",     Tag = "weight_distance" });
-        _parameterComboBox.Items.Add(new ComboBoxItem { Content = "job-resume similarity score weight", Tag = "weight_similarity" });
-        _parameterComboBox.Items.Add(new ComboBoxItem { Content = "preference score weight",            Tag = "weight_preference" });
-        _parameterComboBox.Items.Add(new ComboBoxItem { Content = "promotion score weight",             Tag = "weight_promotion" });
-        _parameterComboBox.Items.Add(new ComboBoxItem { Content = "relevant keyword",                   Tag = "keyword" });
+        _parameterComboBox.Items.Add(new ComboBoxItem { Content = "mitigation factor",                  Tag = "mitigation factor" });
+        _parameterComboBox.Items.Add(new ComboBoxItem { Content = "weighted distance score weight",     Tag = "weighted distance score weight" });
+        _parameterComboBox.Items.Add(new ComboBoxItem { Content = "job-resume similarity score weight", Tag = "job-resume similarity score weight" });
+        _parameterComboBox.Items.Add(new ComboBoxItem { Content = "preference score weight",            Tag = "preference score weight" });
+        _parameterComboBox.Items.Add(new ComboBoxItem { Content = "promotion score weight",             Tag = "promotion score weight" });
+        _parameterComboBox.Items.Add(new ComboBoxItem { Content = "relevant keyword",                   Tag = "relevant keyword" });
 
         _valueTextBox = new TextBox
         {
@@ -88,7 +88,7 @@ public sealed partial class DeveloperPage : Page
         var tag = selectedItem.Tag as string ?? string.Empty;
         var rawValue = _valueTextBox.Text?.Trim() ?? string.Empty;
 
-        if (tag == "keyword")
+        if (tag == "relevant keyword")
         {
             if (string.IsNullOrEmpty(rawValue))
             {
@@ -103,7 +103,7 @@ public sealed partial class DeveloperPage : Page
                 return;
             }
         }
-        else if (tag == "mitigation_factor")
+        else if (tag == "mitigation factor")
         {
             if (!double.TryParse(rawValue, out double val) || val < 1)
             {

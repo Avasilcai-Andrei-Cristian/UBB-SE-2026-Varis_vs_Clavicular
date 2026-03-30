@@ -27,7 +27,6 @@ public class DeveloperViewModel : ObservableObject
         var developerId = _session.CurrentDeveloperId
             ?? throw new InvalidOperationException("No developer session is active.");
 
-
         _developerService.addPost(developerId, parameter, value);
         LoadData();
     }
@@ -87,11 +86,21 @@ public class DeveloperViewModel : ObservableObject
         var posts = _developerService.GetPosts();
         var interactions = _developerService.GetInteractions();
 
+        var developerNames = posts
+            .Select(p => p.DeveloperId)
+            .Distinct()
+            .ToDictionary(
+                id => id,
+                id => _developerService.GetDeveloperById(id)?.Name ?? $"Developer #{id}");
+
+        var currentDeveloperId = _session.CurrentDeveloperId ?? 0;
+
         Posts.Clear();
         foreach (var post in posts)
         {
             var postInteractions = interactions.Where(i => i.PostId == post.PostId);
-            Posts.Add(new PostViewModel(post, postInteractions));
+            var authorName = developerNames[post.DeveloperId];
+            Posts.Add(new PostViewModel(post, postInteractions, authorName, currentDeveloperId));
         }
     }
 }
