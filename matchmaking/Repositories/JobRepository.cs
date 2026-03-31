@@ -9,21 +9,171 @@ public class JobRepository
 {
     private readonly List<Job> _jobs =
     [
-        new() { JobId = 100, JobDescription = "Backend Engineer", Location = "Bucharest", EmploymentType = "Full-time", CompanyId = 1, PromotionLevel = 2 },
-        new() { JobId = 101, JobDescription = "Python Developer", Location = "Bucharest", EmploymentType = "Full-time", CompanyId = 1, PromotionLevel = 2 },
-        new() { JobId = 102, JobDescription = "Frontend Engineer", Location = "Bucharest", EmploymentType = "Hybrid", CompanyId = 1, PromotionLevel = 1 },
-        new() { JobId = 103, JobDescription = "DevOps Engineer", Location = "Bucharest", EmploymentType = "Remote", CompanyId = 1, PromotionLevel = 3 },
-        new() { JobId = 104, JobDescription = "QA Engineer", Location = "Bucharest", EmploymentType = "Full-time", CompanyId = 1, PromotionLevel = 1 },
-        new() { JobId = 1, JobDescription = "Junior Frontend Developer", Location = "Cluj-Napoca", EmploymentType = "Full-time", CompanyId = 4, PromotionLevel = 1 },
-        new() { JobId = 2, JobDescription = "Backend .NET Developer", Location = "Bucharest", EmploymentType = "Hybrid", CompanyId = 1, PromotionLevel = 2 },
-        new() { JobId = 3, JobDescription = "QA Automation Engineer", Location = "Iasi", EmploymentType = "Full-time", CompanyId = 8, PromotionLevel = 1 },
-        new() { JobId = 4, JobDescription = "DevOps Engineer", Location = "Timisoara", EmploymentType = "Remote", CompanyId = 2, PromotionLevel = 3 },
-        new() { JobId = 5, JobDescription = "Data Analyst", Location = "Brasov", EmploymentType = "Hybrid", CompanyId = 3, PromotionLevel = 1 },
-        new() { JobId = 6, JobDescription = "ML Engineer", Location = "Oradea", EmploymentType = "Full-time", CompanyId = 9, PromotionLevel = 2 },
-        new() { JobId = 7, JobDescription = "UI/UX Designer", Location = "Sibiu", EmploymentType = "Part-time", CompanyId = 7, PromotionLevel = 1 },
-        new() { JobId = 8, JobDescription = "Technical Lead", Location = "Constanta", EmploymentType = "Hybrid", CompanyId = 10, PromotionLevel = 4 },
-        new() { JobId = 9, JobDescription = "Full-Stack Developer", Location = "Craiova", EmploymentType = "Remote", CompanyId = 6, PromotionLevel = 2 },
-        new() { JobId = 10, JobDescription = "Cloud Architect", Location = "Targu Mures", EmploymentType = "Full-time", CompanyId = 5, PromotionLevel = 5 }
+        new()
+        {
+            JobId = 100,
+            JobTitle = "Backend Engineer",
+            JobDescription =
+                "Design and maintain REST APIs and internal microservices. Collaborate with product on requirements, code reviews, and production incidents.",
+            Location = "Bucharest",
+            EmploymentType = "Full-time",
+            CompanyId = 1,
+            PromotionLevel = 2
+        },
+        new()
+        {
+            JobId = 101,
+            JobTitle = "Python Developer",
+            JobDescription =
+                "Build data pipelines and backend services in Python. Work with analysts to ship reliable batch and streaming jobs.",
+            Location = "Bucharest",
+            EmploymentType = "Full-time",
+            CompanyId = 1,
+            PromotionLevel = 2
+        },
+        new()
+        {
+            JobId = 102,
+            JobTitle = "Frontend Engineer",
+            JobDescription =
+                "Implement responsive UIs with modern frameworks. Partner with designers and API teams to deliver accessible, performant features.",
+            Location = "Bucharest",
+            EmploymentType = "Hybrid",
+            CompanyId = 1,
+            PromotionLevel = 1
+        },
+        new()
+        {
+            JobId = 103,
+            JobTitle = "DevOps Engineer",
+            JobDescription =
+                "Own CI/CD, infrastructure as code, and observability. Improve deployment safety and developer experience across squads.",
+            Location = "Bucharest",
+            EmploymentType = "Remote",
+            CompanyId = 1,
+            PromotionLevel = 3
+        },
+        new()
+        {
+            JobId = 104,
+            JobTitle = "QA Engineer",
+            JobDescription =
+                "Plan and execute manual and automated tests. File clear defects and work with developers to improve quality gates.",
+            Location = "Bucharest",
+            EmploymentType = "Full-time",
+            CompanyId = 1,
+            PromotionLevel = 1
+        },
+        new()
+        {
+            JobId = 1,
+            JobTitle = "Junior Frontend Developer",
+            JobDescription =
+                "Ship UI features for our web app under mentorship. Learn React, testing, and our design system while pairing with senior engineers.",
+            Location = "Cluj-Napoca",
+            EmploymentType = "Full-time",
+            CompanyId = 4,
+            PromotionLevel = 1
+        },
+        new()
+        {
+            JobId = 2,
+            JobTitle = "Backend .NET Developer",
+            JobDescription =
+                "Join our Bucharest team building enterprise APIs and integrations. Strong C# and SQL; experience with Azure or containers is a plus.",
+            Location = "Bucharest",
+            EmploymentType = "Hybrid",
+            CompanyId = 1,
+            PromotionLevel = 2
+        },
+        new()
+        {
+            JobId = 3,
+            JobTitle = "QA Automation Engineer",
+            JobDescription =
+                "Expand our automated regression suite and integrate tests into CI. Comfortable with web drivers and API testing.",
+            Location = "Iasi",
+            EmploymentType = "Full-time",
+            CompanyId = 8,
+            PromotionLevel = 1
+        },
+        new()
+        {
+            JobId = 4,
+            JobTitle = "DevOps Engineer",
+            JobDescription =
+                "Manage Kubernetes clusters, pipelines, and secrets. On-call rotation with clear runbooks and blameless postmortems.",
+            Location = "Timisoara",
+            EmploymentType = "Remote",
+            CompanyId = 2,
+            PromotionLevel = 3
+        },
+        new()
+        {
+            JobId = 5,
+            JobTitle = "Data Analyst",
+            JobDescription =
+                "Turn business questions into dashboards and ad hoc analyses. SQL and visualization tools; curiosity about the domain.",
+            Location = "Brasov",
+            EmploymentType = "Hybrid",
+            CompanyId = 3,
+            PromotionLevel = 1
+        },
+        new()
+        {
+            JobId = 6,
+            JobTitle = "ML Engineer",
+            JobDescription =
+                "Train and evaluate models for production use. Collaborate on feature stores, monitoring drift, and responsible deployment.",
+            Location = "Oradea",
+            EmploymentType = "Full-time",
+            CompanyId = 9,
+            PromotionLevel = 2
+        },
+        new()
+        {
+            JobId = 7,
+            JobTitle = "UI/UX Designer",
+            JobDescription =
+                "Own flows from research to high-fidelity specs. Work closely with engineering to ship polished, usable interfaces.",
+            Location = "Sibiu",
+            EmploymentType = "Part-time",
+            CompanyId = 7,
+            PromotionLevel = 1
+        },
+        new()
+        {
+            JobId = 8,
+            JobTitle = "Technical Lead",
+            JobDescription =
+                "Lead a cross-functional team: architecture decisions, mentoring, and delivery planning. Hands-on when critical paths need it.",
+            Location = "Constanta",
+            EmploymentType = "Hybrid",
+            CompanyId = 10,
+            PromotionLevel = 4
+        },
+        new()
+        {
+            JobId = 9,
+            JobTitle = "Full-Stack Developer",
+            JobDescription =
+                "End-to-end features across API and SPA. Balance speed with tests, documentation, and operational readiness.",
+            Location = "Craiova",
+            EmploymentType = "Remote",
+            CompanyId = 6,
+            PromotionLevel = 2
+        },
+        new()
+        {
+            JobId = 10,
+            JobTitle = "Cloud Architect",
+            JobDescription =
+                "Define cloud landing zones, security patterns, and cost guardrails. Align stakeholders on multi-year platform roadmap.",
+            Location = "Targu Mures",
+            EmploymentType = "Full-time",
+            CompanyId = 5,
+            PromotionLevel = 5
+        }
     ];
 
     public Job? GetById(int jobId) => _jobs.FirstOrDefault(j => j.JobId == jobId);
@@ -46,6 +196,7 @@ public class JobRepository
     public void Update(Job job)
     {
         var existing = GetById(job.JobId) ?? throw new KeyNotFoundException($"Job with id {job.JobId} was not found.");
+        existing.JobTitle = job.JobTitle;
         existing.JobDescription = job.JobDescription;
         existing.Location = job.Location;
         existing.EmploymentType = job.EmploymentType;

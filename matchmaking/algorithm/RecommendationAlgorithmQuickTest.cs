@@ -23,7 +23,8 @@ public static class RecommendationAlgorithmQuickTest
         var job = new Job
         {
             JobId = 888,
-            JobDescription = "cloud ai engineer",
+            JobTitle = "Cloud AI Engineer",
+            JobDescription = "Senior cloud AI engineer role. Work with docker, kubernetes, and ML pipelines.",
             Location = "Cluj-Napoca",
             EmploymentType = "Remote",
             PromotionLevel = 70

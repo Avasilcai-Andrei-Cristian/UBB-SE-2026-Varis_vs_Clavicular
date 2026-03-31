@@ -225,7 +225,7 @@ public sealed partial class ChatPageView : Page
             PlaceholderText = "Select a job (optional)",
             MinWidth = 320,
             ItemsSource = jobs,
-            DisplayMemberPath = nameof(Job.JobDescription)
+            DisplayMemberPath = nameof(Job.JobTitle)
         };
 
         var dialog = new ContentDialog

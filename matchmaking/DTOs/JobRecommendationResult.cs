@@ -17,11 +17,17 @@ public sealed class JobRecommendationResult
     /// <summary>SQL row id for the &quot;shown&quot; timestamp (§6); cleared after undo removes it.</summary>
     public int? DisplayRecommendationId { get; init; }
 
-    /// <summary>First line of job description for card title area.</summary>
+    /// <summary>Job title for cards and headers (requirements §2); falls back to first line of description if unset.</summary>
     public string JobTitleLine
     {
         get
         {
+            var title = Job.JobTitle.Trim();
+            if (!string.IsNullOrEmpty(title))
+            {
+                return title.Length > 80 ? title[..80] + "…" : title;
+            }
+
             var d = Job.JobDescription.Trim();
             if (string.IsNullOrEmpty(d))
             {
