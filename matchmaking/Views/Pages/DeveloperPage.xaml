@@ -26,12 +26,12 @@
         </Grid.RowDefinitions>
 
         <!-- ── Header (edge-to-edge) ── -->
-        <controls:DeveloperHeaderControl
+        <!--<controls:DeveloperHeaderControl
             Grid.Row="0"
-            Margin="-24,-24,-24,0" />
+            Margin="-24,-24,-24,0" />-->
 
         <!-- ── Page title + New Post button ── -->
-        <Grid Grid.Row="1"
+        <Grid Grid.Row="0"
               Padding="0,28,0,20">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />

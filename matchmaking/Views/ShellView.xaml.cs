@@ -37,7 +37,7 @@ public sealed partial class ShellView : UserControl
             SpinButtonPlacementMode = NumberBoxSpinButtonPlacementMode.Inline
         };
 
-        var dialog = new ContentDialog
+        /*var dialog = new ContentDialog
         {
             Title = "Log in as Developer",
             Content = input,
@@ -46,9 +46,9 @@ public sealed partial class ShellView : UserControl
             XamlRoot = this.XamlRoot
         };
 
-        await dialog.ShowAsync();
+        await dialog.ShowAsync();*/
 
-        var devId = (int)input.Value;
+        var devId = 1;
         App.Session.LoginAsDeveloper(devId);
 
         if (ContentHostFrame.Content is null)
