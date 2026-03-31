@@ -81,9 +81,6 @@ public class SqlMatchRepository(string connectionString) : SqlRepositoryBase(con
         command.ExecuteNonQuery();
     }
 
-    /// <summary>
-    /// Inserts a match row using IDENTITY for MatchID and returns the new id.
-    /// </summary>
     public int InsertReturningId(Match match)
     {
         using var connection = OpenConnection();

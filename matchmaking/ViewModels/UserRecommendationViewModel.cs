@@ -61,7 +61,9 @@ public sealed class UserRecommendationViewModel : ObservableObject
             DraftSkillSelections.Add(new SkillFilterItem(skillId, name));
         }
 
-        _refreshCommand = new RelayCommand(async () => await RefreshAsync(), () => !IsLoading);
+        _refreshCommand = new RelayCommand(
+            async () => await RefreshAsync(requeryDeck: false),
+            () => !IsLoading);
         _likeCommand = new RelayCommand(async () => await LikeAsync(), () => CanAct());
         _dismissCommand = new RelayCommand(async () => await DismissAsync(), () => CanAct());
         _undoCommand = new RelayCommand(async () => await UndoAsync(), () => CanUndo && !IsLoading);
@@ -197,11 +199,10 @@ public sealed class UserRecommendationViewModel : ObservableObject
 
     public async Task InitializeAsync()
     {
-        await RefreshAsync();
+        await RefreshAsync(requeryDeck: true);
     }
 
-    /// <summary>Reload deck (code-behind calls after <see cref="ApplyFiltersAsync"/> or refresh).</summary>
-    public async Task RefreshAsync()
+    public async Task RefreshAsync(bool requeryDeck = false)
     {
         if (!App.IsDatabaseConnectionAvailable)
         {
@@ -223,11 +224,28 @@ public sealed class UserRecommendationViewModel : ObservableObject
         {
             await Task.Yield();
             var userId = _session.CurrentUserId.Value;
-            var next = _service.GetNextCard(userId, _appliedFilters);
-            CurrentJob = next;
-            if (next is null)
+
+            if (requeryDeck || CurrentJob is null)
             {
-                ErrorMessage = string.Empty;
+                var next = _service.GetNextCard(userId, _appliedFilters);
+                CurrentJob = next;
+                if (next is null)
+                {
+                    ErrorMessage = string.Empty;
+                }
+            }
+            else
+            {
+                var refreshed = _service.RefreshDisplayedCard(userId, CurrentJob, _appliedFilters);
+                if (refreshed is not null)
+                {
+                    CurrentJob = refreshed;
+                }
+                else
+                {
+                    CurrentJob = null;
+                    ErrorMessage = string.Empty;
+                }
             }
         }
         catch (Exception ex)
@@ -389,7 +407,7 @@ public sealed class UserRecommendationViewModel : ObservableObject
         }
 
         IsFilterOpen = false;
-        await RefreshAsync();
+        await RefreshAsync(requeryDeck: true);
     }
 
     public void ResetDraftFilters()

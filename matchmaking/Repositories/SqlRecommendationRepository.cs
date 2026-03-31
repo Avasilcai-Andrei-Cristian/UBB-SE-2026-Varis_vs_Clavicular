@@ -90,7 +90,6 @@ public class SqlRecommendationRepository(string connectionString) : SqlRepositor
         return result;
     }
 
-    /// <summary>Latest recommendation row for a user/job pair, if any.</summary>
     public Recommendation? GetLatestByUserIdAndJobId(int userId, int jobId)
     {
         using var connection = OpenConnection();
@@ -109,7 +108,6 @@ public class SqlRecommendationRepository(string connectionString) : SqlRepositor
         return reader.Read() ? Map(reader) : null;
     }
 
-    /// <summary>Inserts using IDENTITY and returns new RecommendationId.</summary>
     public int InsertReturningId(Recommendation recommendation)
     {
         using var connection = OpenConnection();

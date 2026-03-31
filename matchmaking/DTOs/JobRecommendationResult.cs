@@ -5,19 +5,14 @@ using matchmaking.Domain.Entities;
 
 namespace matchmaking.DTOs;
 
-/// <summary>
-/// One ranked job card for the user matchmaking deck (UML JobRecommendationResult).
-/// </summary>
 public sealed class JobRecommendationResult
 {
     public required Job Job { get; init; }
     public required Company Company { get; init; }
     public double CompatibilityScore { get; init; }
 
-    /// <summary>SQL row id for the &quot;shown&quot; timestamp (§6); cleared after undo removes it.</summary>
     public int? DisplayRecommendationId { get; init; }
 
-    /// <summary>Job title for cards and headers (requirements §2); falls back to first line of description if unset.</summary>
     public string JobTitleLine
     {
         get
@@ -49,7 +44,6 @@ public sealed class JobRecommendationResult
 
     public IReadOnlyList<string> TopSkillLabels { get; init; } = [];
 
-    /// <summary>All required skills with thresholds (detail view).</summary>
     public IReadOnlyList<string> AllSkillLabels { get; init; } = [];
 
     public string ContactLine => $"{Company.Email} · {Company.Phone}";

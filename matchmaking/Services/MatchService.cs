@@ -24,7 +24,6 @@ public class MatchService
     public Match? GetByUserIdAndJobId(int userId, int jobId) =>
         _matchRepository.GetByUserIdAndJobId(userId, jobId);
 
-    /// <summary>User applies to a job (Pending in SQL / <see cref="MatchStatus.Applied"/>).</summary>
     public int CreatePendingApplication(int userId, int jobId)
     {
         if (GetByUserIdAndJobId(userId, jobId) is not null)
