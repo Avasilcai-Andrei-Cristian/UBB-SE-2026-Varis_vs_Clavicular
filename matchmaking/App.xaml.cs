@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -47,8 +47,8 @@ namespace matchmaking
             Configuration = AppConfigurationLoader.Load();
             Session = new SessionContext();
 
-            // Bootstrap app directly in company mode for Company Status workflow.
-            Session.LoginAsCompany(1);
+            // User matchmaking flow for Recommendations; switch to LoginAsCompany when testing company flows.
+            Session.LoginAsUser(1);
 
             CheckDatabaseConnection();
         }

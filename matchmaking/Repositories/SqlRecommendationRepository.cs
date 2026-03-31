@@ -72,6 +72,61 @@ public class SqlRecommendationRepository(string connectionString) : SqlRepositor
         command.ExecuteNonQuery();
     }
 
+    public IReadOnlyList<Recommendation> GetByUserId(int userId)
+    {
+        using var connection = OpenConnection();
+        using var command = new SqlCommand(
+            "SELECT RecommendationId, UserId, JobId, Timestamp FROM Recommendation WHERE UserId = @UserId",
+            connection);
+        command.Parameters.AddWithValue("@UserId", userId);
+        using var reader = command.ExecuteReader();
+
+        var result = new List<Recommendation>();
+        while (reader.Read())
+        {
+            result.Add(Map(reader));
+        }
+
+        return result;
+    }
+
+    /// <summary>Latest recommendation row for a user/job pair, if any.</summary>
+    public Recommendation? GetLatestByUserIdAndJobId(int userId, int jobId)
+    {
+        using var connection = OpenConnection();
+        using var command = new SqlCommand(
+            """
+            SELECT TOP (1) RecommendationId, UserId, JobId, Timestamp
+            FROM Recommendation
+            WHERE UserId = @UserId AND JobId = @JobId
+            ORDER BY Timestamp DESC
+            """,
+            connection);
+        command.Parameters.AddWithValue("@UserId", userId);
+        command.Parameters.AddWithValue("@JobId", jobId);
+
+        using var reader = command.ExecuteReader();
+        return reader.Read() ? Map(reader) : null;
+    }
+
+    /// <summary>Inserts using IDENTITY and returns new RecommendationId.</summary>
+    public int InsertReturningId(Recommendation recommendation)
+    {
+        using var connection = OpenConnection();
+        using var command = new SqlCommand(
+            """
+            INSERT INTO Recommendation (UserId, JobId, Timestamp)
+            OUTPUT INSERTED.RecommendationId
+            VALUES (@UserId, @JobId, @Timestamp)
+            """,
+            connection);
+        command.Parameters.AddWithValue("@UserId", recommendation.UserId);
+        command.Parameters.AddWithValue("@JobId", recommendation.JobId);
+        command.Parameters.AddWithValue("@Timestamp", recommendation.Timestamp);
+        var result = command.ExecuteScalar();
+        return Convert.ToInt32(result);
+    }
+
     private static Recommendation Map(SqlDataReader reader)
     {
         return new Recommendation

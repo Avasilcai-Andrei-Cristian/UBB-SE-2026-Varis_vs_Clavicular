@@ -30,13 +30,13 @@ public sealed partial class ShellView : UserControl
     {
         if (ContentHostFrame.Content is null)
         {
-            NavigateToMyStatus();
+            NavigateToRecommendations();
         }
     }
 
     private void NavigateToRecommendations()
     {
-        Navigate(typeof(SampleFormPage));
+        Navigate(typeof(UserRecommendationPageView));
     }
 
     private void NavigateToMyStatus()

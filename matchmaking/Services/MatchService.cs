@@ -21,6 +21,26 @@ public class MatchService
 
     public Match? GetById(int matchId) => _matchRepository.GetById(matchId);
 
+    public Match? GetByUserIdAndJobId(int userId, int jobId) =>
+        _matchRepository.GetByUserIdAndJobId(userId, jobId);
+
+    /// <summary>Creates a pending (applied) match for the user matchmaking flow.</summary>
+    public int CreatePendingApplication(int userId, int jobId)
+    {
+        var match = new Match
+        {
+            UserId = userId,
+            JobId = jobId,
+            Status = MatchStatus.Applied,
+            Timestamp = DateTime.UtcNow,
+            FeedbackMessage = string.Empty
+        };
+
+        return _matchRepository.InsertReturningId(match);
+    }
+
+    public void RemoveApplication(int matchId) => _matchRepository.Remove(matchId);
+
     public Task<IReadOnlyList<Match>> GetByCompanyIdAsync(int companyId)
     {
         var companyJobIds = _jobService
