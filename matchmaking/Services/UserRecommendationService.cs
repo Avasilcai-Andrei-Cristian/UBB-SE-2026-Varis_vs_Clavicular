@@ -67,8 +67,8 @@ public sealed class UserRecommendationService
                 continue;
             }
 
-            var jobSkillRows = _jobSkillRepository.GetByJobId(job.JobId);
-            var jobSkillsAsUserSkills = jobSkillRows
+            var skillsForRanking = _jobSkillRepository.GetByJobId(job.JobId);
+            var jobSkillsAsUserSkills = skillsForRanking
                 .Select(js => new Skill
                 {
                     UserId = userId,
