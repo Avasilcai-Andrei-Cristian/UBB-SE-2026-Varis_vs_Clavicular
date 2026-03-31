@@ -112,63 +112,6 @@ public sealed class UserRecommendationService
         };
     }
 
-    public JobRecommendationResult? RefreshDisplayedCard(
-        int userId,
-        JobRecommendationResult current,
-        UserMatchmakingFilters filters)
-    {
-        var user = _userRepository.GetById(userId)
-            ?? throw new InvalidOperationException("User not found.");
-
-        var job = _jobRepository.GetById(current.Job.JobId);
-        if (job is null)
-        {
-            return null;
-        }
-
-        if (!PassesFilters(job, filters, user))
-        {
-            return null;
-        }
-
-        if (_matchService.GetByUserIdAndJobId(userId, job.JobId) is not null)
-        {
-            return null;
-        }
-
-        var userSkills = _skillRepository.GetByUserId(userId).ToList();
-        var skillsForRanking = _jobSkillRepository.GetByJobId(job.JobId);
-        var jobSkillsAsUserSkills = skillsForRanking
-            .Select(js => new Skill
-            {
-                UserId = userId,
-                SkillId = js.SkillId,
-                SkillName = js.SkillName,
-                Score = js.Score
-            })
-            .ToList();
-
-        var score = _algorithm.CalculateCompatibilityScore(user, job, userSkills, jobSkillsAsUserSkills);
-        var company = _companyRepository.GetById(job.CompanyId)
-            ?? throw new InvalidOperationException($"Company {job.CompanyId} not found.");
-
-        var jobSkillRows = skillsForRanking.ToList();
-        var topSkills = JobRecommendationResult.TakeTopSkills(jobSkillRows);
-        var allSkillLabels = jobSkillRows
-            .Select(js => $"{js.SkillName} (min {js.Score})")
-            .ToList();
-
-        return new JobRecommendationResult
-        {
-            Job = job,
-            Company = company,
-            CompatibilityScore = score,
-            TopSkillLabels = topSkills,
-            AllSkillLabels = allSkillLabels,
-            DisplayRecommendationId = current.DisplayRecommendationId
-        };
-    }
-
     public int ApplyLike(int userId, JobRecommendationResult card)
     {
         var job = card.Job;

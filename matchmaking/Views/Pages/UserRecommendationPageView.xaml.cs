@@ -92,7 +92,7 @@ public sealed partial class UserRecommendationPageView : Page
 
     private async void OnRefreshClick(object sender, RoutedEventArgs e)
     {
-        await _viewModel.RefreshAsync(requeryDeck: false);
+        await _viewModel.RefreshAsync();
         UpdateView();
     }
 
