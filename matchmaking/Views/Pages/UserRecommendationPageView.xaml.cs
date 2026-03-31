@@ -1,4 +1,5 @@
 using System;
+using System.ComponentModel;
 using matchmaking.algorithm;
 using matchmaking.Domain.Enums;
 using matchmaking.Repositories;
@@ -42,9 +43,24 @@ public sealed partial class UserRecommendationPageView : Page
 
         _viewModel = new UserRecommendationViewModel(recommendationService, App.Session);
         _viewModel.ErrorOccurred += OnViewModelErrorOccurred;
+        _viewModel.PropertyChanged += OnViewModelPropertyChanged;
 
         DataContext = _viewModel;
         Loaded += OnLoadedAsync;
+    }
+
+    private void OnViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName is null
+            || e.PropertyName == nameof(UserRecommendationViewModel.IsLoading)
+            || e.PropertyName == nameof(UserRecommendationViewModel.CurrentJob)
+            || e.PropertyName == nameof(UserRecommendationViewModel.IsDetailOpen)
+            || e.PropertyName == nameof(UserRecommendationViewModel.CanUndo)
+            || e.PropertyName == nameof(UserRecommendationViewModel.HasCard)
+            || e.PropertyName == nameof(UserRecommendationViewModel.ShowEmptyDeck))
+        {
+            UpdateView();
+        }
     }
 
     private async void OnLoadedAsync(object sender, RoutedEventArgs e)
