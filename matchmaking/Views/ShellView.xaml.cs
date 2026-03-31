@@ -1,3 +1,4 @@
+using System;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using matchmaking.ViewModels;
@@ -7,10 +8,16 @@ namespace matchmaking.Views;
 
 public sealed partial class ShellView : UserControl
 {
+    private readonly ShellViewModel _viewModel;
+
     public ShellView()
     {
         InitializeComponent();
-        DataContext = new ShellViewModel();
+        _viewModel = new ShellViewModel(
+            onRecommendations: NavigateToRecommendations,
+            onMyStatus:        NavigateToMyStatus,
+            onChat:            NavigateToChat);
+        DataContext = _viewModel;
         Loaded += OnLoaded;
     }
 
@@ -18,7 +25,33 @@ public sealed partial class ShellView : UserControl
     {
         if (ContentHostFrame.Content is null)
         {
-            ContentHostFrame.Navigate(typeof(SampleFormPage));
+            NavigateToMyStatus();
         }
+    }
+
+    private void NavigateToRecommendations()
+    {
+        _viewModel.ActivePage = "Recommendations";
+        Navigate(typeof(SampleFormPage));
+    }
+
+    private void NavigateToMyStatus()
+    {
+        _viewModel.ActivePage = "MyStatus";
+        Navigate(typeof(UserStatusPage));
+    }
+
+    private void NavigateToChat()
+    {
+        _viewModel.ActivePage = "Chat";
+        Navigate(typeof(SampleFormPage));
+    }
+
+    private void Navigate(Type pageType)
+    {
+        if (ContentHostFrame.CurrentSourcePageType == pageType)
+            return;
+
+        ContentHostFrame.Navigate(pageType);
     }
 }
