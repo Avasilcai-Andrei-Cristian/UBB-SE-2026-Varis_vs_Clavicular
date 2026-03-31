@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Linq;
 using matchmaking.Domain.Enums;
 using matchmaking.Domain.Entities;
+using matchmaking.DTOs;
 using matchmaking.Repositories;
 
 namespace matchmaking.algorithm;
@@ -103,6 +104,64 @@ public class RecommendationAlgorithm
             keywordSignalByKeyword);
     }
 
+    public CompatibilityBreakdown CalculateScoreBreakdown(User user, Job job, List<Skill> userSkills, List<Skill> jobSkills)
+    {
+        var mappedJobSkills = jobSkills
+            .Select(s => new JobSkill
+            {
+                JobId = job.JobId,
+                SkillId = s.SkillId,
+                SkillName = s.SkillName,
+                Score = s.Score
+            })
+            .ToList();
+
+        return CalculateBreakdownCore(
+            user,
+            job,
+            userSkills,
+            mappedJobSkills,
+            _cachedSkillWeight,
+            _cachedResumeWeight,
+            _cachedPreferenceWeight,
+            _cachedPromotionWeight,
+            _cachedMitigationFactor,
+            _cachedKeywordSignalByKeyword);
+    }
+
+    private static CompatibilityBreakdown CalculateBreakdownCore(
+        User user,
+        Job job,
+        IReadOnlyList<Skill> userSkills,
+        IReadOnlyList<JobSkill> jobSkills,
+        double skillWeight,
+        double resumeWeight,
+        double preferenceWeight,
+        double promotionWeight,
+        double mitigationFactor,
+        IReadOnlyDictionary<string, int> keywordSignalByKeyword)
+    {
+        var skillScore = CalculateSkillScore(userSkills, jobSkills, mitigationFactor);
+        var keywordScore = CalculateKeywordScore(user.Resume, job.JobDescription, keywordSignalByKeyword);
+        var preferenceScore = CalculatePreferenceScore(user, job);
+        var promotionScore = CalculatePromotionScore(job);
+
+        var finalScore =
+            (skillScore * skillWeight +
+             keywordScore * resumeWeight +
+             preferenceScore * preferenceWeight +
+             promotionScore * promotionWeight) / 100.0;
+
+        return new CompatibilityBreakdown
+        {
+            SkillScore = Math.Round(skillScore, 1),
+            KeywordScore = Math.Round(keywordScore, 1),
+            PreferenceScore = Math.Round(preferenceScore, 1),
+            PromotionScore = Math.Round(promotionScore, 1),
+            OverallScore = Clamp(Math.Round(finalScore, 1), 0.0, 100.0)
+        };
+    }
+
     private double CalculateCompatibilityScoreWithCached(
         User user,
         Job job,
@@ -122,6 +181,7 @@ public class RecommendationAlgorithm
             _cachedKeywordSignalByKeyword);
     }
 
+    // NOTE: CalculateBreakdownCore below has similar logic — consider unifying in a future refactor.
     private static double CalculateCompatibilityScoreCore(
         User user,
         Job job,

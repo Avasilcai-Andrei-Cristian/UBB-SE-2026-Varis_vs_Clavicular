@@ -15,11 +15,12 @@ public abstract class ObservableObject : INotifyPropertyChanged
         }
 
         field = value;
-        OnPropertyChanged(propertyName);
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         return true;
     }
 
-    protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+    // Added for computed properties (e.g., TopSkills, MaskedEmail) that need manual notification
+    protected void RaisePropertyChanged([CallerMemberName] string? propertyName = null)
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }

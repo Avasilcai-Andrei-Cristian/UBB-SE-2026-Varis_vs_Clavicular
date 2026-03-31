@@ -21,25 +21,7 @@ public class MatchService
 
     public Match? GetById(int matchId) => _matchRepository.GetById(matchId);
 
-    public Match? GetByUserIdAndJobId(int userId, int jobId) =>
-        _matchRepository.GetByUserIdAndJobId(userId, jobId);
-
-    /// <summary>Creates a pending (applied) match for the user matchmaking flow.</summary>
-    public int CreatePendingApplication(int userId, int jobId)
-    {
-        var match = new Match
-        {
-            UserId = userId,
-            JobId = jobId,
-            Status = MatchStatus.Applied,
-            Timestamp = DateTime.UtcNow,
-            FeedbackMessage = string.Empty
-        };
-
-        return _matchRepository.InsertReturningId(match);
-    }
-
-    public void RemoveApplication(int matchId) => _matchRepository.Remove(matchId);
+    public IReadOnlyList<Match> GetAllMatches() => _matchRepository.GetAll();
 
     public Task<IReadOnlyList<Match>> GetByCompanyIdAsync(int companyId)
     {
@@ -93,6 +75,34 @@ public class MatchService
         return SubmitDecisionAsync(matchId, MatchStatus.Rejected, feedback);
     }
 
+    // TODO: Update UML (.mdj) to include Advance(int matchId) in MatchService.
+    public void Advance(int matchId)
+    {
+        var match = _matchRepository.GetById(matchId)
+            ?? throw new KeyNotFoundException($"Match with id {matchId} was not found.");
+
+        if (match.Status != MatchStatus.Applied)
+        {
+            throw new InvalidOperationException(
+                $"Cannot advance match {matchId}: status is {match.Status}, expected Applied.");
+        }
+
+        match.Status = MatchStatus.Advanced;
+        match.Timestamp = DateTime.UtcNow;
+        _matchRepository.Update(match);
+    }
+
+    public void RevertToApplied(int matchId)
+    {
+        var match = _matchRepository.GetById(matchId)
+            ?? throw new KeyNotFoundException($"Match with id {matchId} was not found.");
+
+        match.Status = MatchStatus.Applied;
+        match.FeedbackMessage = string.Empty;
+        match.Timestamp = DateTime.UtcNow;
+        _matchRepository.Update(match);
+    }
+
     public bool IsDecisionTransitionAllowed(Match current, MatchStatus next)
     {
         if (current.Status != MatchStatus.Applied)
@@ -100,7 +110,7 @@ public class MatchService
             return false;
         }
 
-        return next is MatchStatus.Accepted or MatchStatus.Rejected;
+        return next is MatchStatus.Accepted or MatchStatus.Rejected or MatchStatus.Advanced;
     }
 
     private static void ValidateDecisionInput(MatchStatus decision, string feedback)

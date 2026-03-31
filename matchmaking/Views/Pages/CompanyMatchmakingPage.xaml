@@ -1,0 +1,655 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page
+    x:Class="matchmaking.Views.Pages.CompanyMatchmakingPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    Background="{StaticResource ShellBackgroundBrush}">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- Page title -->
+        <StackPanel Grid.Row="0" Spacing="4" Padding="0,28,0,20">
+            <TextBlock Text="Applicant Review"
+                       FontSize="20"
+                       FontWeight="SemiBold"
+                       Foreground="{StaticResource TextPrimaryBrush}" />
+            <TextBlock Text="Review applicants for your company's job postings."
+                       FontSize="13"
+                       Foreground="{StaticResource TextSecondaryBrush}" />
+        </StackPanel>
+
+        <!-- ══════════════════ CARD VIEW ══════════════════ -->
+        <Grid x:Name="CardViewPanel"
+              Grid.Row="1"
+              Visibility="Collapsed">
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <StackPanel MaxWidth="600"
+                            MinWidth="380"
+                            HorizontalAlignment="Center"
+                            Padding="16,0,16,24">
+
+                    <!-- Applicant Card -->
+                    <Border Background="{StaticResource CardBackgroundBrush}"
+                            BorderBrush="{StaticResource CardBorderBrush}"
+                            BorderThickness="1"
+                            CornerRadius="12"
+                            Padding="28,24">
+                        <StackPanel Spacing="0">
+
+                            <!-- Name + Match % -->
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+
+                                <Border Grid.Column="0" Width="48" Height="48"
+                                        CornerRadius="24" Background="#FF374151"
+                                        Margin="0,0,16,0"
+                                        VerticalAlignment="Center">
+                                    <TextBlock x:Name="AvatarInitial"
+                                               HorizontalAlignment="Center"
+                                               VerticalAlignment="Center"
+                                               Foreground="White"
+                                               FontWeight="SemiBold"
+                                               FontSize="18" />
+                                </Border>
+
+                                <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
+                                    <TextBlock x:Name="ApplicantNameText"
+                                               FontSize="18"
+                                               FontWeight="SemiBold"
+                                               Foreground="{StaticResource TextPrimaryBrush}" />
+                                    <TextBlock x:Name="JobTitleText"
+                                               FontSize="13"
+                                               Foreground="{StaticResource TextSecondaryBrush}"
+                                               TextTrimming="CharacterEllipsis" />
+                                </StackPanel>
+
+                                <Border Grid.Column="2"
+                                        CornerRadius="8"
+                                        Padding="12,6"
+                                        Background="#FF10B981"
+                                        VerticalAlignment="Center"
+                                        Margin="12,0,0,0">
+                                    <TextBlock x:Name="MatchScoreText"
+                                               FontSize="14"
+                                               FontWeight="Bold"
+                                               Foreground="White" />
+                                </Border>
+                            </Grid>
+
+                            <!-- Divider -->
+                            <Rectangle Height="1"
+                                       Fill="{StaticResource DividerBrush}"
+                                       Margin="0,18,0,18" />
+
+                            <!-- Detail fields grid -->
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+
+                                <StackPanel Grid.Column="0" Spacing="4" Margin="0,0,8,0">
+                                    <TextBlock Text="Location" FontSize="11"
+                                               Foreground="{StaticResource TextSecondaryBrush}" />
+                                    <TextBlock x:Name="LocationText" FontSize="13"
+                                               FontWeight="SemiBold"
+                                               Foreground="{StaticResource TextPrimaryBrush}" />
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="1" Spacing="4" Margin="8,0">
+                                    <TextBlock Text="Experience" FontSize="11"
+                                               Foreground="{StaticResource TextSecondaryBrush}" />
+                                    <TextBlock x:Name="ExperienceText" FontSize="13"
+                                               FontWeight="SemiBold"
+                                               Foreground="{StaticResource TextPrimaryBrush}" />
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="2" Spacing="4" Margin="8,0,0,0">
+                                    <TextBlock Text="Education" FontSize="11"
+                                               Foreground="{StaticResource TextSecondaryBrush}" />
+                                    <TextBlock x:Name="EducationText" FontSize="13"
+                                               FontWeight="SemiBold"
+                                               Foreground="{StaticResource TextPrimaryBrush}" />
+                                </StackPanel>
+                            </Grid>
+
+                            <!-- Skills -->
+                            <StackPanel Spacing="8" Margin="0,18,0,0">
+                                <TextBlock Text="TOP SKILLS" FontSize="11"
+                                           Foreground="{StaticResource TextSecondaryBrush}"
+                                           FontWeight="SemiBold" />
+                                <ItemsControl x:Name="TopSkillsList">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Grid Margin="0,0,0,6" Height="24">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="120" />
+                                                    <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="36" />
+                                                </Grid.ColumnDefinitions>
+                                                <TextBlock Grid.Column="0"
+                                                           Text="{Binding Name}"
+                                                           FontSize="12"
+                                                           Foreground="{StaticResource TextPrimaryBrush}"
+                                                           VerticalAlignment="Center" />
+                                                <ProgressBar Grid.Column="1"
+                                                             Value="{Binding Score}"
+                                                             Maximum="100"
+                                                             Height="6"
+                                                             Margin="8,0"
+                                                             VerticalAlignment="Center" />
+                                                <TextBlock Grid.Column="2"
+                                                           Text="{Binding Score}"
+                                                           FontSize="12"
+                                                           FontWeight="SemiBold"
+                                                           Foreground="{StaticResource TextSecondaryBrush}"
+                                                           VerticalAlignment="Center"
+                                                           TextAlignment="Right" />
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                                <TextBlock x:Name="MoreSkillsText"
+                                           FontSize="12"
+                                           Foreground="{StaticResource TextSecondaryBrush}"
+                                           Visibility="Collapsed" />
+                            </StackPanel>
+
+                            <!-- Expand button -->
+                            <Button Content="View Details"
+                                    Click="OnExpandClick"
+                                    HorizontalAlignment="Stretch"
+                                    Margin="0,18,0,0"
+                                    Padding="18,10"
+                                    CornerRadius="6">
+                                <Button.Resources>
+                                    <SolidColorBrush x:Key="ButtonBackground" Color="#FFF3F4F6" />
+                                    <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="#FFE5E7EB" />
+                                    <SolidColorBrush x:Key="ButtonBackgroundPressed" Color="#FFD1D5DB" />
+                                    <SolidColorBrush x:Key="ButtonForeground" Color="#FF111827" />
+                                    <SolidColorBrush x:Key="ButtonForegroundPointerOver" Color="#FF111827" />
+                                    <SolidColorBrush x:Key="ButtonForegroundPressed" Color="#FF111827" />
+                                    <SolidColorBrush x:Key="ButtonBorderBrush" Color="#FF9CA3AF" />
+                                    <SolidColorBrush x:Key="ButtonBorderBrushPointerOver" Color="#FF6B7280" />
+                                    <SolidColorBrush x:Key="ButtonBorderBrushPressed" Color="#FF4B5563" />
+                                </Button.Resources>
+                            </Button>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </ScrollViewer>
+        </Grid>
+
+        <!-- ══════════════════ EXPANDED DETAIL VIEW ══════════════════ -->
+        <Grid x:Name="ExpandedViewPanel"
+              Grid.Row="1"
+              Visibility="Collapsed">
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <StackPanel MaxWidth="700"
+                            MinWidth="380"
+                            HorizontalAlignment="Center"
+                            Spacing="16"
+                            Padding="16,0,16,32">
+
+                    <!-- Back button + score badge -->
+                    <Grid Margin="0,0,0,4">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <Button Grid.Column="0"
+                                Click="OnCollapseClick"
+                                Padding="10,6"
+                                CornerRadius="6"
+                                VerticalAlignment="Center">
+                            <Button.Resources>
+                                <SolidColorBrush x:Key="ButtonBackground" Color="Transparent" />
+                                <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="#FFE5E7EB" />
+                                <SolidColorBrush x:Key="ButtonBackgroundPressed" Color="#FFD1D5DB" />
+                                <SolidColorBrush x:Key="ButtonForeground" Color="#FF111827" />
+                                <SolidColorBrush x:Key="ButtonForegroundPointerOver" Color="#FF111827" />
+                                <SolidColorBrush x:Key="ButtonForegroundPressed" Color="#FF111827" />
+                                <SolidColorBrush x:Key="ButtonBorderBrush" Color="Transparent" />
+                                <SolidColorBrush x:Key="ButtonBorderBrushPointerOver" Color="Transparent" />
+                                <SolidColorBrush x:Key="ButtonBorderBrushPressed" Color="Transparent" />
+                            </Button.Resources>
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <FontIcon Glyph="&#xE72B;" FontSize="14" />
+                                <TextBlock Text="Back" FontSize="14" />
+                            </StackPanel>
+                        </Button>
+
+                        <Border Grid.Column="2"
+                                CornerRadius="8"
+                                Padding="14,8"
+                                Background="#FF10B981"
+                                VerticalAlignment="Center">
+                            <TextBlock x:Name="ExpandedMatchScoreText"
+                                       FontSize="16"
+                                       FontWeight="Bold"
+                                       Foreground="White" />
+                        </Border>
+                    </Grid>
+
+                    <!-- Applicant header -->
+                    <Border Background="{StaticResource CardBackgroundBrush}"
+                            BorderBrush="{StaticResource CardBorderBrush}"
+                            BorderThickness="1"
+                            CornerRadius="12"
+                            Padding="28,20">
+                        <StackPanel Spacing="4">
+                            <TextBlock x:Name="ExpandedNameText"
+                                       FontSize="22"
+                                       FontWeight="Bold"
+                                       Foreground="{StaticResource TextPrimaryBrush}" />
+                            <TextBlock x:Name="ExpandedJobText"
+                                       FontSize="14"
+                                       Foreground="{StaticResource TextSecondaryBrush}" />
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Detail fields -->
+                    <Border Background="{StaticResource CardBackgroundBrush}"
+                            BorderBrush="{StaticResource CardBorderBrush}"
+                            BorderThickness="1"
+                            CornerRadius="12"
+                            Padding="28,20">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0" Spacing="4" Margin="0,0,8,0">
+                                <TextBlock Text="Location" FontSize="11"
+                                           Foreground="{StaticResource TextSecondaryBrush}" />
+                                <TextBlock x:Name="ExpandedLocationText" FontSize="14"
+                                           FontWeight="SemiBold"
+                                           Foreground="{StaticResource TextPrimaryBrush}" />
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="1" Spacing="4" Margin="8,0">
+                                <TextBlock Text="Years of Experience" FontSize="11"
+                                           Foreground="{StaticResource TextSecondaryBrush}" />
+                                <TextBlock x:Name="ExpandedExperienceText" FontSize="14"
+                                           FontWeight="SemiBold"
+                                           Foreground="{StaticResource TextPrimaryBrush}" />
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="2" Spacing="4" Margin="8,0,0,0">
+                                <TextBlock Text="Education" FontSize="11"
+                                           Foreground="{StaticResource TextSecondaryBrush}" />
+                                <TextBlock x:Name="ExpandedEducationText" FontSize="14"
+                                           FontWeight="SemiBold"
+                                           Foreground="{StaticResource TextPrimaryBrush}" />
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <!-- Resume -->
+                    <Border Background="{StaticResource CardBackgroundBrush}"
+                            BorderBrush="{StaticResource CardBorderBrush}"
+                            BorderThickness="1"
+                            CornerRadius="12"
+                            Padding="28,20">
+                        <StackPanel Spacing="8">
+                            <TextBlock Text="RESUME" FontSize="11"
+                                       FontWeight="SemiBold"
+                                       Foreground="{StaticResource TextSecondaryBrush}" />
+                            <TextBlock x:Name="ResumeText"
+                                       FontSize="13"
+                                       Foreground="{StaticResource TextPrimaryBrush}"
+                                       TextWrapping="Wrap" />
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Job Description -->
+                    <Border Background="{StaticResource CardBackgroundBrush}"
+                            BorderBrush="{StaticResource CardBorderBrush}"
+                            BorderThickness="1"
+                            CornerRadius="12"
+                            Padding="28,20">
+                        <StackPanel Spacing="8">
+                            <TextBlock Text="JOB DESCRIPTION" FontSize="11"
+                                       FontWeight="SemiBold"
+                                       Foreground="{StaticResource TextSecondaryBrush}" />
+                            <TextBlock x:Name="JobDescriptionText"
+                                       FontSize="13"
+                                       Foreground="{StaticResource TextPrimaryBrush}"
+                                       TextWrapping="Wrap" />
+                        </StackPanel>
+                    </Border>
+
+                    <!-- All Skills -->
+                    <Border Background="{StaticResource CardBackgroundBrush}"
+                            BorderBrush="{StaticResource CardBorderBrush}"
+                            BorderThickness="1"
+                            CornerRadius="12"
+                            Padding="28,20">
+                        <StackPanel Spacing="8">
+                            <TextBlock Text="SKILLS" FontSize="11"
+                                       FontWeight="SemiBold"
+                                       Foreground="{StaticResource TextSecondaryBrush}" />
+                            <ItemsControl x:Name="AllSkillsList">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid Margin="0,0,0,6" Height="26">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="140" />
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="40" />
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Grid.Column="0"
+                                                       Text="{Binding Name}"
+                                                       FontSize="13"
+                                                       Foreground="{StaticResource TextPrimaryBrush}"
+                                                       VerticalAlignment="Center" />
+                                            <ProgressBar Grid.Column="1"
+                                                         Value="{Binding Score}"
+                                                         Maximum="100"
+                                                         Height="8"
+                                                         Margin="8,0"
+                                                         VerticalAlignment="Center" />
+                                            <TextBlock Grid.Column="2"
+                                                       Text="{Binding Score}"
+                                                       FontSize="13"
+                                                       FontWeight="SemiBold"
+                                                       Foreground="{StaticResource TextSecondaryBrush}"
+                                                       VerticalAlignment="Center"
+                                                       TextAlignment="Right" />
+                                        </Grid>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Compatibility Breakdown -->
+                    <Border Background="{StaticResource CardBackgroundBrush}"
+                            BorderBrush="{StaticResource CardBorderBrush}"
+                            BorderThickness="1"
+                            CornerRadius="12"
+                            Padding="28,20">
+                        <StackPanel Spacing="12">
+                            <TextBlock Text="COMPATIBILITY BREAKDOWN" FontSize="11"
+                                       FontWeight="SemiBold"
+                                       Foreground="{StaticResource TextSecondaryBrush}" />
+                            <Grid ColumnSpacing="16" RowSpacing="12">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+
+                                <StackPanel Grid.Row="0" Grid.Column="0" Spacing="2">
+                                    <TextBlock Text="Skill Match" FontSize="12"
+                                               Foreground="{StaticResource TextSecondaryBrush}" />
+                                    <TextBlock x:Name="BreakdownSkillText" FontSize="16"
+                                               FontWeight="Bold"
+                                               Foreground="{StaticResource TextPrimaryBrush}" />
+                                </StackPanel>
+
+                                <StackPanel Grid.Row="0" Grid.Column="1" Spacing="2">
+                                    <TextBlock Text="Keyword Match" FontSize="12"
+                                               Foreground="{StaticResource TextSecondaryBrush}" />
+                                    <TextBlock x:Name="BreakdownKeywordText" FontSize="16"
+                                               FontWeight="Bold"
+                                               Foreground="{StaticResource TextPrimaryBrush}" />
+                                </StackPanel>
+
+                                <StackPanel Grid.Row="1" Grid.Column="0" Spacing="2">
+                                    <TextBlock Text="Preference Match" FontSize="12"
+                                               Foreground="{StaticResource TextSecondaryBrush}" />
+                                    <TextBlock x:Name="BreakdownPreferenceText" FontSize="16"
+                                               FontWeight="Bold"
+                                               Foreground="{StaticResource TextPrimaryBrush}" />
+                                </StackPanel>
+
+                                <StackPanel Grid.Row="1" Grid.Column="1" Spacing="2">
+                                    <TextBlock Text="Promotion Score" FontSize="12"
+                                               Foreground="{StaticResource TextSecondaryBrush}" />
+                                    <TextBlock x:Name="BreakdownPromotionText" FontSize="16"
+                                               FontWeight="Bold"
+                                               Foreground="{StaticResource TextPrimaryBrush}" />
+                                </StackPanel>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Contact (Privacy Unmasking) -->
+                    <Border Background="{StaticResource CardBackgroundBrush}"
+                            BorderBrush="{StaticResource CardBorderBrush}"
+                            BorderThickness="1"
+                            CornerRadius="12"
+                            Padding="28,20">
+                        <StackPanel Spacing="8">
+                            <TextBlock Text="CONTACT" FontSize="11"
+                                       FontWeight="SemiBold"
+                                       Foreground="{StaticResource TextSecondaryBrush}" />
+                            <Grid ColumnSpacing="16">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0" Spacing="2">
+                                    <TextBlock Text="Email" FontSize="11"
+                                               Foreground="{StaticResource TextSecondaryBrush}" />
+                                    <TextBlock x:Name="ContactEmailText" FontSize="13"
+                                               Foreground="{StaticResource TextPrimaryBrush}" />
+                                </StackPanel>
+                                <StackPanel Grid.Column="1" Spacing="2">
+                                    <TextBlock Text="Phone" FontSize="11"
+                                               Foreground="{StaticResource TextSecondaryBrush}" />
+                                    <TextBlock x:Name="ContactPhoneText" FontSize="13"
+                                               Foreground="{StaticResource TextPrimaryBrush}" />
+                                </StackPanel>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Action buttons at bottom of expanded view -->
+                    <Grid ColumnSpacing="16">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <Button Grid.Column="0"
+                                Content="Skip"
+                                Click="OnSkipClick"
+                                HorizontalAlignment="Stretch"
+                                Height="44"
+                                CornerRadius="8">
+                            <Button.Resources>
+                                <SolidColorBrush x:Key="ButtonBackground" Color="#FFEF4444" />
+                                <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="#FFDC2626" />
+                                <SolidColorBrush x:Key="ButtonBackgroundPressed" Color="#FFB91C1C" />
+                                <SolidColorBrush x:Key="ButtonBackgroundDisabled" Color="#80EF4444" />
+                                <SolidColorBrush x:Key="ButtonForeground" Color="White" />
+                                <SolidColorBrush x:Key="ButtonForegroundPointerOver" Color="White" />
+                                <SolidColorBrush x:Key="ButtonForegroundPressed" Color="White" />
+                                <SolidColorBrush x:Key="ButtonForegroundDisabled" Color="#80FFFFFF" />
+                                <SolidColorBrush x:Key="ButtonBorderBrush" Color="Transparent" />
+                                <SolidColorBrush x:Key="ButtonBorderBrushPointerOver" Color="Transparent" />
+                                <SolidColorBrush x:Key="ButtonBorderBrushPressed" Color="Transparent" />
+                            </Button.Resources>
+                        </Button>
+
+                        <Button Grid.Column="1"
+                                Content="Accept"
+                                Click="OnAdvanceClick"
+                                HorizontalAlignment="Stretch"
+                                Height="44"
+                                CornerRadius="8">
+                            <Button.Resources>
+                                <SolidColorBrush x:Key="ButtonBackground" Color="#FF10B981" />
+                                <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="#FF059669" />
+                                <SolidColorBrush x:Key="ButtonBackgroundPressed" Color="#FF047857" />
+                                <SolidColorBrush x:Key="ButtonBackgroundDisabled" Color="#8010B981" />
+                                <SolidColorBrush x:Key="ButtonForeground" Color="White" />
+                                <SolidColorBrush x:Key="ButtonForegroundPointerOver" Color="White" />
+                                <SolidColorBrush x:Key="ButtonForegroundPressed" Color="White" />
+                                <SolidColorBrush x:Key="ButtonForegroundDisabled" Color="#80FFFFFF" />
+                                <SolidColorBrush x:Key="ButtonBorderBrush" Color="Transparent" />
+                                <SolidColorBrush x:Key="ButtonBorderBrushPointerOver" Color="Transparent" />
+                                <SolidColorBrush x:Key="ButtonBorderBrushPressed" Color="Transparent" />
+                            </Button.Resources>
+                        </Button>
+                    </Grid>
+                </StackPanel>
+            </ScrollViewer>
+        </Grid>
+
+        <!-- ══════════════════ EMPTY STATE ══════════════════ -->
+        <Grid x:Name="EmptyStatePanel"
+              Grid.Row="1"
+              Visibility="Collapsed">
+            <StackPanel HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Spacing="16">
+                <FontIcon Glyph="&#xE779;"
+                          FontSize="48"
+                          Foreground="{StaticResource TextSecondaryBrush}"
+                          HorizontalAlignment="Center" />
+                <TextBlock Text="No more applicants to review"
+                           FontSize="20"
+                           FontWeight="SemiBold"
+                           Foreground="{StaticResource TextPrimaryBrush}"
+                           HorizontalAlignment="Center" />
+                <TextBlock Text="Check back later for new applications."
+                           FontSize="14"
+                           Foreground="{StaticResource TextSecondaryBrush}"
+                           HorizontalAlignment="Center" />
+                <Button Content="Refresh"
+                        Click="OnRefreshClick"
+                        HorizontalAlignment="Center"
+                        Margin="0,8,0,0"
+                        Padding="24,10"
+                        CornerRadius="6">
+                    <Button.Resources>
+                        <SolidColorBrush x:Key="ButtonBackground" Color="#FF111827" />
+                        <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="#FF1F2937" />
+                        <SolidColorBrush x:Key="ButtonBackgroundPressed" Color="#FF374151" />
+                        <SolidColorBrush x:Key="ButtonForeground" Color="White" />
+                        <SolidColorBrush x:Key="ButtonForegroundPointerOver" Color="White" />
+                        <SolidColorBrush x:Key="ButtonForegroundPressed" Color="White" />
+                        <SolidColorBrush x:Key="ButtonBorderBrush" Color="Transparent" />
+                        <SolidColorBrush x:Key="ButtonBorderBrushPointerOver" Color="Transparent" />
+                        <SolidColorBrush x:Key="ButtonBorderBrushPressed" Color="Transparent" />
+                    </Button.Resources>
+                </Button>
+            </StackPanel>
+        </Grid>
+
+        <!-- ══════════════════ LOADING STATE ══════════════════ -->
+        <Grid x:Name="LoadingPanel"
+              Grid.Row="1"
+              Visibility="Collapsed">
+            <ProgressRing IsActive="True"
+                          Width="48" Height="48"
+                          HorizontalAlignment="Center"
+                          VerticalAlignment="Center" />
+        </Grid>
+
+        <!-- ══════════════════ ACTION BUTTONS (always visible) ══════════════════ -->
+        <StackPanel x:Name="ActionButtonsPanel"
+                    Grid.Row="2"
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Center"
+                    Spacing="20"
+                    Padding="0,16,0,24">
+
+            <!-- Reject (Skip) — red circle -->
+            <Button x:Name="SkipButton"
+                    Click="OnSkipClick"
+                    Width="64" Height="64"
+                    CornerRadius="32"
+                    Padding="0"
+                    ToolTipService.ToolTip="Skip applicant">
+                <Button.Resources>
+                    <SolidColorBrush x:Key="ButtonBackground" Color="#FFEF4444" />
+                    <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="#FFDC2626" />
+                    <SolidColorBrush x:Key="ButtonBackgroundPressed" Color="#FFB91C1C" />
+                    <SolidColorBrush x:Key="ButtonBackgroundDisabled" Color="#FFD1D5DB" />
+                    <SolidColorBrush x:Key="ButtonForeground" Color="White" />
+                    <SolidColorBrush x:Key="ButtonForegroundPointerOver" Color="White" />
+                    <SolidColorBrush x:Key="ButtonForegroundPressed" Color="White" />
+                    <SolidColorBrush x:Key="ButtonForegroundDisabled" Color="#FF9CA3AF" />
+                    <SolidColorBrush x:Key="ButtonBorderBrush" Color="Transparent" />
+                    <SolidColorBrush x:Key="ButtonBorderBrushPointerOver" Color="Transparent" />
+                    <SolidColorBrush x:Key="ButtonBorderBrushPressed" Color="Transparent" />
+                    <SolidColorBrush x:Key="ButtonBorderBrushDisabled" Color="Transparent" />
+                </Button.Resources>
+                <FontIcon Glyph="&#xE711;" FontSize="24" Foreground="White" />
+            </Button>
+
+            <!-- Undo — subtle circle -->
+            <Button x:Name="UndoButton"
+                    Click="OnUndoClick"
+                    Width="48" Height="48"
+                    CornerRadius="24"
+                    Padding="0"
+                    VerticalAlignment="Center"
+                    ToolTipService.ToolTip="Undo last action">
+                <Button.Resources>
+                    <SolidColorBrush x:Key="ButtonBackground" Color="#FFE5E7EB" />
+                    <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="#FFD1D5DB" />
+                    <SolidColorBrush x:Key="ButtonBackgroundPressed" Color="#FF9CA3AF" />
+                    <SolidColorBrush x:Key="ButtonBackgroundDisabled" Color="#FFF3F4F6" />
+                    <SolidColorBrush x:Key="ButtonForeground" Color="#FF374151" />
+                    <SolidColorBrush x:Key="ButtonForegroundPointerOver" Color="#FF1F2937" />
+                    <SolidColorBrush x:Key="ButtonForegroundPressed" Color="#FF111827" />
+                    <SolidColorBrush x:Key="ButtonForegroundDisabled" Color="#FFD1D5DB" />
+                    <SolidColorBrush x:Key="ButtonBorderBrush" Color="#FFD1D5DB" />
+                    <SolidColorBrush x:Key="ButtonBorderBrushPointerOver" Color="#FF9CA3AF" />
+                    <SolidColorBrush x:Key="ButtonBorderBrushPressed" Color="#FF6B7280" />
+                    <SolidColorBrush x:Key="ButtonBorderBrushDisabled" Color="#FFE5E7EB" />
+                </Button.Resources>
+                <FontIcon Glyph="&#xE7A7;" FontSize="16" />
+            </Button>
+
+            <!-- Accept (Advance) — green circle -->
+            <Button x:Name="AdvanceButton"
+                    Click="OnAdvanceClick"
+                    Width="64" Height="64"
+                    CornerRadius="32"
+                    Padding="0"
+                    ToolTipService.ToolTip="Advance applicant">
+                <Button.Resources>
+                    <SolidColorBrush x:Key="ButtonBackground" Color="#FF10B981" />
+                    <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="#FF059669" />
+                    <SolidColorBrush x:Key="ButtonBackgroundPressed" Color="#FF047857" />
+                    <SolidColorBrush x:Key="ButtonBackgroundDisabled" Color="#FFD1D5DB" />
+                    <SolidColorBrush x:Key="ButtonForeground" Color="White" />
+                    <SolidColorBrush x:Key="ButtonForegroundPointerOver" Color="White" />
+                    <SolidColorBrush x:Key="ButtonForegroundPressed" Color="White" />
+                    <SolidColorBrush x:Key="ButtonForegroundDisabled" Color="#FF9CA3AF" />
+                    <SolidColorBrush x:Key="ButtonBorderBrush" Color="Transparent" />
+                    <SolidColorBrush x:Key="ButtonBorderBrushPointerOver" Color="Transparent" />
+                    <SolidColorBrush x:Key="ButtonBorderBrushPressed" Color="Transparent" />
+                    <SolidColorBrush x:Key="ButtonBorderBrushDisabled" Color="Transparent" />
+                </Button.Resources>
+                <FontIcon Glyph="&#xE8FB;" FontSize="24" Foreground="White" />
+            </Button>
+        </StackPanel>
+    </Grid>
+</Page>
