@@ -30,9 +30,8 @@ public class SqlMessageRepository(string connectionString) : SqlRepositoryBase(c
     {
         using var connection = OpenConnection();
         using var command = new SqlCommand(
-            "INSERT INTO Message (MessageId, Content, SenderId, Timestamp, ChatId, Type, IsRead) VALUES (@MessageId, @Content, @SenderId, @Timestamp, @ChatId, @Type, @IsRead)",
+            "INSERT INTO Message (Content, SenderId, Timestamp, ChatId, Type, IsRead) VALUES ( @Content, @SenderId, @Timestamp, @ChatId, @Type, @IsRead)",
             connection);
-        command.Parameters.AddWithValue("@MessageId", message.MessageId);
         command.Parameters.AddWithValue("@Content", message.Content);
         command.Parameters.AddWithValue("@SenderId", message.SenderId);
         command.Parameters.AddWithValue("@Timestamp", message.Timestamp);
@@ -62,7 +61,7 @@ public class SqlMessageRepository(string connectionString) : SqlRepositoryBase(c
             SenderId = reader.GetInt32(2),
             Timestamp = reader.GetDateTime(3),
             ChatId = reader.GetInt32(4),
-            Type = (MessageType)reader.GetInt32(5),
+            Type = (MessageType)Convert.ToInt32(reader.GetValue(5)),
             IsRead = reader.GetBoolean(6)
         };
     }

@@ -9,6 +9,11 @@ public class JobRepository
 {
     private readonly List<Job> _jobs =
     [
+        new() { JobId = 100, JobDescription = "Backend Engineer", Location = "Bucharest", EmploymentType = "Full-time", CompanyId = 1, PromotionLevel = 2 },
+        new() { JobId = 101, JobDescription = "Python Developer", Location = "Bucharest", EmploymentType = "Full-time", CompanyId = 1, PromotionLevel = 2 },
+        new() { JobId = 102, JobDescription = "Frontend Engineer", Location = "Bucharest", EmploymentType = "Hybrid", CompanyId = 1, PromotionLevel = 1 },
+        new() { JobId = 103, JobDescription = "DevOps Engineer", Location = "Bucharest", EmploymentType = "Remote", CompanyId = 1, PromotionLevel = 3 },
+        new() { JobId = 104, JobDescription = "QA Engineer", Location = "Bucharest", EmploymentType = "Full-time", CompanyId = 1, PromotionLevel = 1 },
         new() { JobId = 1, JobDescription = "Junior Frontend Developer", Location = "Cluj-Napoca", EmploymentType = "Full-time", CompanyId = 4, PromotionLevel = 1 },
         new() { JobId = 2, JobDescription = "Backend .NET Developer", Location = "Bucharest", EmploymentType = "Hybrid", CompanyId = 1, PromotionLevel = 2 },
         new() { JobId = 3, JobDescription = "QA Automation Engineer", Location = "Iasi", EmploymentType = "Full-time", CompanyId = 8, PromotionLevel = 1 },

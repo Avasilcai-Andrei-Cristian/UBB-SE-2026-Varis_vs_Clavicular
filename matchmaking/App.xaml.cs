@@ -17,6 +17,7 @@ using Windows.Foundation;
 using Windows.Foundation.Collections;
 using matchmaking.Config;
 using matchmaking.Domain.Session;
+using matchmaking.Repositories;
 using matchmaking.algorithm;
 
 // To learn more about WinUI, the WinUI project structure,
@@ -32,6 +33,9 @@ namespace matchmaking
         private Window? _window;
         public static AppConfiguration Configuration { get; private set; } = new();
         public static SessionContext Session { get; private set; } = new();
+        public static bool IsDatabaseConnectionAvailable { get; private set; }
+        public static string DatabaseConnectionError { get; private set; } = string.Empty;
+        public static Window? MainWindow { get; private set; }
 
         /// <summary>
         /// Initializes the singleton application object.  This is the first line of authored code
@@ -42,7 +46,34 @@ namespace matchmaking
             InitializeComponent();
             Configuration = AppConfigurationLoader.Load();
             Session = new SessionContext();
-            
+
+            CheckDatabaseConnection();
+        }
+
+        public static bool CheckDatabaseConnection()
+        {
+            if (string.IsNullOrWhiteSpace(Configuration.SqlConnectionString))
+            {
+                IsDatabaseConnectionAvailable = false;
+                DatabaseConnectionError = "Connection string is missing from appsettings.json.";
+                return false;
+            }
+
+            try
+            {
+                var ping = new SqlConnectionTestRepository(Configuration.SqlConnectionString).Ping();
+                IsDatabaseConnectionAvailable = ping == 1;
+                DatabaseConnectionError = IsDatabaseConnectionAvailable
+                    ? string.Empty
+                    : "Database ping returned an unexpected value.";
+            }
+            catch (Exception ex)
+            {
+                IsDatabaseConnectionAvailable = false;
+                DatabaseConnectionError = ex.Message;
+            }
+
+            return IsDatabaseConnectionAvailable;
         }
 
         /// <summary>
@@ -51,7 +82,9 @@ namespace matchmaking
         /// <param name="args">Details about the launch request and process.</param>
         protected override void OnLaunched(Microsoft.UI.Xaml.LaunchActivatedEventArgs args)
         {
+
             _window = new MainWindow();
+            MainWindow = _window;
             _window.Activate();
         }
     }

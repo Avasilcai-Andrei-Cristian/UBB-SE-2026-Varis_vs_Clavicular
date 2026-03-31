@@ -34,15 +34,15 @@
                     VerticalAlignment="Center">
             <Button x:Name="RecommendationsButton"
                     Content="Recommendations"
-                    Command="{Binding RecommendationsCommand}"
+                    Click="Recommendations_Click"
                     Style="{StaticResource HeaderNavButtonStyle}"/>
             <Button x:Name="MyStatusButton"
                     Content="My Status"
-                    Command="{Binding MyStatusCommand}"
+                    Click="MyStatus_Click"
                     Style="{StaticResource HeaderNavButtonStyle}"/>
             <Button x:Name="ChatButton"
                     Content="Chat"
-                    Command="{Binding ChatCommand}"
+                    Click="Chat_Click"
                     Style="{StaticResource HeaderNavButtonStyle}"/>
         </StackPanel>
 
