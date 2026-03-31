@@ -3,9 +3,8 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using matchmaking.Domain.Enums;
 using matchmaking.Domain.Session;
-using matchmaking.Repositories;
+using matchmaking.Models;
 using matchmaking.Services;
-using Microsoft.UI.Xaml;
 
 namespace matchmaking.ViewModels;
 
@@ -13,22 +12,15 @@ public class DeveloperViewModel : ObservableObject
 {
     private readonly DeveloperService _developerService;
     private readonly SessionContext _session;
-    private readonly DispatcherTimer _pollTimer;
 
-    public ObservableCollection<PostViewModel> Posts { get; } = new();
+    public ObservableCollection<PostDisplayModel> Posts { get; } = new();
 
     public DeveloperViewModel(DeveloperService developerService, SessionContext sessionContext)
     {
         _developerService = developerService;
         _session = sessionContext;
-        LoadData();
-
-        _pollTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(3) };
-        _pollTimer.Tick += (_, _) => LoadData();
-        _pollTimer.Start();
+        Refresh();
     }
-
-    public void StopPolling() => _pollTimer.Stop();
 
     public string? ValidatePost(string parameter, string value)
     {
@@ -58,8 +50,8 @@ public class DeveloperViewModel : ObservableObject
         var developerId = _session.CurrentDeveloperId
             ?? throw new InvalidOperationException("No developer session is active.");
 
-        _developerService.addPost(developerId, parameter, value);
-        LoadData();
+        _developerService.AddPost(developerId, parameter, value);
+        Refresh();
     }
 
     public void HandleLike(int postId)
@@ -72,19 +64,19 @@ public class DeveloperViewModel : ObservableObject
 
         if (existing == null)
         {
-            _developerService.addInteraction(developerId, postId, InteractionType.Like);
+            _developerService.AddInteraction(developerId, postId, InteractionType.Like);
         }
         else if (existing.Type == InteractionType.Like)
         {
-            _developerService.removeInteraction(existing.InteractionId);
+            _developerService.RemoveInteraction(existing.InteractionId);
         }
         else
         {
-            _developerService.removeInteraction(existing.InteractionId);
-            _developerService.addInteraction(developerId, postId, InteractionType.Like);
+            _developerService.RemoveInteraction(existing.InteractionId);
+            _developerService.AddInteraction(developerId, postId, InteractionType.Like);
         }
 
-        LoadData();
+        Refresh();
     }
 
     public void HandleDislike(int postId)
@@ -97,22 +89,22 @@ public class DeveloperViewModel : ObservableObject
 
         if (existing == null)
         {
-            _developerService.addInteraction(developerId, postId, InteractionType.Dislike);
+            _developerService.AddInteraction(developerId, postId, InteractionType.Dislike);
         }
         else if (existing.Type == InteractionType.Dislike)
         {
-            _developerService.removeInteraction(existing.InteractionId);
+            _developerService.RemoveInteraction(existing.InteractionId);
         }
         else
         {
-            _developerService.removeInteraction(existing.InteractionId);
-            _developerService.addInteraction(developerId, postId, InteractionType.Dislike);
+            _developerService.RemoveInteraction(existing.InteractionId);
+            _developerService.AddInteraction(developerId, postId, InteractionType.Dislike);
         }
 
-        LoadData();
+        Refresh();
     }
 
-    private void LoadData()
+    public void Refresh()
     {
         var posts = _developerService.GetPosts();
         var interactions = _developerService.GetInteractions();
@@ -131,7 +123,7 @@ public class DeveloperViewModel : ObservableObject
         {
             var postInteractions = interactions.Where(i => i.PostId == post.PostId);
             var authorName = developerNames[post.DeveloperId];
-            Posts.Add(new PostViewModel(post, postInteractions, authorName, currentDeveloperId, HandleLike, HandleDislike));
+            Posts.Add(new PostDisplayModel(post, postInteractions, authorName, currentDeveloperId, HandleLike, HandleDislike));
         }
     }
 }

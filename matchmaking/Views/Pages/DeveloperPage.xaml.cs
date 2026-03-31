@@ -14,6 +14,7 @@ public sealed partial class DeveloperPage : Page
     private ComboBox _parameterComboBox = null!;
     private TextBox _valueTextBox = null!;
     private TextBlock _errorText = null!;
+    private readonly DispatcherTimer _refreshTimer;
 
     public DeveloperPage()
     {
@@ -24,7 +25,12 @@ public sealed partial class DeveloperPage : Page
             new SqlPostRepository(connStr),
             new SqlInteractionRepository(connStr));
         DataContext = new DeveloperViewModel(developerService, App.Session);
-        Unloaded += (_, _) => ((DeveloperViewModel)DataContext).StopPolling();
+
+        _refreshTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(3) };
+        _refreshTimer.Tick += (_, _) => ((DeveloperViewModel)DataContext).Refresh();
+
+        Loaded += (_, _) => _refreshTimer.Start();
+        Unloaded += (_, _) => _refreshTimer.Stop();
     }
 
     private async void NewPostButton_Click(object sender, RoutedEventArgs e)

@@ -34,7 +34,7 @@ public class DeveloperService
         return _developerRepository.GetById(developerId);
     }
 
-    public void addPost(int developerId, string parameter, string value)
+    public void AddPost(int developerId, string parameter, string value)
     {
         var post = new Post
         {
@@ -45,7 +45,7 @@ public class DeveloperService
         _postRepository.Add(post);
     }
 
-    public void addInteraction(int developerId, int postId, InteractionType type)
+    public void AddInteraction(int developerId, int postId, InteractionType type)
     {
         var interaction = new Interaction
         {
@@ -56,7 +56,7 @@ public class DeveloperService
         _interactionRepository.Add(interaction);
     }
 
-    public void removeInteraction(int interactionId)
+    public void RemoveInteraction(int interactionId)
     {
         _interactionRepository.Remove(interactionId);
     }
