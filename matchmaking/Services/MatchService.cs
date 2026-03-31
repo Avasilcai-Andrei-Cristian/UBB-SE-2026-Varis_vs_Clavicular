@@ -21,6 +21,8 @@ public class MatchService
 
     public Match? GetById(int matchId) => _matchRepository.GetById(matchId);
 
+    public IReadOnlyList<Match> GetAllMatches() => _matchRepository.GetAll();
+
     public Task<IReadOnlyList<Match>> GetByCompanyIdAsync(int companyId)
     {
         var companyJobIds = _jobService
@@ -73,6 +75,34 @@ public class MatchService
         return SubmitDecisionAsync(matchId, MatchStatus.Rejected, feedback);
     }
 
+    // TODO: Update UML (.mdj) to include Advance(int matchId) in MatchService.
+    public void Advance(int matchId)
+    {
+        var match = _matchRepository.GetById(matchId)
+            ?? throw new KeyNotFoundException($"Match with id {matchId} was not found.");
+
+        if (match.Status != MatchStatus.Applied)
+        {
+            throw new InvalidOperationException(
+                $"Cannot advance match {matchId}: status is {match.Status}, expected Applied.");
+        }
+
+        match.Status = MatchStatus.Advanced;
+        match.Timestamp = DateTime.UtcNow;
+        _matchRepository.Update(match);
+    }
+
+    public void RevertToApplied(int matchId)
+    {
+        var match = _matchRepository.GetById(matchId)
+            ?? throw new KeyNotFoundException($"Match with id {matchId} was not found.");
+
+        match.Status = MatchStatus.Applied;
+        match.FeedbackMessage = string.Empty;
+        match.Timestamp = DateTime.UtcNow;
+        _matchRepository.Update(match);
+    }
+
     public bool IsDecisionTransitionAllowed(Match current, MatchStatus next)
     {
         if (current.Status != MatchStatus.Applied)
@@ -80,7 +110,7 @@ public class MatchService
             return false;
         }
 
-        return next is MatchStatus.Accepted or MatchStatus.Rejected;
+        return next is MatchStatus.Accepted or MatchStatus.Rejected or MatchStatus.Advanced;
     }
 
     private static void ValidateDecisionInput(MatchStatus decision, string feedback)
