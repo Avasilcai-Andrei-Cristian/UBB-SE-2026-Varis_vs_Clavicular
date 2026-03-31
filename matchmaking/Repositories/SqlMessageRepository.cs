@@ -8,13 +8,14 @@ namespace matchmaking.Repositories;
 
 public class SqlMessageRepository(string connectionString) : SqlRepositoryBase(connectionString)
 {
-    public IReadOnlyList<Message> GetByChatId(int chatId)
+    public IReadOnlyList<Message> GetByChatId(int chatId, DateTime? visibleAfter = null)
     {
         using var connection = OpenConnection();
         using var command = new SqlCommand(
-            "SELECT MessageId, Content, SenderId, Timestamp, ChatId, Type, IsRead FROM Message WHERE ChatId = @ChatId ORDER BY Timestamp",
+            "SELECT MessageId, Content, SenderId, Timestamp, ChatId, Type, IsRead FROM Message WHERE ChatId = @ChatId AND (@VisibleAfter IS NULL OR [Timestamp] >= @VisibleAfter) ORDER BY Timestamp",
             connection);
         command.Parameters.AddWithValue("@ChatId", chatId);
+        command.Parameters.AddWithValue("@VisibleAfter", (object?)visibleAfter ?? DBNull.Value);
 
         using var reader = command.ExecuteReader();
         var result = new List<Message>();
@@ -30,11 +31,10 @@ public class SqlMessageRepository(string connectionString) : SqlRepositoryBase(c
     {
         using var connection = OpenConnection();
         using var command = new SqlCommand(
-            "INSERT INTO Message (Content, SenderId, Timestamp, ChatId, Type, IsRead) VALUES ( @Content, @SenderId, @Timestamp, @ChatId, @Type, @IsRead)",
+            "INSERT INTO Message (Content, SenderId, Timestamp, ChatId, Type, IsRead) VALUES ( @Content, @SenderId, SYSUTCDATETIME(), @ChatId, @Type, @IsRead)",
             connection);
         command.Parameters.AddWithValue("@Content", message.Content);
         command.Parameters.AddWithValue("@SenderId", message.SenderId);
-        command.Parameters.AddWithValue("@Timestamp", message.Timestamp);
         command.Parameters.AddWithValue("@ChatId", message.ChatId);
         command.Parameters.AddWithValue("@Type", (int)message.Type);
         command.Parameters.AddWithValue("@IsRead", message.IsRead);

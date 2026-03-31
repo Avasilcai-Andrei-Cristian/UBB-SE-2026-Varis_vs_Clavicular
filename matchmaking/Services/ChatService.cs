@@ -39,22 +39,9 @@ public class ChatService
 
     public Chat FindOrCreateUserCompanyChat(int userId, int companyId, int? jobId = null)
     {
-        var existingChat = _chatRepository.GetByUserAndCompany(userId, companyId);
+        var existingChat = _chatRepository.GetByUserAndCompany(userId, companyId, jobId);
         if (existingChat is not null)
         {
-            // If chat was deleted by user, restore it
-            if (existingChat.IsDeletedByUser)
-            {
-                _chatRepository.RestoreDeletedByUser(existingChat.ChatId);
-                existingChat.IsDeletedByUser = false;
-            }
-
-            if (jobId.HasValue && !existingChat.JobId.HasValue)
-            {
-                _chatRepository.UpdateJobId(existingChat.ChatId, jobId.Value);
-                existingChat.JobId = jobId;
-            }
-
             return existingChat;
         }
 
@@ -64,9 +51,7 @@ public class ChatService
             CompanyId = companyId,
             SecondUserId = null,
             JobId = jobId,
-            IsBlocked = false,
-            IsDeletedByUser = false,
-            IsDeletedBySecondParty = false
+            IsBlocked = false
         };
 
         _chatRepository.Add(chat);
@@ -78,23 +63,16 @@ public class ChatService
         var existingChat = _chatRepository.GetByUsers(userId, secondUserId);
         if (existingChat is not null)
         {
-            // If chat was deleted by user, restore it
-            if (existingChat.IsDeletedByUser)
-            {
-                _chatRepository.RestoreDeletedByUser(existingChat.ChatId);
-                existingChat.IsDeletedByUser = false;
-            }
             return existingChat;
         }
+
         var chat = new Chat
         {
             UserId = userId,
             CompanyId = null,
             SecondUserId = secondUserId,
             JobId = null,
-            IsBlocked = false,
-            IsDeletedByUser = false,
-            IsDeletedBySecondParty = false
+            IsBlocked = false
         };
         _chatRepository.Add(chat);
         return chat;
@@ -110,9 +88,18 @@ public class ChatService
         return _chatRepository.GetByCompanyId(companyId).ToList();
     }
 
-    public List<Message> GetMessages(int chatId)
+    public List<Message> GetMessages(int chatId, int callerId)
     {
-        return _messageRepository.GetByChatId(chatId).ToList();
+        var chat = _chatRepository.GetChatById(chatId);
+
+        if (chat.UserId != callerId && chat.SecondUserId != callerId && chat.CompanyId != callerId)
+            throw new UnauthorizedAccessException("Only participants can access messages.");
+
+        DateTime? visibleAfter = chat.UserId == callerId
+            ? chat.DeletedAtByUser
+            : chat.DeletedAtBySecondParty;
+
+        return _messageRepository.GetByChatId(chatId, visibleAfter).ToList();
     }
 
     public List<Company> SearchCompanies(string query)

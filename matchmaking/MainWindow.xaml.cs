@@ -7,6 +7,6 @@ public sealed partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
-        App.Session.LoginAsCompany(1);
+        App.Session.LoginAsUser(1);
     }
 }
