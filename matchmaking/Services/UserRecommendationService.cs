@@ -51,30 +51,52 @@ public sealed class UserRecommendationService
         }
 
         var (job, score) = ranked[0];
-        return BuildCardResult(userId, job, score, reuseDisplayRecommendationId: null);
+        return BuildCardWithShownRecord(userId, job, score);
     }
 
-    public JobRecommendationResult? RefreshDeck(
-        int userId,
-        UserMatchmakingFilters filters,
-        JobRecommendationResult? currentCard)
+    public JobRecommendationResult? RecalculateTopCardIgnoringCooldown(int userId, UserMatchmakingFilters filters)
     {
-        var ranked = BuildRankedList(userId, filters);
+        var user = _userRepository.GetById(userId)
+            ?? throw new InvalidOperationException("User not found.");
+
+        var jobs = _jobRepository.GetAll().Where(j => PassesFilters(j, filters, user)).ToList();
+        var userSkills = _skillRepository.GetByUserId(userId).ToList();
+
+        var ranked = new List<(Job Job, double Score)>();
+        foreach (var job in jobs)
+        {
+            if (_matchService.GetByUserIdAndJobId(userId, job.JobId) is not null)
+            {
+                continue;
+            }
+
+            var score = ComputeCompatibilityScore(user, job, userSkills, userId);
+            ranked.Add((job, score));
+        }
+
         if (ranked.Count == 0)
         {
             return null;
         }
 
-        var (job, score) = ranked[0];
-        int? reuseId = null;
-        if (currentCard is not null
-            && currentCard.Job.JobId == job.JobId
-            && currentCard.DisplayRecommendationId is { } existingId)
-        {
-            reuseId = existingId;
-        }
+        var best = ranked.OrderByDescending(x => x.Score).First();
+        return CreateCard(best.Job, best.Score, displayRecommendationId: null);
+    }
 
-        return BuildCardResult(userId, job, score, reuseId);
+    private double ComputeCompatibilityScore(User user, Job job, List<Skill> userSkills, int userId)
+    {
+        var skillsForRanking = _jobSkillRepository.GetByJobId(job.JobId);
+        var jobSkillsAsUserSkills = skillsForRanking
+            .Select(js => new Skill
+            {
+                UserId = userId,
+                SkillId = js.SkillId,
+                SkillName = js.SkillName,
+                Score = js.Score
+            })
+            .ToList();
+
+        return _algorithm.CalculateCompatibilityScore(user, job, userSkills, jobSkillsAsUserSkills);
     }
 
     private List<(Job Job, double Score)> BuildRankedList(int userId, UserMatchmakingFilters filters)
@@ -82,8 +104,8 @@ public sealed class UserRecommendationService
         var user = _userRepository.GetById(userId)
             ?? throw new InvalidOperationException("User not found.");
 
-        var userSkills = _skillRepository.GetByUserId(userId).ToList();
         var jobs = _jobRepository.GetAll().Where(j => PassesFilters(j, filters, user)).ToList();
+        var userSkills = _skillRepository.GetByUserId(userId).ToList();
 
         var ranked = new List<(Job Job, double Score)>();
         foreach (var job in jobs)
@@ -98,29 +120,26 @@ public sealed class UserRecommendationService
                 continue;
             }
 
-            var skillsForRanking = _jobSkillRepository.GetByJobId(job.JobId);
-            var jobSkillsAsUserSkills = skillsForRanking
-                .Select(js => new Skill
-                {
-                    UserId = userId,
-                    SkillId = js.SkillId,
-                    SkillName = js.SkillName,
-                    Score = js.Score
-                })
-                .ToList();
-
-            var score = _algorithm.CalculateCompatibilityScore(user, job, userSkills, jobSkillsAsUserSkills);
+            var score = ComputeCompatibilityScore(user, job, userSkills, userId);
             ranked.Add((job, score));
         }
 
         return ranked.OrderByDescending(x => x.Score).ToList();
     }
 
-    private JobRecommendationResult BuildCardResult(
-        int userId,
-        Job job,
-        double score,
-        int? reuseDisplayRecommendationId)
+    private JobRecommendationResult BuildCardWithShownRecord(int userId, Job job, double score)
+    {
+        var displayRec = new Recommendation
+        {
+            UserId = userId,
+            JobId = job.JobId,
+            Timestamp = DateTime.UtcNow
+        };
+        var displayId = _recommendationRepository.InsertReturningId(displayRec);
+        return CreateCard(job, score, displayId);
+    }
+
+    private JobRecommendationResult CreateCard(Job job, double score, int? displayRecommendationId)
     {
         var company = _companyRepository.GetById(job.CompanyId)
             ?? throw new InvalidOperationException($"Company {job.CompanyId} not found.");
@@ -131,22 +150,6 @@ public sealed class UserRecommendationService
             .Select(js => $"{js.SkillName} (min {js.Score})")
             .ToList();
 
-        int displayId;
-        if (reuseDisplayRecommendationId is { } rid)
-        {
-            displayId = rid;
-        }
-        else
-        {
-            var displayRec = new Recommendation
-            {
-                UserId = userId,
-                JobId = job.JobId,
-                Timestamp = DateTime.UtcNow
-            };
-            displayId = _recommendationRepository.InsertReturningId(displayRec);
-        }
-
         return new JobRecommendationResult
         {
             Job = job,
@@ -154,7 +157,7 @@ public sealed class UserRecommendationService
             CompatibilityScore = score,
             TopSkillLabels = topSkills,
             AllSkillLabels = allSkillLabels,
-            DisplayRecommendationId = displayId
+            DisplayRecommendationId = displayRecommendationId
         };
     }
 

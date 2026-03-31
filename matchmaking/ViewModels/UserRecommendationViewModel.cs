@@ -197,7 +197,7 @@ public sealed class UserRecommendationViewModel : ObservableObject
 
     public async Task InitializeAsync()
     {
-        await ReloadStackFromFiltersOrInitAsync();
+        await LoadDeckAsync(persistShownForTopCard: true);
     }
 
     public void LoadRecommendations()
@@ -221,7 +221,7 @@ public sealed class UserRecommendationViewModel : ObservableObject
         try
         {
             var userId = _session.CurrentUserId.Value;
-            var next = _service.RefreshDeck(userId, _appliedFilters, CurrentJob);
+            var next = _service.RecalculateTopCardIgnoringCooldown(userId, _appliedFilters);
             CurrentJob = next;
             if (next is null)
             {
@@ -238,7 +238,7 @@ public sealed class UserRecommendationViewModel : ObservableObject
         }
     }
 
-    private async Task ReloadStackFromFiltersOrInitAsync()
+    private async Task LoadDeckAsync(bool persistShownForTopCard)
     {
         if (!App.IsDatabaseConnectionAvailable)
         {
@@ -260,7 +260,9 @@ public sealed class UserRecommendationViewModel : ObservableObject
         {
             await Task.Yield();
             var userId = _session.CurrentUserId.Value;
-            var next = _service.RefreshDeck(userId, _appliedFilters, CurrentJob);
+            var next = persistShownForTopCard
+                ? _service.GetNextCard(userId, _appliedFilters)
+                : _service.RecalculateTopCardIgnoringCooldown(userId, _appliedFilters);
             CurrentJob = next;
             if (next is null)
             {
@@ -426,7 +428,7 @@ public sealed class UserRecommendationViewModel : ObservableObject
         }
 
         IsFilterOpen = false;
-        await ReloadStackFromFiltersOrInitAsync();
+        await LoadDeckAsync(persistShownForTopCard: false);
     }
 
     public void ResetDraftFilters()
