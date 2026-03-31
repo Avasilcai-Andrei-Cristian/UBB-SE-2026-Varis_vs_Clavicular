@@ -282,7 +282,7 @@ public class ChatViewModel : ObservableObject
             ? _sessionContext.CurrentUserId.Value
             : _sessionContext.CurrentCompanyId.Value;
 
-        var messages = _chatService.GetMessages(SelectedChat.ChatId);
+        var messages = _chatService.GetMessages(SelectedChat.ChatId, currentCallerId);
 
         _chatService.MarkMessageAsRead(SelectedChat.ChatId, currentCallerId);
 
@@ -427,7 +427,7 @@ public class ChatViewModel : ObservableObject
             ? _sessionContext.CurrentUserId.Value
             : _sessionContext.CurrentCompanyId.Value;
 
-        var latestMessages = _chatService.GetMessages(refreshedSelectedChat.ChatId);
+        var latestMessages = _chatService.GetMessages(refreshedSelectedChat.ChatId, currentCallerId);
 
         var hasUnreadFromOtherParty = latestMessages.Any(m => m.SenderId != currentCallerId && !m.IsRead);
         if (hasUnreadFromOtherParty)
@@ -493,10 +493,12 @@ public class ChatViewModel : ObservableObject
     {
         var changed = false;
         var latestById = latestChats.ToDictionary(c => c.ChatId);
+        var selectedChatId = SelectedChat?.ChatId;
 
         for (var i = Chats.Count - 1; i >= 0; i--)
         {
-            if (!latestById.ContainsKey(Chats[i].ChatId))
+            var chatId = Chats[i].ChatId;
+            if (!latestById.ContainsKey(chatId) && (!selectedChatId.HasValue || chatId != selectedChatId.Value))
             {
                 Chats.RemoveAt(i);
                 changed = true;
@@ -548,8 +550,8 @@ public class ChatViewModel : ObservableObject
                current.JobId != updated.JobId ||
                current.IsBlocked != updated.IsBlocked ||
                current.BlockedByUserId != updated.BlockedByUserId ||
-               current.IsDeletedByUser != updated.IsDeletedByUser ||
-               current.IsDeletedBySecondParty != updated.IsDeletedBySecondParty ||
+               !Nullable.Equals(current.DeletedAtByUser, updated.DeletedAtByUser) ||
+               !Nullable.Equals(current.DeletedAtBySecondParty, updated.DeletedAtBySecondParty) ||
                current.UnreadCount != updated.UnreadCount ||
                !string.Equals(current.LastMessage, updated.LastMessage, StringComparison.Ordinal) ||
                !string.Equals(current.LastMessageSnippet, updated.LastMessageSnippet, StringComparison.Ordinal) ||
@@ -582,10 +584,10 @@ public class ChatViewModel : ObservableObject
 
     private void PopulateChatPreview(Chat chat)
     {
-        var messages = _chatService.GetMessages(chat.ChatId);
         var currentCallerId = _sessionContext.CurrentMode == AppMode.UserMode
             ? _sessionContext.CurrentUserId.Value
             : _sessionContext.CurrentCompanyId.Value;
+        var messages = _chatService.GetMessages(chat.ChatId, currentCallerId);
         UpdateChatPreviewFromMessages(chat, messages, currentCallerId);
     }
 
