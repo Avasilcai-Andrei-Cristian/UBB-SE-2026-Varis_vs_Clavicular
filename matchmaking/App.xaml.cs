@@ -47,9 +47,6 @@ namespace matchmaking
             Configuration = AppConfigurationLoader.Load();
             Session = new SessionContext();
 
-            // Bootstrap app directly in company mode for Company Status workflow.
-            Session.LoginAsCompany(1);
-
             CheckDatabaseConnection();
         }
 
@@ -85,6 +82,7 @@ namespace matchmaking
         /// <param name="args">Details about the launch request and process.</param>
         protected override void OnLaunched(Microsoft.UI.Xaml.LaunchActivatedEventArgs args)
         {
+
             _window = new MainWindow();
             MainWindow = _window;
             _window.Activate();

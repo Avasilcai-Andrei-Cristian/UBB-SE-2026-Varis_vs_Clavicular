@@ -50,7 +50,7 @@ public sealed partial class CompanyStatusPage : Page
     {
         if (App.Session.CurrentMode != AppMode.CompanyMode || App.Session.CurrentCompanyId is null)
         {
-            App.Session.LoginAsCompany(1);
+            return;
         }
 
         EnsurePendingApplicants();
