@@ -77,9 +77,8 @@ public class SqlInteractionRepository(string connectionString) : SqlRepositoryBa
     {
         using var connection = OpenConnection();
         using var command = new SqlCommand(
-            "INSERT INTO Interaction (InteractionId, DeveloperId, PostId, Type) VALUES (@InteractionId, @DeveloperId, @PostId, @Type)",
+            "INSERT INTO Interaction (DeveloperId, PostId, Type) VALUES (@DeveloperId, @PostId, @Type)",
             connection);
-        command.Parameters.AddWithValue("@InteractionId", interaction.InteractionId);
         command.Parameters.AddWithValue("@DeveloperId", interaction.DeveloperId);
         command.Parameters.AddWithValue("@PostId", interaction.PostId);
         command.Parameters.AddWithValue("@Type", (int)interaction.Type);

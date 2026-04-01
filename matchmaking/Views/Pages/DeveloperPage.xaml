@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page
+    x:Class="matchmaking.Views.Pages.DeveloperPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:controls="using:matchmaking.Views.Controls"
+    xmlns:converters="using:matchmaking.Views.Converters"
+    mc:Ignorable="d"
+    Background="{StaticResource ShellBackgroundBrush}">
+
+    <Page.Resources>
+        <converters:BoolToActiveBrushConverter x:Key="BoolToActiveBrushConverter" />
+        <converters:PostTypeToBadgeBackgroundConverter x:Key="PostTypeToBadgeBackgroundConverter" />
+    </Page.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <!-- Header bleeds past the shell frame's 24px margin -->
+            <RowDefinition Height="Auto" />
+            <!-- Page title bar -->
+            <RowDefinition Height="Auto" />
+            <!-- Feed -->
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- ── Header (edge-to-edge) ── -->
+        <!--<controls:DeveloperHeaderControl
+            Grid.Row="0"
+            Margin="-24,-24,-24,0" />-->
+
+        <!-- ── Page title + New Post button ── -->
+        <Grid Grid.Row="0"
+              Padding="0,28,0,20">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <StackPanel Grid.Column="0" Spacing="4" VerticalAlignment="Center">
+                <TextBlock Text="Developer Feed"
+                           FontSize="20"
+                           FontWeight="SemiBold"
+                           Foreground="{StaticResource TextPrimaryBrush}" />
+                <TextBlock Text="Propose algorithm parameter changes and vote on community suggestions."
+                           FontSize="13"
+                           Foreground="{StaticResource TextSecondaryBrush}" />
+            </StackPanel>
+
+            <Button Grid.Column="1"
+                    x:Name="NewPostButton"
+                    Content="+ New Post"
+                    Style="{StaticResource PrimaryActionButtonStyle}"
+                    VerticalAlignment="Center"
+                    Click="NewPostButton_Click" />
+        </Grid>
+
+        <!-- Divider -->
+        <Rectangle Grid.Row="1"
+                   Height="1"
+                   Fill="{StaticResource DividerBrush}"
+                   VerticalAlignment="Bottom" />
+
+        <!-- ── Posts feed ── -->
+        <ScrollViewer Grid.Row="2"
+                      Padding="20,20,20,24"
+                      VerticalScrollBarVisibility="Auto">
+            <ItemsControl ItemsSource="{Binding Posts}"
+                          HorizontalAlignment="Stretch">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Border Background="{StaticResource CardBackgroundBrush}"
+                                BorderBrush="{StaticResource CardBorderBrush}"
+                                BorderThickness="1"
+                                CornerRadius="10"
+                                Padding="28,22"
+                                Margin="0,0,0,12"
+                                MaxWidth="600"
+                                HorizontalAlignment="Stretch">
+                            <StackPanel Spacing="16">
+
+                                <!-- Author row -->
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <StackPanel Grid.Column="0"
+                                                Orientation="Horizontal"
+                                                Spacing="12"
+                                                VerticalAlignment="Center">
+                                        <Border Width="38" Height="38"
+                                                CornerRadius="19"
+                                                Background="#1C1C1C">
+                                            <TextBlock Text="{Binding AuthorInitial}"
+                                                       HorizontalAlignment="Center"
+                                                       VerticalAlignment="Center"
+                                                       Foreground="#CCCCCC"
+                                                       FontWeight="SemiBold"
+                                                       FontSize="15" />
+                                        </Border>
+                                        <TextBlock Text="{Binding AuthorName}"
+                                                   FontSize="14"
+                                                   FontWeight="SemiBold"
+                                                   Foreground="{StaticResource TextPrimaryBrush}"
+                                                   VerticalAlignment="Center" />
+                                    </StackPanel>
+
+                                    <!-- Type badge -->
+                                    <Border Grid.Column="1"
+                                            CornerRadius="5"
+                                            Padding="10,4"
+                                            Background="{Binding IsKeyword, Converter={StaticResource PostTypeToBadgeBackgroundConverter}}"
+                                            VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding TypeLabel}"
+                                                   FontSize="11"
+                                                   Foreground="White"
+                                                   FontWeight="SemiBold" />
+                                    </Border>
+                                </Grid>
+
+                                <!-- Parameter + value -->
+                                <StackPanel Spacing="6">
+                                    <TextBlock Text="{Binding ParameterDisplayName}"
+                                               FontSize="15"
+                                               FontWeight="SemiBold"
+                                               Foreground="{StaticResource TextPrimaryBrush}"
+                                               TextTrimming="CharacterEllipsis" />
+                                    <TextBlock Text="{Binding ValueDisplay}"
+                                               FontSize="13"
+                                               Foreground="{StaticResource TextSecondaryBrush}"
+                                               TextWrapping="Wrap" />
+                                </StackPanel>
+
+                                <!-- Divider -->
+                                <Rectangle Height="1" Fill="{StaticResource DividerBrush}" />
+
+                                <!-- Like / Dislike -->
+                                <StackPanel Orientation="Horizontal" Spacing="2">
+                                    <Button Command="{Binding LikeCommand}"
+                                            Style="{StaticResource GhostButtonStyle}"
+                                            Foreground="{Binding IsLikedByCurrentUser, Converter={StaticResource BoolToActiveBrushConverter}}">
+                                        <StackPanel Orientation="Horizontal" Spacing="6">
+                                            <FontIcon Glyph="&#xE8E1;" FontSize="14" />
+                                            <TextBlock Text="{Binding LikeCount}" FontSize="13" />
+                                        </StackPanel>
+                                    </Button>
+                                    <Button Command="{Binding DislikeCommand}"
+                                            Style="{StaticResource GhostButtonStyle}"
+                                            Foreground="{Binding IsDislikedByCurrentUser, Converter={StaticResource BoolToActiveBrushConverter}}">
+                                        <StackPanel Orientation="Horizontal" Spacing="6">
+                                            <FontIcon Glyph="&#xE8E0;" FontSize="14" />
+                                            <TextBlock Text="{Binding DislikeCount}" FontSize="13" />
+                                        </StackPanel>
+                                    </Button>
+                                </StackPanel>
+
+                            </StackPanel>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+
+    </Grid>
+</Page>

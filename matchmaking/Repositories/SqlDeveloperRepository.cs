@@ -40,9 +40,8 @@ public class SqlDeveloperRepository(string connectionString) : SqlRepositoryBase
     {
         using var connection = OpenConnection();
         using var command = new SqlCommand(
-            "INSERT INTO Developer (DeveloperId, Name, Password) VALUES (@DeveloperId, @Name, @Password)",
+            "INSERT INTO Developer (Name, Password) VALUES (@Name, @Password)",
             connection);
-        command.Parameters.AddWithValue("@DeveloperId", developer.DeveloperId);
         command.Parameters.AddWithValue("@Name", developer.Name);
         command.Parameters.AddWithValue("@Password", developer.Password);
         command.ExecuteNonQuery();
