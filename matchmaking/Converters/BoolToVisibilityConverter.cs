@@ -14,5 +14,9 @@ public class BoolToVisibilityConverter : IValueConverter
     }
 
     public object ConvertBack(object value, Type targetType, object parameter, string language)
-        => value is Visibility.Visible;
+    {
+        bool flag = value is Visibility v && v == Visibility.Visible;
+        if (parameter is string p && p == "Inverse") flag = !flag;
+        return flag;
+    }
 }

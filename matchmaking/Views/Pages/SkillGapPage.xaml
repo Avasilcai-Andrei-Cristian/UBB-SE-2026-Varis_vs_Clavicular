@@ -9,14 +9,7 @@
     <Page.Resources>
         <converters:BoolToVisibilityConverter x:Key="BoolToVisibility"/>
 
-        <Style x:Key="NavButtonStyle" TargetType="Button">
-            <Setter Property="Background"      Value="Transparent"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Foreground"      Value="#333333"/>
-            <Setter Property="Padding"         Value="4,0"/>
-        </Style>
-
-        <!-- ── Skills-to-Improve card DataTemplate ──────────────────────── -->
+<!-- ── Skills-to-Improve card DataTemplate ──────────────────────── -->
         <DataTemplate x:Key="UnderscoredSkillTemplate">
             <Border Background="White" CornerRadius="8" Padding="18"
                     BorderBrush="#E6E6E6" BorderThickness="1" Margin="0,0,0,0">
@@ -74,31 +67,7 @@
 
     </Page.Resources>
 
-    <Grid RowDefinitions="56,*">
-
-        <!-- Top Navigation Bar -->
-        <Border Grid.Row="0" Background="White" BorderBrush="Black" BorderThickness="0,0,0,2">
-            <Grid Padding="24,0" ColumnDefinitions="Auto,*,Auto" VerticalAlignment="Center">
-                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                    <Image Source="/Assets/div.nav-logo-mark.png" Width="28" Height="28" VerticalAlignment="Center"/>
-                    <TextBlock FontSize="18" FontWeight="Bold" VerticalAlignment="Center">
-                        <Run Text="Tinder" Foreground="Black"/>
-                        <Run Text="Jobs"   Foreground="#888888"/>
-                    </TextBlock>
-                </StackPanel>
-                <StackPanel Grid.Column="1" Orientation="Horizontal"
-                            HorizontalAlignment="Center" Spacing="28" VerticalAlignment="Center">
-                    <Button Content="Recommendations" Style="{StaticResource NavButtonStyle}"/>
-                    <Button Content="My Status"       Style="{StaticResource NavButtonStyle}"
-                            Click="BackToStatus_Click"/>
-                    <Button Content="Chat"            Style="{StaticResource NavButtonStyle}"/>
-                </StackPanel>
-                <PersonPicture Grid.Column="2" Width="34" Height="34" Initials="AJ" VerticalAlignment="Center"/>
-            </Grid>
-        </Border>
-
-        <!-- Body -->
-        <Grid Grid.Row="1" Padding="40,28">
+    <Grid Padding="40,28">
             <Grid RowDefinitions="Auto,*">
 
                 <!-- Header -->
@@ -191,6 +160,5 @@
                 </ScrollViewer>
 
             </Grid>
-        </Grid>
-    </Grid>
+</Grid>
 </Page>
