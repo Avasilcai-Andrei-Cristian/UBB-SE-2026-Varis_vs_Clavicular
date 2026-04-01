@@ -1,6 +1,5 @@
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
-using System.ComponentModel;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using matchmaking.Models;
@@ -129,7 +128,7 @@ public class SkillGapViewModel : ObservableObject
 
     private void OnCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
-        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(HasSkillsToImprove)));
-        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(HasMissingSkills)));
+        OnPropertyChanged(nameof(HasSkillsToImprove));
+        OnPropertyChanged(nameof(HasMissingSkills));
     }
 }

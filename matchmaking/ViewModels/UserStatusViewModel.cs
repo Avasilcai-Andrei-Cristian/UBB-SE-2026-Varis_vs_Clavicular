@@ -1,6 +1,5 @@
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
-using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
@@ -194,7 +193,7 @@ public class UserStatusViewModel : ObservableObject
 
     private void OnSidebarCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
-        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(HasUnderscoredSkills)));
-        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(HasSidebarMissingSkills)));
+        OnPropertyChanged(nameof(HasUnderscoredSkills));
+        OnPropertyChanged(nameof(HasSidebarMissingSkills));
     }
 }

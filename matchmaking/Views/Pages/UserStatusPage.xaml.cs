@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using Microsoft.UI;
 using Microsoft.UI.Text;
@@ -49,9 +50,9 @@ public sealed partial class UserStatusPage : Page
             }
             else
             {
-                btn.Background  = new SolidColorBrush(Colors.Transparent);
-                btn.Foreground  = new SolidColorBrush(Color.FromArgb(255, 50, 50, 50));
-                btn.BorderBrush = new SolidColorBrush(Color.FromArgb(255, 180, 180, 180));
+                btn.Background  = new SolidColorBrush(Colors.White);
+                btn.Foreground  = new SolidColorBrush(Colors.Black);
+                btn.BorderBrush = new SolidColorBrush(Colors.Black);
             }
         }
     }
@@ -161,6 +162,6 @@ public sealed partial class UserStatusPage : Page
             XamlRoot = XamlRoot
         };
 
-        await dialog.ShowAsync();
+        await dialog.ShowAsync().AsTask();
     }
 }
