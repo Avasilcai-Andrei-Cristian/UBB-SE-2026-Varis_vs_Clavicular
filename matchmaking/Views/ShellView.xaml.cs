@@ -1,6 +1,8 @@
 using System;
+using System.Reflection;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using matchmaking.Domain.Enums;
 using matchmaking.ViewModels;
 using matchmaking.Views.Pages;
 
@@ -36,12 +38,39 @@ public sealed partial class ShellView : UserControl
 
     private void NavigateToRecommendations()
     {
-        Navigate(typeof(UserRecommendationPageView));
+        if (App.Session.CurrentMode == AppMode.CompanyMode && App.Session.CurrentCompanyId is not null)
+        {
+            NavigateIfPageExists("matchmaking.Views.Pages.CompanyMatchmakingPage");
+            return;
+        }
+
+        if (App.Session.CurrentMode == AppMode.UserMode && App.Session.CurrentUserId is not null)
+        {
+            if (NavigateIfPageExists("matchmaking.Views.Pages.UserMatchmakingPage"))
+            {
+                return;
+            }
+
+            if (NavigateIfPageExists("matchmaking.Views.Pages.UserRecommendationPage"))
+            {
+                return;
+            }
+        }
     }
 
     private void NavigateToMyStatus()
     {
-        Navigate(typeof(CompanyStatusPage));
+        if (App.Session.CurrentMode == AppMode.CompanyMode && App.Session.CurrentCompanyId is not null)
+        {
+            NavigateIfPageExists("matchmaking.Views.Pages.CompanyStatusPage");
+            return;
+        }
+
+        if (App.Session.CurrentMode == AppMode.UserMode && App.Session.CurrentUserId is not null)
+        {
+            NavigateIfPageExists("matchmaking.Views.Pages.UserStatusPage");
+            return;
+        }
     }
 
     private void NavigateToChat()
@@ -57,6 +86,18 @@ public sealed partial class ShellView : UserControl
         }
 
         ContentHostFrame.Navigate(pageType);
+    }
+
+    private bool NavigateIfPageExists(string pageTypeName)
+    {
+        var pageType = typeof(ShellView).Assembly.GetType(pageTypeName);
+        if (pageType is null)
+        {
+            return false;
+        }
+
+        Navigate(pageType);
+        return true;
     }
 
     private void OnRecommendationsRequested(object? sender, EventArgs e)

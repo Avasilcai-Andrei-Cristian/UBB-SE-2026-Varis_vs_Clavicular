@@ -50,11 +50,6 @@ public sealed partial class CompanyMatchmakingPage : Page
 
     private void OnLoadedAsync(object sender, RoutedEventArgs e)
     {
-        if (App.Session.CurrentMode != AppMode.CompanyMode || App.Session.CurrentCompanyId is null)
-        {
-            App.Session.LoginAsCompany(1);
-        }
-
         _viewModel.LoadApplicants();
         UpdateView();
     }
