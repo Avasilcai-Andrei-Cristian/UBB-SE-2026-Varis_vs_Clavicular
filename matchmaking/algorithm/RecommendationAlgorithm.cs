@@ -180,8 +180,6 @@ public class RecommendationAlgorithm
             _cachedMitigationFactor,
             _cachedKeywordSignalByKeyword);
     }
-
-    // NOTE: CalculateBreakdownCore below has similar logic — consider unifying in a future refactor.
     private static double CalculateCompatibilityScoreCore(
         User user,
         Job job,
