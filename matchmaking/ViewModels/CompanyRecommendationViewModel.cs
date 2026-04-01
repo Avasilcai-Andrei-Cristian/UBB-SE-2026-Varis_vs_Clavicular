@@ -31,7 +31,8 @@ public class CompanyRecommendationViewModel : ObservableObject
     private bool _isLoading;
     private string _statusMessage = string.Empty;
 
-    private readonly Stack<UndoEntry> _undoStack = new();
+    private UndoEntry? _lastUndoEntry;
+    private bool _undoUsed;
 
     public event Action<string>? ErrorOccurred;
 
@@ -327,21 +328,23 @@ public class CompanyRecommendationViewModel : ObservableObject
 
     public void UndoLastAction()
     {
-        if (_undoStack.Count == 0)
+        if (_lastUndoEntry is null)
         {
             return;
         }
 
         try
         {
-            var entry = _undoStack.Pop();
-            _matchService.RevertToApplied(entry.Applicant.Match.MatchId);
+            _matchService.RevertToApplied(_lastUndoEntry.Applicant.Match.MatchId);
             _recommendationService.MoveToPrevious();
 
-            CurrentApplicant = entry.Applicant;
+            CurrentApplicant = _lastUndoEntry.Applicant;
             IsContactRevealed = false;
             StatusMessage = string.Empty;
-            CanUndo = _undoStack.Count > 0;
+
+            _lastUndoEntry = null;
+            _undoUsed = true;
+            CanUndo = false;
 
             RaiseDerivedPropertyChanges();
         }
@@ -391,7 +394,7 @@ public class CompanyRecommendationViewModel : ObservableObject
         var freshMatch = _matchService.GetById(CurrentApplicant!.Match.MatchId);
         if (freshMatch is null || freshMatch.Status != MatchStatus.Applied)
         {
-            StatusMessage = "This applicant was already reviewed.";
+            ReportError("This applicant has already been reviewed. Loading next applicant.");
             _recommendationService.MoveToNext();
             LoadNextApplicant();
             return false;
@@ -402,8 +405,11 @@ public class CompanyRecommendationViewModel : ObservableObject
 
     private void StoreForUndo()
     {
-        _undoStack.Push(new UndoEntry { Applicant = CurrentApplicant! });
-        CanUndo = true;
+        if (!_undoUsed)
+        {
+            _lastUndoEntry = new UndoEntry { Applicant = CurrentApplicant! };
+            CanUndo = true;
+        }
     }
 
     private void RaiseDerivedPropertyChanges()
