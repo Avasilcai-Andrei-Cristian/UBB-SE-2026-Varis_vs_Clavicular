@@ -59,9 +59,8 @@ public class SqlPostRepository(string connectionString) : SqlRepositoryBase(conn
     {
         using var connection = OpenConnection();
         using var command = new SqlCommand(
-            "INSERT INTO Post (PostId, DeveloperId, Parameter, Value) VALUES (@PostId, @DeveloperId, @Parameter, @Value)",
+            "INSERT INTO Post (DeveloperId, Parameter, Value) VALUES (@DeveloperId, @Parameter, @Value)",
             connection);
-        command.Parameters.AddWithValue("@PostId", post.PostId);
         command.Parameters.AddWithValue("@DeveloperId", post.DeveloperId);
         command.Parameters.AddWithValue("@Parameter", PostParameterTypeMapper.ToStorageValue(post.ParameterType));
         command.Parameters.AddWithValue("@Value", post.Value);

@@ -5,7 +5,7 @@ using Microsoft.UI.Xaml.Controls;
 using matchmaking.Domain.Enums;
 using matchmaking.ViewModels;
 using matchmaking.Views.Pages;
-
+using System;
 namespace matchmaking.Views;
 
 public sealed partial class ShellView : UserControl
@@ -28,13 +28,15 @@ public sealed partial class ShellView : UserControl
         Loaded += OnLoaded;
     }
 
-    private void OnLoaded(object sender, RoutedEventArgs e)
+    private async void OnLoaded(object sender, RoutedEventArgs e)
     {
-        if (ContentHostFrame.Content is null)
+        var input = new NumberBox
         {
             NavigateToRecommendations();
         }
     }
+
+    
 
     private void NavigateToRecommendations()
     {
