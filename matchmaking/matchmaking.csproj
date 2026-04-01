@@ -17,9 +17,6 @@
   </PropertyGroup>
 
   <!-- From CLI, `dotnet run` otherwise may pick the MSIX profile and exit without a normal window. -->
-  <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
-    <WindowsPackageType>None</WindowsPackageType>
-  </PropertyGroup>
 
   <ItemGroup>
     <Content Include="Assets\SplashScreen.scale-200.png" />
