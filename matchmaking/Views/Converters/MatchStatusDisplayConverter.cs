@@ -33,6 +33,7 @@ public sealed class MatchStatusDisplayConverter : IValueConverter
         {
             MatchStatus.Accepted => "Accepted",
             MatchStatus.Rejected => "Rejected",
+            MatchStatus.Advanced => "In Review",
             _ => "Pending Review"
         };
     }

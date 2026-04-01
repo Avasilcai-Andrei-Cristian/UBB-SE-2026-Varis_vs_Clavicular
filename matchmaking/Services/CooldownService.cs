@@ -23,7 +23,6 @@ public sealed class CooldownService
         }
 
         var elapsed = utcNow - NormalizeToUtc(latest.Timestamp);
-        return false;
         return elapsed < UserJobDeckCooldown;
     }
 

@@ -49,6 +49,7 @@ namespace matchmaking
 
             // User matchmaking flow for Recommendations; switch to LoginAsCompany when testing company flows.
             Session.LoginAsCompany(1);
+            //Session.LoginAsUser(1);
 
             CheckDatabaseConnection();
         }

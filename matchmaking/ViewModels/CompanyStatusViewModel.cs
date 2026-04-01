@@ -180,19 +180,11 @@ public class CompanyStatusViewModel : ObservableObject
 
             if (Applications.Count == 0)
             {
-                PageMessage = "No applicants found for this company yet.";
+                PageMessage = "No applicants found with status Accepted, Rejected, or In Review.";
             }
             else
             {
-                var pendingCount = Applications.Count(result => result.Match.Status == MatchStatus.Applied);
-                if (pendingCount == 0)
-                {
-                    PageMessage = "No applicants are currently pending review. All are already accepted or rejected.";
-                }
-                else
-                {
-                    PageMessage = $"{pendingCount} applicant(s) pending review.";
-                }
+                PageMessage = $"{Applications.Count} applicant(s) are Accepted, Rejected, or In Review.";
             }
         }
         catch (Exception ex)
@@ -230,7 +222,7 @@ public class CompanyStatusViewModel : ObservableObject
 
             SelectedMatch = result.Match;
 
-            if (result.Match.Status == MatchStatus.Applied)
+            if (result.Match.Status is MatchStatus.Applied or MatchStatus.Advanced)
             {
                 SelectedDecision = null;
             }

@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using matchmaking.Domain.Entities;
+using matchmaking.Domain.Enums;
 using matchmaking.DTOs;
 
 namespace matchmaking.Services;
@@ -28,9 +29,13 @@ public class CompanyStatusService
     public async Task<IReadOnlyList<UserApplicationResult>> GetApplicantsForCompanyAsync(int companyId)
     {
         var matches = await _matchService.GetByCompanyIdAsync(companyId);
-        var results = new List<UserApplicationResult>(matches.Count);
+        var visibleMatches = matches
+            .Where(match => match.Status is MatchStatus.Accepted or MatchStatus.Rejected or MatchStatus.Advanced)
+            .ToList();
 
-        foreach (var match in matches)
+        var results = new List<UserApplicationResult>(visibleMatches.Count);
+
+        foreach (var match in visibleMatches)
         {
             var user = _userService.GetById(match.UserId);
             var job = _jobService.GetById(match.JobId);
@@ -45,8 +50,7 @@ public class CompanyStatusService
         }
 
         var ordered = results
-            .OrderByDescending(result => result.Match.Status == Domain.Enums.MatchStatus.Applied)
-            .ThenByDescending(result => result.CompatibilityScore)
+            .OrderByDescending(result => result.CompatibilityScore)
             .ToList();
 
         return ordered;
