@@ -81,6 +81,40 @@ public class SqlMatchRepository(string connectionString) : SqlRepositoryBase(con
         command.ExecuteNonQuery();
     }
 
+    public int InsertReturningId(Match match)
+    {
+        using var connection = OpenConnection();
+        using var command = new SqlCommand(
+            """
+            INSERT INTO [Matches] (UserID, JobID, Status, Timestamp, Feedback)
+            OUTPUT INSERTED.MatchID
+            VALUES (@UserId, @JobId, @Status, @Timestamp, @Feedback)
+            """,
+            connection);
+        command.Parameters.AddWithValue("@UserId", match.UserId);
+        command.Parameters.AddWithValue("@JobId", match.JobId);
+        command.Parameters.AddWithValue("@Status", ToDbStatus(match.Status));
+        command.Parameters.AddWithValue("@Timestamp", match.Timestamp);
+        command.Parameters.AddWithValue("@Feedback", string.IsNullOrWhiteSpace(match.FeedbackMessage)
+            ? DBNull.Value
+            : match.FeedbackMessage);
+        var result = command.ExecuteScalar();
+        return Convert.ToInt32(result);
+    }
+
+    public Match? GetByUserIdAndJobId(int userId, int jobId)
+    {
+        using var connection = OpenConnection();
+        using var command = new SqlCommand(
+            "SELECT MatchID, UserID, JobID, Status, Timestamp, Feedback FROM [Matches] WHERE UserID = @UserId AND JobID = @JobId",
+            connection);
+        command.Parameters.AddWithValue("@UserId", userId);
+        command.Parameters.AddWithValue("@JobId", jobId);
+
+        using var reader = command.ExecuteReader();
+        return reader.Read() ? Map(reader) : null;
+    }
+
     private static Match Map(SqlDataReader reader)
     {
         var rawStatus = reader.GetString(3);

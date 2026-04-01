@@ -488,7 +488,7 @@
                                     Padding="8,4">
                                 <StackPanel Orientation="Horizontal" Spacing="5">
                                     <FontIcon Glyph="&#xE7BE;" FontSize="11" Foreground="#0F4FAD" />
-                                    <TextBlock Text="{Binding LinkedJob.Title}"
+                                    <TextBlock Text="{Binding LinkedJob.JobTitle}"
                                                FontSize="11" FontWeight="Medium"
                                                Foreground="#0F4FAD" />
                                     <TextBlock Text="{Binding LinkedJob.JobDescription}"

@@ -32,7 +32,7 @@ public sealed partial class ShellView : UserControl
     {
         if (ContentHostFrame.Content is null)
         {
-            NavigateToMyStatus();
+            NavigateToRecommendations();
         }
     }
 

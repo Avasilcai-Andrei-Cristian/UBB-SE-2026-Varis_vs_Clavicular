@@ -152,7 +152,7 @@
                                            FontSize="20"
                                            FontWeight="SemiBold"
                                            Foreground="#111827"/>
-                                <TextBlock Text="{Binding SelectedApplicant.Job.JobDescription}"
+                                <TextBlock Text="{Binding SelectedApplicant.Job.JobTitle}"
                                            FontSize="13"
                                            Foreground="#6B7280"
                                            TextWrapping="Wrap"/>

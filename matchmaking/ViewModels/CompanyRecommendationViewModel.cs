@@ -408,11 +408,11 @@ public class CompanyRecommendationViewModel : ObservableObject
 
     private void RaiseDerivedPropertyChanges()
     {
-        RaisePropertyChanged(nameof(TopSkills));
-        RaisePropertyChanged(nameof(RemainingSkillCount));
-        RaisePropertyChanged(nameof(AllSkills));
-        RaisePropertyChanged(nameof(MaskedEmail));
-        RaisePropertyChanged(nameof(MaskedPhone));
+        OnPropertyChanged(nameof(TopSkills));
+        OnPropertyChanged(nameof(RemainingSkillCount));
+        OnPropertyChanged(nameof(AllSkills));
+        OnPropertyChanged(nameof(MaskedEmail));
+        OnPropertyChanged(nameof(MaskedPhone));
     }
 
     private void RaiseCommandStates()

@@ -176,7 +176,9 @@ public sealed partial class CompanyMatchmakingPage : Page
             ? applicant.User.Name[..1].ToUpperInvariant()
             : "?";
         ApplicantNameText.Text = applicant.User.Name;
-        JobTitleText.Text = applicant.Job.JobDescription;
+        JobTitleText.Text = string.IsNullOrWhiteSpace(applicant.Job.JobTitle)
+            ? applicant.Job.JobDescription
+            : applicant.Job.JobTitle;
         MatchScoreText.Text = $"{applicant.CompatibilityScore:F0}%";
         LocationText.Text = applicant.User.Location;
         ExperienceText.Text = $"{applicant.User.YearsOfExperience} yrs";
@@ -206,7 +208,7 @@ public sealed partial class CompanyMatchmakingPage : Page
         }
 
         ExpandedNameText.Text = applicant.User.Name;
-        ExpandedJobText.Text = $"Applied for: {applicant.Job.JobDescription}";
+        ExpandedJobText.Text = $"Applied for: {(string.IsNullOrWhiteSpace(applicant.Job.JobTitle) ? applicant.Job.JobDescription : applicant.Job.JobTitle)}";
         ExpandedMatchScoreText.Text = $"{applicant.CompatibilityScore:F0}% Match";
         ExpandedLocationText.Text = applicant.User.Location;
         ExpandedExperienceText.Text = $"{applicant.User.YearsOfExperience} years";

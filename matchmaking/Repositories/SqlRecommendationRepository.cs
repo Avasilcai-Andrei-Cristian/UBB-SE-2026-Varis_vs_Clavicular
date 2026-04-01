@@ -72,6 +72,41 @@ public class SqlRecommendationRepository(string connectionString) : SqlRepositor
         command.ExecuteNonQuery();
     }
 
+    public Recommendation? GetLatestByUserIdAndJobId(int userId, int jobId)
+    {
+        using var connection = OpenConnection();
+        using var command = new SqlCommand(
+            """
+            SELECT TOP (1) RecommendationId, UserId, JobId, Timestamp
+            FROM Recommendation
+            WHERE UserId = @UserId AND JobId = @JobId
+            ORDER BY Timestamp DESC
+            """,
+            connection);
+        command.Parameters.AddWithValue("@UserId", userId);
+        command.Parameters.AddWithValue("@JobId", jobId);
+
+        using var reader = command.ExecuteReader();
+        return reader.Read() ? Map(reader) : null;
+    }
+
+    public int InsertReturningId(Recommendation recommendation)
+    {
+        using var connection = OpenConnection();
+        using var command = new SqlCommand(
+            """
+            INSERT INTO Recommendation (UserId, JobId, Timestamp)
+            OUTPUT INSERTED.RecommendationId
+            VALUES (@UserId, @JobId, @Timestamp)
+            """,
+            connection);
+        command.Parameters.AddWithValue("@UserId", recommendation.UserId);
+        command.Parameters.AddWithValue("@JobId", recommendation.JobId);
+        command.Parameters.AddWithValue("@Timestamp", recommendation.Timestamp);
+        var result = command.ExecuteScalar();
+        return Convert.ToInt32(result);
+    }
+
     private static Recommendation Map(SqlDataReader reader)
     {
         return new Recommendation

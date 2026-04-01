@@ -47,6 +47,9 @@ namespace matchmaking
             Configuration = AppConfigurationLoader.Load();
             Session = new SessionContext();
 
+            // User matchmaking flow for Recommendations; switch to LoginAsCompany when testing company flows.
+            Session.LoginAsUser(1);
+
             CheckDatabaseConnection();
         }
 
@@ -82,7 +85,6 @@ namespace matchmaking
         /// <param name="args">Details about the launch request and process.</param>
         protected override void OnLaunched(Microsoft.UI.Xaml.LaunchActivatedEventArgs args)
         {
-
             _window = new MainWindow();
             MainWindow = _window;
             _window.Activate();
