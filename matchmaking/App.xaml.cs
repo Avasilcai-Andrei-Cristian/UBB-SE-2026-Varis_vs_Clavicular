@@ -47,9 +47,9 @@ namespace matchmaking
             Configuration = AppConfigurationLoader.Load();
             Session = new SessionContext();
 
-            //Session.LoginAsCompany(1);
+            Session.LoginAsCompany(1);
             //Session.LoginAsUser(1);
-            Session.LoginAsDeveloper(1);
+            //Session.LoginAsDeveloper(1);
 
             CheckDatabaseConnection();
         }

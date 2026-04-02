@@ -17,7 +17,6 @@ public class TestResult
     // Snapshot from external testing module tables.
     public TestDefinitionRecord? Test { get; set; }
     public TestAttemptRecord? Attempt { get; set; }
-    public LeaderboardEntryRecord? LeaderboardEntry { get; set; }
     public InterviewSessionRecord? InterviewSession { get; set; }
     public IReadOnlyList<QuestionRecord> Questions { get; set; } = [];
 

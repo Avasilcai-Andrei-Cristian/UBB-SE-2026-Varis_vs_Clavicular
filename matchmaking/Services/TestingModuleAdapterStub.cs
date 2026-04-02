@@ -47,16 +47,6 @@ public class TestingModuleAdapterStub : ITestingModuleAdapter
                 CompletedAt = now.AddDays(-2),
                 AnswersFilePath = $"attempts/{externalUserId}/{testId}/answers.json"
             },
-            LeaderboardEntry = new LeaderboardEntryRecord
-            {
-                LeaderboardId = testId * 100 + externalUserId,
-                TestId = testId,
-                UserId = externalUserId,
-                NormalizedScore = 0.825m,
-                RankPosition = 4,
-                TieBreakPriority = 1,
-                LastRecalculationAt = now.AddHours(-3)
-            },
             InterviewSession = new InterviewSessionRecord
             {
                 SessionId = positionId * 100 + externalUserId,

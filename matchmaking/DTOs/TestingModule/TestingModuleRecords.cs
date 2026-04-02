@@ -33,17 +33,6 @@ public class TestAttemptRecord
     public string AnswersFilePath { get; set; } = string.Empty;
 }
 
-public class LeaderboardEntryRecord
-{
-    public int LeaderboardId { get; set; }
-    public int TestId { get; set; }
-    public int UserId { get; set; }
-    public decimal NormalizedScore { get; set; }
-    public int RankPosition { get; set; }
-    public int TieBreakPriority { get; set; }
-    public DateTime LastRecalculationAt { get; set; }
-}
-
 public class InterviewSessionRecord
 {
     public int SessionId { get; set; }
