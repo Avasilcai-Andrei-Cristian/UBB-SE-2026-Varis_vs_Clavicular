@@ -4,7 +4,9 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using matchmaking.Domain.Enums;
 using matchmaking.ViewModels;
+using matchmaking.Views.Controls;
 using matchmaking.Views.Pages;
+
 namespace matchmaking.Views;
 
 public sealed partial class ShellView : UserControl
@@ -20,11 +22,28 @@ public sealed partial class ShellView : UserControl
             onChat:            NavigateToChat);
         DataContext = _viewModel;
 
-        HeaderControl.RecommendationsRequested += OnRecommendationsRequested;
-        HeaderControl.MyStatusRequested        += OnMyStatusRequested;
-        HeaderControl.ChatRequested            += OnChatRequested;
+        InitializeHeader();
+
+        if (App.Session.CurrentMode == AppMode.DeveloperMode)
+        {
+            NavigateToDeveloperPage();
+        }
     }
 
+    private void InitializeHeader()
+    {
+        if (App.Session.CurrentMode == AppMode.DeveloperMode)
+        {
+            HeaderSlot.Content = new DeveloperHeaderControl();
+            return;
+        }
+
+        var appHeader = new AppHeaderControl();
+        appHeader.RecommendationsRequested += OnRecommendationsRequested;
+        appHeader.MyStatusRequested        += OnMyStatusRequested;
+        appHeader.ChatRequested            += OnChatRequested;
+        HeaderSlot.Content = appHeader;
+    }
 
     private void NavigateToRecommendations()
     {
@@ -63,6 +82,15 @@ public sealed partial class ShellView : UserControl
         if (App.Session.CurrentMode == AppMode.UserMode && App.Session.CurrentUserId is not null)
         {
             NavigateIfPageExists("matchmaking.Views.Pages.UserStatusPage");
+            return;
+        }
+    }
+
+    private void NavigateToDeveloperPage()
+    {
+        if (App.Session.CurrentMode == AppMode.DeveloperMode && App.Session.CurrentDeveloperId is not null)
+        {
+            NavigateIfPageExists("matchmaking.Views.Pages.DeveloperPage");
             return;
         }
     }

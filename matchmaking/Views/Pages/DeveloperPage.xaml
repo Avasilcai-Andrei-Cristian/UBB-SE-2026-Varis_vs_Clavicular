@@ -66,8 +66,95 @@
         <ScrollViewer Grid.Row="2"
                       Padding="20,20,20,24"
                       VerticalScrollBarVisibility="Auto">
-            <ItemsControl ItemsSource="{Binding Posts}"
-                          HorizontalAlignment="Stretch">
+            <StackPanel>
+
+                <!-- ── Algorithm description ── -->
+                <Border Background="{StaticResource CardBackgroundBrush}"
+                        BorderBrush="{StaticResource CardBorderBrush}"
+                        BorderThickness="1"
+                        CornerRadius="10"
+                        Padding="28,22"
+                        Margin="0,0,0,12"
+                        MaxWidth="600"
+                        HorizontalAlignment="Stretch">
+                    <StackPanel Spacing="16">
+
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="How the Matching Algorithm Works"
+                                       FontSize="15"
+                                       FontWeight="SemiBold"
+                                       Foreground="{StaticResource TextPrimaryBrush}" />
+                            <TextBlock TextWrapping="Wrap"
+                                       FontSize="13"
+                                       Foreground="{StaticResource TextSecondaryBrush}"
+                                       Text="The final compatibility score (0–100) is a weighted average of four components. As a developer, you can propose values for the parameters below and vote on others' suggestions. The community vote determines the effective value used by the algorithm." />
+                        </StackPanel>
+
+                        <Rectangle Height="1" Fill="{StaticResource DividerBrush}" />
+
+                        <StackPanel Spacing="12">
+
+                            <StackPanel Spacing="2">
+                                <TextBlock Text="Weighted Distance Score Weight"
+                                           FontSize="13" FontWeight="SemiBold"
+                                           Foreground="{StaticResource TextPrimaryBrush}" />
+                                <TextBlock TextWrapping="Wrap" FontSize="12"
+                                           Foreground="{StaticResource TextSecondaryBrush}"
+                                           Text="How much the skill comparison contributes to the final score. Higher values make skill match the dominant factor. Default: 25%." />
+                            </StackPanel>
+
+                            <StackPanel Spacing="2">
+                                <TextBlock Text="Job-Resume Similarity Score Weight"
+                                           FontSize="13" FontWeight="SemiBold"
+                                           Foreground="{StaticResource TextPrimaryBrush}" />
+                                <TextBlock TextWrapping="Wrap" FontSize="12"
+                                           Foreground="{StaticResource TextSecondaryBrush}"
+                                           Text="How much keyword overlap between the resume and job description matters. Higher values reward textual similarity. Default: 25%." />
+                            </StackPanel>
+
+                            <StackPanel Spacing="2">
+                                <TextBlock Text="Preference Score Weight"
+                                           FontSize="13" FontWeight="SemiBold"
+                                           Foreground="{StaticResource TextPrimaryBrush}" />
+                                <TextBlock TextWrapping="Wrap" FontSize="12"
+                                           Foreground="{StaticResource TextSecondaryBrush}"
+                                           Text="How much the user's location and employment type preferences influence the score. Default: 25%." />
+                            </StackPanel>
+
+                            <StackPanel Spacing="2">
+                                <TextBlock Text="Promotion Score Weight"
+                                           FontSize="13" FontWeight="SemiBold"
+                                           Foreground="{StaticResource TextPrimaryBrush}" />
+                                <TextBlock TextWrapping="Wrap" FontSize="12"
+                                           Foreground="{StaticResource TextSecondaryBrush}"
+                                           Text="How much a company's paid promotion level can boost a job's ranking. Higher values give promoted jobs a stronger advantage. Default: 25%." />
+                            </StackPanel>
+
+                            <StackPanel Spacing="2">
+                                <TextBlock Text="Mitigation Factor"
+                                           FontSize="13" FontWeight="SemiBold"
+                                           Foreground="{StaticResource TextPrimaryBrush}" />
+                                <TextBlock TextWrapping="Wrap" FontSize="12"
+                                           Foreground="{StaticResource TextSecondaryBrush}"
+                                           Text="Reduces the penalty when a candidate is overqualified for a skill. A value of 1 treats over- and under-qualification equally. Higher values make the algorithm more forgiving of overqualification. Must be ≥ 1. Default: 2." />
+                            </StackPanel>
+
+                            <StackPanel Spacing="2">
+                                <TextBlock Text="Relevant Keyword"
+                                           FontSize="13" FontWeight="SemiBold"
+                                           Foreground="{StaticResource TextPrimaryBrush}" />
+                                <TextBlock TextWrapping="Wrap" FontSize="12"
+                                           Foreground="{StaticResource TextSecondaryBrush}"
+                                           Text="Marks a word as important in the resume-job similarity calculation. Liked keyword posts increase that word's weight; disliked ones decrease it. The value is capped between 0 and 5." />
+                            </StackPanel>
+
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- ── Posts ── -->
+                <ItemsControl ItemsSource="{Binding Posts}"
+                              HorizontalAlignment="Stretch">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
                         <Border Background="{StaticResource CardBackgroundBrush}"
@@ -162,6 +249,8 @@
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
+
+            </StackPanel>
         </ScrollViewer>
 
     </Grid>

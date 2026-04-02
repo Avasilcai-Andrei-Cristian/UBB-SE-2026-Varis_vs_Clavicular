@@ -15,10 +15,10 @@
         </Grid.RowDefinitions>
 
 
-       <!-- <controls:AppHeaderControl Grid.Row="0" />-->
-
-        <controls:AppHeaderControl x:Name="HeaderControl"
-                                   Grid.Row="0" />
+        <ContentControl x:Name="HeaderSlot"
+                        Grid.Row="0"
+                        HorizontalContentAlignment="Stretch"
+                        VerticalContentAlignment="Stretch" />
 
 
         <Frame x:Name="ContentHostFrame"
