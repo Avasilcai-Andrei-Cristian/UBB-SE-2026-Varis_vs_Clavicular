@@ -19,8 +19,6 @@ public class CompanyStatusViewModel : ObservableObject
     private readonly SessionContext _session;
 
     private readonly RelayCommand _refreshCommand;
-    private readonly RelayCommand _submitDecisionCommand;
-    private readonly RelayCommand _cancelEvaluationCommand;
 
     private UserApplicationResult? _selectedApplicant;
     private Match? _selectedMatch;
@@ -47,8 +45,6 @@ public class CompanyStatusViewModel : ObservableObject
         _session = session;
 
         _refreshCommand = new RelayCommand(async () => await RefreshAsync(), () => !IsLoading);
-        _submitDecisionCommand = new RelayCommand(async () => await SubmitDecisionAsync(), CanSubmitDecision);
-        _cancelEvaluationCommand = new RelayCommand(CancelEvaluation, () => SelectedApplicant is not null);
     }
 
     public ObservableCollection<UserApplicationResult> Applications { get; } = [];
@@ -149,8 +145,6 @@ public class CompanyStatusViewModel : ObservableObject
     }
 
     public ICommand RefreshCommand => _refreshCommand;
-    public ICommand SubmitDecisionCommand => _submitDecisionCommand;
-    public ICommand CancelEvaluationCommand => _cancelEvaluationCommand;
 
     public async Task LoadApplicationsAsync()
     {
@@ -375,13 +369,6 @@ public class CompanyStatusViewModel : ObservableObject
     private void RaiseCommandStates()
     {
         _refreshCommand.RaiseCanExecuteChanged();
-        _submitDecisionCommand.RaiseCanExecuteChanged();
-        _cancelEvaluationCommand.RaiseCanExecuteChanged();
-    }
-
-    private bool CanSubmitDecision()
-    {
-        return !IsLoading && SelectedMatch is not null && SelectedDecision is not null;
     }
 
     private void ReportError(string message)
