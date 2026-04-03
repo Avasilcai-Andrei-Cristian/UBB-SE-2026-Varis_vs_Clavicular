@@ -4,11 +4,10 @@ using System.Linq;
 using System.Windows.Input;
 using matchmaking.Domain.Entities;
 using matchmaking.Domain.Enums;
-using matchmaking.ViewModels;
 
-namespace matchmaking.Models;
+namespace matchmaking.ViewModels;
 
-public class PostDisplayModel
+public class PostCardViewModel
 {
     public int PostId { get; }
     public string AuthorName { get; }
@@ -24,7 +23,7 @@ public class PostDisplayModel
     public ICommand LikeCommand { get; }
     public ICommand DislikeCommand { get; }
 
-    public PostDisplayModel(Post post, IEnumerable<Interaction> postInteractions, string authorName, int currentDeveloperId, Action<int> onLike, Action<int> onDislike)
+    public PostCardViewModel(Post post, IEnumerable<Interaction> postInteractions, string authorName, int currentDeveloperId, Action<int> onLike, Action<int> onDislike)
     {
         var interactions = postInteractions.ToList();
 

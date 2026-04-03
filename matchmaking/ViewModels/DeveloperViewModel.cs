@@ -3,7 +3,6 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using matchmaking.Domain.Enums;
 using matchmaking.Domain.Session;
-using matchmaking.Models;
 using matchmaking.Services;
 
 namespace matchmaking.ViewModels;
@@ -13,7 +12,7 @@ public class DeveloperViewModel : ObservableObject
     private readonly DeveloperService _developerService;
     private readonly SessionContext _session;
 
-    public ObservableCollection<PostDisplayModel> Posts { get; } = new();
+    public ObservableCollection<PostCardViewModel> Posts { get; } = new();
 
     public DeveloperViewModel(DeveloperService developerService, SessionContext sessionContext)
     {
@@ -123,7 +122,7 @@ public class DeveloperViewModel : ObservableObject
         {
             var postInteractions = interactions.Where(i => i.PostId == post.PostId);
             var authorName = developerNames[post.DeveloperId];
-            Posts.Add(new PostDisplayModel(post, postInteractions, authorName, currentDeveloperId, HandleLike, HandleDislike));
+            Posts.Add(new PostCardViewModel(post, postInteractions, authorName, currentDeveloperId, HandleLike, HandleDislike));
         }
     }
 }
