@@ -6,7 +6,7 @@ public sealed class CompanyServiceTests
     public void GetById_WhenCompanyExists_ReturnsCompany()
     {
         var existingCompany = TestDataFactory.CreateCompany(4);
-        var repository = new FakeCompanyRepository([existingCompany]);
+        var repository = new FakeCompanyRepository(new[] { existingCompany });
         var service = new CompanyService(repository);
 
         service.GetById(existingCompany.CompanyId).Should().Be(existingCompany);
@@ -16,7 +16,7 @@ public sealed class CompanyServiceTests
     public void GetAll_WhenCompaniesExist_ReturnsCompanies()
     {
         var existingCompany = TestDataFactory.CreateCompany(4);
-        var repository = new FakeCompanyRepository([existingCompany]);
+        var repository = new FakeCompanyRepository(new[] { existingCompany });
         var service = new CompanyService(repository);
 
         service.GetAll().Should().ContainSingle().Which.Should().Be(existingCompany);
@@ -25,7 +25,7 @@ public sealed class CompanyServiceTests
     [Fact]
     public void Add_WhenCompanyAdded_DelegatesToRepository()
     {
-        var repository = new FakeCompanyRepository([]);
+        var repository = new FakeCompanyRepository(Array.Empty<Company>());
         var service = new CompanyService(repository);
         var newCompany = TestDataFactory.CreateCompany(5);
 
@@ -38,7 +38,7 @@ public sealed class CompanyServiceTests
     public void Update_WhenCompanyUpdated_DelegatesToRepository()
     {
         var existingCompany = TestDataFactory.CreateCompany(4);
-        var repository = new FakeCompanyRepository([existingCompany]);
+        var repository = new FakeCompanyRepository(new[] { existingCompany });
         var service = new CompanyService(repository);
 
         service.Update(existingCompany);
@@ -50,7 +50,7 @@ public sealed class CompanyServiceTests
     public void Remove_WhenCompanyRemoved_DelegatesToRepository()
     {
         var existingCompany = TestDataFactory.CreateCompany(4);
-        var repository = new FakeCompanyRepository([existingCompany]);
+        var repository = new FakeCompanyRepository(new[] { existingCompany });
         var service = new CompanyService(repository);
 
         service.Remove(existingCompany.CompanyId);
@@ -67,9 +67,9 @@ public sealed class CompanyServiceTests
             this.companies = companies.ToList();
         }
 
-        public List<Company> AddedCompanies { get; } = [];
-        public List<Company> UpdatedCompanies { get; } = [];
-        public List<int> RemovedCompanyIds { get; } = [];
+        public List<Company> AddedCompanies { get; } = new List<Company>();
+        public List<Company> UpdatedCompanies { get; } = new List<Company>();
+        public List<int> RemovedCompanyIds { get; } = new List<int>();
 
         public Company? GetById(int companyId) => companies.FirstOrDefault(company => company.CompanyId == companyId);
         public IReadOnlyList<Company> GetAll() => companies;

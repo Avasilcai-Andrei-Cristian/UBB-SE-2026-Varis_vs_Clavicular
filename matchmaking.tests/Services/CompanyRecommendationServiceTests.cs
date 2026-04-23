@@ -35,8 +35,12 @@ public sealed class CompanyRecommendationServiceTests
         service.LoadApplicants(job.CompanyId);
 
         service.HasMore.Should().BeTrue();
-        service.GetNextApplicant()!.Match.MatchId.Should().Be(match.MatchId);
-        service.GetBreakdown(service.GetNextApplicant()!).Should().NotBeNull();
+        var nextApplicant = service.GetNextApplicant();
+
+        nextApplicant.Should().NotBeNull();
+
+        nextApplicant!.Match.MatchId.Should().Be(match.MatchId);
+        service.GetBreakdown(nextApplicant).Should().NotBeNull();
     }
 
     [Fact]
@@ -86,10 +90,15 @@ public sealed class CompanyRecommendationServiceTests
 
     private sealed class FakeUserRepository : IUserRepository
     {
-        private readonly IReadOnlyList<User> _users;
-        public FakeUserRepository(IReadOnlyList<User> users) => _users = users;
-        public User? GetById(int userId) => _users.FirstOrDefault(user => user.UserId == userId);
-        public IReadOnlyList<User> GetAll() => _users;
+        private readonly IReadOnlyList<User> users;
+
+        public FakeUserRepository(IReadOnlyList<User> users)
+        {
+            this.users = users;
+        }
+
+        public User? GetById(int userId) => users.FirstOrDefault(user => user.UserId == userId);
+        public IReadOnlyList<User> GetAll() => users;
         public void Add(User user)
         {
         }
@@ -105,11 +114,16 @@ public sealed class CompanyRecommendationServiceTests
 
     private sealed class FakeJobRepository : IJobRepository
     {
-        private readonly IReadOnlyList<Job> _jobs;
-        public FakeJobRepository(IReadOnlyList<Job> jobs) => _jobs = jobs;
-        public Job? GetById(int jobId) => _jobs.FirstOrDefault(job => job.JobId == jobId);
-        public IReadOnlyList<Job> GetAll() => _jobs;
-        public IReadOnlyList<Job> GetByCompanyId(int companyId) => _jobs.Where(job => job.CompanyId == companyId).ToList();
+        private readonly IReadOnlyList<Job> jobs;
+
+        public FakeJobRepository(IReadOnlyList<Job> jobs)
+        {
+            this.jobs = jobs;
+        }
+
+        public Job? GetById(int jobId) => jobs.FirstOrDefault(job => job.JobId == jobId);
+        public IReadOnlyList<Job> GetAll() => jobs;
+        public IReadOnlyList<Job> GetByCompanyId(int companyId) => jobs.Where(job => job.CompanyId == companyId).ToList();
         public void Add(Job job)
         {
         }
@@ -125,12 +139,17 @@ public sealed class CompanyRecommendationServiceTests
 
     private sealed class FakeSkillRepository : ISkillRepository
     {
-        private readonly IReadOnlyList<Skill> _skills;
-        public FakeSkillRepository(IReadOnlyList<Skill> skills) => _skills = skills;
-        public Skill? GetById(int userId, int skillId) => _skills.FirstOrDefault(skill => skill.UserId == userId && skill.SkillId == skillId);
-        public IReadOnlyList<Skill> GetAll() => _skills;
-        public IReadOnlyList<Skill> GetByUserId(int userId) => _skills.Where(skill => skill.UserId == userId).ToList();
-        public IReadOnlyList<(int SkillId, string Name)> GetDistinctSkillCatalog() => _skills.GroupBy(skill => skill.SkillId).Select(group => (group.Key, group.First().SkillName)).ToList();
+        private readonly IReadOnlyList<Skill> skills;
+
+        public FakeSkillRepository(IReadOnlyList<Skill> skills)
+        {
+            this.skills = skills;
+        }
+
+        public Skill? GetById(int userId, int skillId) => skills.FirstOrDefault(skill => skill.UserId == userId && skill.SkillId == skillId);
+        public IReadOnlyList<Skill> GetAll() => skills;
+        public IReadOnlyList<Skill> GetByUserId(int userId) => skills.Where(skill => skill.UserId == userId).ToList();
+        public IReadOnlyList<(int SkillId, string Name)> GetDistinctSkillCatalog() => skills.GroupBy(skill => skill.SkillId).Select(group => (group.Key, group.First().SkillName)).ToList();
         public void Add(Skill skill)
         {
         }
@@ -146,11 +165,16 @@ public sealed class CompanyRecommendationServiceTests
 
     private sealed class FakeJobSkillRepository : IJobSkillRepository
     {
-        private readonly IReadOnlyList<JobSkill> _jobSkills;
-        public FakeJobSkillRepository(IReadOnlyList<JobSkill> jobSkills) => _jobSkills = jobSkills;
-        public JobSkill? GetById(int jobId, int skillId) => _jobSkills.FirstOrDefault(jobSkill => jobSkill.JobId == jobId && jobSkill.SkillId == skillId);
-        public IReadOnlyList<JobSkill> GetAll() => _jobSkills;
-        public IReadOnlyList<JobSkill> GetByJobId(int jobId) => _jobSkills.Where(jobSkill => jobSkill.JobId == jobId).ToList();
+        private readonly IReadOnlyList<JobSkill> jobSkills;
+
+        public FakeJobSkillRepository(IReadOnlyList<JobSkill> jobSkills)
+        {
+            this.jobSkills = jobSkills;
+        }
+
+        public JobSkill? GetById(int jobId, int skillId) => jobSkills.FirstOrDefault(jobSkill => jobSkill.JobId == jobId && jobSkill.SkillId == skillId);
+        public IReadOnlyList<JobSkill> GetAll() => jobSkills;
+        public IReadOnlyList<JobSkill> GetByJobId(int jobId) => jobSkills.Where(jobSkill => jobSkill.JobId == jobId).ToList();
         public void Add(JobSkill jobSkill)
         {
         }
@@ -166,11 +190,16 @@ public sealed class CompanyRecommendationServiceTests
 
     private sealed class FakeMatchRepository : IMatchRepository
     {
-        private readonly List<Match> _matches;
-        public FakeMatchRepository(IReadOnlyList<Match> matches) => _matches = matches.ToList();
-        public Match? GetById(int matchId) => _matches.FirstOrDefault(match => match.MatchId == matchId);
-        public IReadOnlyList<Match> GetAll() => _matches;
-        public void Add(Match match) => _matches.Add(match);
+        private readonly List<Match> matches;
+
+        public FakeMatchRepository(IReadOnlyList<Match> matches)
+        {
+            this.matches = matches.ToList();
+        }
+
+        public Match? GetById(int matchId) => matches.FirstOrDefault(match => match.MatchId == matchId);
+        public IReadOnlyList<Match> GetAll() => matches;
+        public void Add(Match match) => matches.Add(match);
         public void Update(Match match)
         {
         }
@@ -180,54 +209,74 @@ public sealed class CompanyRecommendationServiceTests
         }
 
         public int InsertReturningId(Match match) => 1;
-        public Match? GetByUserIdAndJobId(int userId, int jobId) => _matches.FirstOrDefault(match => match.UserId == userId && match.JobId == jobId);
+        public Match? GetByUserIdAndJobId(int userId, int jobId) => matches.FirstOrDefault(match => match.UserId == userId && match.JobId == jobId);
     }
 
     private sealed class FakeJobService : IJobService
     {
-        private readonly IJobRepository _jobRepository;
-        public FakeJobService(IJobRepository jobRepository) => _jobRepository = jobRepository;
-        public Job? GetById(int jobId) => _jobRepository.GetById(jobId);
-        public IReadOnlyList<Job> GetAll() => _jobRepository.GetAll();
-        public IReadOnlyList<Job> GetByCompanyId(int companyId) => _jobRepository.GetByCompanyId(companyId);
-        public void Add(Job job) => _jobRepository.Add(job);
-        public void Update(Job job) => _jobRepository.Update(job);
-        public void Remove(int jobId) => _jobRepository.Remove(jobId);
+        private readonly IJobRepository jobRepository;
+
+        public FakeJobService(IJobRepository jobRepository)
+        {
+            this.jobRepository = jobRepository;
+        }
+
+        public Job? GetById(int jobId) => jobRepository.GetById(jobId);
+        public IReadOnlyList<Job> GetAll() => jobRepository.GetAll();
+        public IReadOnlyList<Job> GetByCompanyId(int companyId) => jobRepository.GetByCompanyId(companyId);
+        public void Add(Job job) => jobRepository.Add(job);
+        public void Update(Job job) => jobRepository.Update(job);
+        public void Remove(int jobId) => jobRepository.Remove(jobId);
     }
 
     private sealed class FakeUserService : IUserService
     {
-        private readonly IUserRepository _userRepository;
-        public FakeUserService(IUserRepository userRepository) => _userRepository = userRepository;
-        public User? GetById(int userId) => _userRepository.GetById(userId);
-        public IReadOnlyList<User> GetAll() => _userRepository.GetAll();
-        public void Add(User user) => _userRepository.Add(user);
-        public void Update(User user) => _userRepository.Update(user);
-        public void Remove(int userId) => _userRepository.Remove(userId);
+        private readonly IUserRepository userRepository;
+
+        public FakeUserService(IUserRepository userRepository)
+        {
+            this.userRepository = userRepository;
+        }
+
+        public User? GetById(int userId) => userRepository.GetById(userId);
+        public IReadOnlyList<User> GetAll() => userRepository.GetAll();
+        public void Add(User user) => userRepository.Add(user);
+        public void Update(User user) => userRepository.Update(user);
+        public void Remove(int userId) => userRepository.Remove(userId);
     }
 
     private sealed class FakeSkillService : ISkillService
     {
-        private readonly ISkillRepository _skillRepository;
-        public FakeSkillService(ISkillRepository skillRepository) => _skillRepository = skillRepository;
-        public Skill? GetById(int userId, int skillId) => _skillRepository.GetById(userId, skillId);
-        public IReadOnlyList<Skill> GetAll() => _skillRepository.GetAll();
-        public IReadOnlyList<Skill> GetByUserId(int userId) => _skillRepository.GetByUserId(userId);
-        public IReadOnlyList<(int SkillId, string Name)> GetDistinctSkillCatalog() => _skillRepository.GetDistinctSkillCatalog();
-        public void Add(Skill skill) => _skillRepository.Add(skill);
-        public void Update(Skill skill) => _skillRepository.Update(skill);
-        public void Remove(int userId, int skillId) => _skillRepository.Remove(userId, skillId);
+        private readonly ISkillRepository skillRepository;
+
+        public FakeSkillService(ISkillRepository skillRepository)
+        {
+            this.skillRepository = skillRepository;
+        }
+
+        public Skill? GetById(int userId, int skillId) => skillRepository.GetById(userId, skillId);
+        public IReadOnlyList<Skill> GetAll() => skillRepository.GetAll();
+        public IReadOnlyList<Skill> GetByUserId(int userId) => skillRepository.GetByUserId(userId);
+        public IReadOnlyList<(int SkillId, string Name)> GetDistinctSkillCatalog() => skillRepository.GetDistinctSkillCatalog();
+        public void Add(Skill skill) => skillRepository.Add(skill);
+        public void Update(Skill skill) => skillRepository.Update(skill);
+        public void Remove(int userId, int skillId) => skillRepository.Remove(userId, skillId);
     }
 
     private sealed class FakeJobSkillService : IJobSkillService
     {
-        private readonly IJobSkillRepository _jobSkillRepository;
-        public FakeJobSkillService(IJobSkillRepository jobSkillRepository) => _jobSkillRepository = jobSkillRepository;
-        public JobSkill? GetById(int jobId, int skillId) => _jobSkillRepository.GetById(jobId, skillId);
-        public IReadOnlyList<JobSkill> GetAll() => _jobSkillRepository.GetAll();
-        public IReadOnlyList<JobSkill> GetByJobId(int jobId) => _jobSkillRepository.GetByJobId(jobId);
-        public void Add(JobSkill jobSkill) => _jobSkillRepository.Add(jobSkill);
-        public void Update(JobSkill jobSkill) => _jobSkillRepository.Update(jobSkill);
-        public void Remove(int jobId, int skillId) => _jobSkillRepository.Remove(jobId, skillId);
+        private readonly IJobSkillRepository jobSkillRepository;
+
+        public FakeJobSkillService(IJobSkillRepository jobSkillRepository)
+        {
+            this.jobSkillRepository = jobSkillRepository;
+        }
+
+        public JobSkill? GetById(int jobId, int skillId) => jobSkillRepository.GetById(jobId, skillId);
+        public IReadOnlyList<JobSkill> GetAll() => jobSkillRepository.GetAll();
+        public IReadOnlyList<JobSkill> GetByJobId(int jobId) => jobSkillRepository.GetByJobId(jobId);
+        public void Add(JobSkill jobSkill) => jobSkillRepository.Add(jobSkill);
+        public void Update(JobSkill jobSkill) => jobSkillRepository.Update(jobSkill);
+        public void Remove(int jobId, int skillId) => jobSkillRepository.Remove(jobId, skillId);
     }
 }

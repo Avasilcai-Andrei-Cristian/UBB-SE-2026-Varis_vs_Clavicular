@@ -107,7 +107,7 @@ public sealed class SqlIntegrationTestDatabase : IDisposable
 
     public void Dispose()
     {
-        using var masterConnection = new SqlConnection(_masterConnectionString);
+        using var masterConnection = new SqlConnection(masterConnectionString);
         masterConnection.Open();
         using var command = new SqlCommand(
             $"ALTER DATABASE [{databaseName}] SET SINGLE_USER WITH ROLLBACK IMMEDIATE; DROP DATABASE [{databaseName}];",

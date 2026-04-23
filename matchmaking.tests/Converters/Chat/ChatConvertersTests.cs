@@ -2,7 +2,7 @@ namespace matchmaking.Tests.Converters;
 
 public class ReadReceiptConverterTests
 {
-    private readonly ReadReceiptConverter converter = new();
+    private readonly ReadReceiptConverter converter = new ();
 
     [Fact]
     public void Convert_True_ReturnsSeen()
@@ -47,7 +47,7 @@ public class ReadReceiptConverterTests
 
 public class MessageContentDisplayConverterTests
 {
-    private readonly MessageContentDisplayConverter converter = new();
+    private readonly MessageContentDisplayConverter converter = new ();
 
     [Fact]
     public void Convert_TextMessage_ReturnsContent()
@@ -116,7 +116,7 @@ public class MessageContentDisplayConverterTests
 
 public class MessageTextVisibilityConverterTests
 {
-    private readonly MessageTextVisibilityConverter converter = new();
+    private readonly MessageTextVisibilityConverter converter = new ();
 
     [Fact]
     public void Convert_TextMessage_ReturnsVisible()
@@ -167,7 +167,7 @@ public class MessageTextVisibilityConverterTests
 
 public class MessageAttachmentVisibilityConverterTests
 {
-    private readonly MessageAttachmentVisibilityConverter converter = new();
+    private readonly MessageAttachmentVisibilityConverter converter = new ();
 
     [Fact]
     public void Convert_TextMessage_ReturnsCollapsed()
@@ -218,7 +218,7 @@ public class MessageAttachmentVisibilityConverterTests
 
 public class MessageFileAttachmentVisibilityConverterTests
 {
-    private readonly MessageFileAttachmentVisibilityConverter converter = new();
+    private readonly MessageFileAttachmentVisibilityConverter converter = new ();
 
     [Fact]
     public void Convert_FileMessage_ReturnsVisible()
@@ -269,7 +269,7 @@ public class MessageFileAttachmentVisibilityConverterTests
 
 public class MessageImageVisibilityConverterTests
 {
-    private readonly MessageImageVisibilityConverter converter = new();
+    private readonly MessageImageVisibilityConverter converter = new ();
 
     [Fact]
     public void Convert_ImageMessage_ReturnsVisible()
@@ -320,7 +320,7 @@ public class MessageImageVisibilityConverterTests
 
 public class StringToVisibilityConverterTests
 {
-    private readonly StringToVisibilityConverter converter = new();
+    private readonly StringToVisibilityConverter converter = new ();
 
     [Theory]
     [InlineData("Hello")]
@@ -370,7 +370,7 @@ public class StringToVisibilityConverterTests
 
 public class ObjectToVisibilityConverterTests
 {
-    private readonly ObjectToVisibilityConverter converter = new();
+    private readonly ObjectToVisibilityConverter converter = new ();
 
     [Fact]
     public void Convert_NonNullObject_ReturnsVisible()
@@ -407,7 +407,7 @@ public class ObjectToVisibilityConverterTests
 
 public class IntToVisibilityConverterTests
 {
-    private readonly IntToVisibilityConverter converter = new();
+    private readonly IntToVisibilityConverter converter = new ();
 
     [Theory]
     [InlineData(1)]
@@ -465,7 +465,7 @@ public class IntToVisibilityConverterTests
 
 public class ChatAvatarBgConverterTests
 {
-    private readonly ChatAvatarBgConverter converter = new();
+    private readonly ChatAvatarBgConverter converter = new ();
 
     [Fact]
     public void Convert_ChatWithoutCompany_ReturnsUserColor()
@@ -514,7 +514,7 @@ public class ChatAvatarBgConverterTests
 
 public class ChatAvatarFgConverterTests
 {
-    private readonly ChatAvatarFgConverter converter = new();
+    private readonly ChatAvatarFgConverter converter = new ();
 
     [Fact]
     public void Convert_ChatWithoutCompany_ReturnsUserForeground()
@@ -563,7 +563,7 @@ public class ChatAvatarFgConverterTests
 
 public class ChatSubtitleConverterTests
 {
-    private readonly ChatSubtitleConverter converter = new();
+    private readonly ChatSubtitleConverter converter = new ();
 
     [Fact]
     public void Convert_BlockedChat_ReturnsBlockedMessage()
@@ -612,7 +612,7 @@ public class ChatSubtitleConverterTests
 
 public class ChatAvatarCornerRadiusConverterTests
 {
-    private readonly ChatAvatarCornerRadiusConverter converter = new();
+    private readonly ChatAvatarCornerRadiusConverter converter = new ();
 
     [Fact]
     public void Convert_ChatWithoutCompany_ReturnsCircularRadius()
@@ -661,7 +661,7 @@ public class ChatAvatarCornerRadiusConverterTests
 
 public class InverseBoolConverterTests
 {
-    private readonly InverseBoolConverter converter = new();
+    private readonly InverseBoolConverter converter = new ();
 
     [Fact]
     public void Convert_True_ReturnsFalse()
@@ -733,7 +733,7 @@ public class InverseBoolConverterTests
 
 public class ChatNameConverterTests
 {
-    private readonly ChatNameConverter converter = new();
+    private readonly ChatNameConverter converter = new ();
 
     [Fact]
     public void Convert_NullValue_ReturnsEmptyString()
@@ -784,7 +784,7 @@ public class ChatNameConverterTests
 
 public class ChatPartyNameConverterTests
 {
-    private readonly ChatPartyNameConverter converter = new();
+    private readonly ChatPartyNameConverter converter = new ();
 
     [Fact]
     public void Convert_NonChat_ReturnsNoChatSelected()

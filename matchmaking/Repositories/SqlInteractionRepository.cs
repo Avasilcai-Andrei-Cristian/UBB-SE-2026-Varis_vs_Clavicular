@@ -6,8 +6,13 @@ using matchmaking.Domain.Enums;
 
 namespace matchmaking.Repositories;
 
-public class SqlInteractionRepository(string connectionString) : SqlRepositoryBase(connectionString), IInteractionRepository
+public class SqlInteractionRepository : SqlRepositoryBase, IInteractionRepository
 {
+    public SqlInteractionRepository(string connectionString)
+        : base(connectionString)
+    {
+    }
+
     public Interaction? GetById(int interactionId)
     {
         using var connection = OpenConnection();

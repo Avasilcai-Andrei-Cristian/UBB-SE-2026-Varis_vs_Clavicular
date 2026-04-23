@@ -2,7 +2,7 @@ namespace matchmaking.Tests.Converters;
 
 public class MatchStatusToColorConverterTests
 {
-    private readonly MatchStatusToColorConverter converter = new();
+    private readonly MatchStatusToColorConverter converter = new MatchStatusToColorConverter();
 
     [Theory]
     [InlineData(MatchStatus.Accepted)]

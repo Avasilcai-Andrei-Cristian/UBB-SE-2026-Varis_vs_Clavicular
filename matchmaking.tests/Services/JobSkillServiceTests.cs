@@ -6,7 +6,7 @@ public sealed class JobSkillServiceTests
     public void GetById_WhenJobSkillExists_ReturnsJobSkill()
     {
         var existingJobSkill = TestDataFactory.CreateJobSkill(100, 10, "C#", 75);
-        var repository = new FakeJobSkillRepository([existingJobSkill]);
+        var repository = new FakeJobSkillRepository(new[] { existingJobSkill });
         var service = new JobSkillService(repository);
 
         service.GetById(existingJobSkill.JobId, existingJobSkill.SkillId).Should().Be(existingJobSkill);
@@ -16,7 +16,7 @@ public sealed class JobSkillServiceTests
     public void GetAll_WhenJobSkillsExist_ReturnsJobSkills()
     {
         var existingJobSkill = TestDataFactory.CreateJobSkill(100, 10, "C#", 75);
-        var repository = new FakeJobSkillRepository([existingJobSkill]);
+        var repository = new FakeJobSkillRepository(new[] { existingJobSkill });
         var service = new JobSkillService(repository);
 
         service.GetAll().Should().ContainSingle().Which.Should().Be(existingJobSkill);
@@ -26,7 +26,7 @@ public sealed class JobSkillServiceTests
     public void GetByJobId_WhenJobSkillsExist_ReturnsJobSkills()
     {
         var existingJobSkill = TestDataFactory.CreateJobSkill(100, 10, "C#", 75);
-        var repository = new FakeJobSkillRepository([existingJobSkill]);
+        var repository = new FakeJobSkillRepository(new[] { existingJobSkill });
         var service = new JobSkillService(repository);
 
         service.GetByJobId(existingJobSkill.JobId).Should().ContainSingle().Which.Should().Be(existingJobSkill);
@@ -35,7 +35,7 @@ public sealed class JobSkillServiceTests
     [Fact]
     public void Add_WhenJobSkillAdded_DelegatesToRepository()
     {
-        var repository = new FakeJobSkillRepository([]);
+        var repository = new FakeJobSkillRepository(Array.Empty<JobSkill>());
         var service = new JobSkillService(repository);
         var newJobSkill = TestDataFactory.CreateJobSkill(100, 11, "Docker", 70);
 
@@ -48,7 +48,7 @@ public sealed class JobSkillServiceTests
     public void Update_WhenJobSkillUpdated_DelegatesToRepository()
     {
         var existingJobSkill = TestDataFactory.CreateJobSkill(100, 10, "C#", 75);
-        var repository = new FakeJobSkillRepository([existingJobSkill]);
+        var repository = new FakeJobSkillRepository(new[] { existingJobSkill });
         var service = new JobSkillService(repository);
 
         service.Update(existingJobSkill);
@@ -60,7 +60,7 @@ public sealed class JobSkillServiceTests
     public void Remove_WhenJobSkillRemoved_DelegatesToRepository()
     {
         var existingJobSkill = TestDataFactory.CreateJobSkill(100, 10, "C#", 75);
-        var repository = new FakeJobSkillRepository([existingJobSkill]);
+        var repository = new FakeJobSkillRepository(new[] { existingJobSkill });
         var service = new JobSkillService(repository);
 
         service.Remove(existingJobSkill.JobId, existingJobSkill.SkillId);
@@ -77,9 +77,9 @@ public sealed class JobSkillServiceTests
             this.jobSkills = jobSkills.ToList();
         }
 
-        public List<JobSkill> AddedItems { get; } = [];
-        public List<JobSkill> UpdatedItems { get; } = [];
-        public List<(int JobId, int SkillId)> RemovedPairs { get; } = [];
+        public List<JobSkill> AddedItems { get; } = new List<JobSkill>();
+        public List<JobSkill> UpdatedItems { get; } = new List<JobSkill>();
+        public List<(int JobId, int SkillId)> RemovedPairs { get; } = new List<(int JobId, int SkillId)>();
 
         public JobSkill? GetById(int jobId, int skillId) => jobSkills.FirstOrDefault(item => item.JobId == jobId && item.SkillId == skillId);
         public IReadOnlyList<JobSkill> GetAll() => jobSkills;

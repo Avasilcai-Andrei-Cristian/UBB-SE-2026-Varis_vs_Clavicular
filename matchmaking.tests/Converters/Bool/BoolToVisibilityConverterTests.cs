@@ -2,7 +2,7 @@ namespace matchmaking.Tests.Converters;
 
 public class BoolToVisibilityConverterTests
 {
-    private readonly BoolToVisibilityConverter converter = new();
+    private readonly BoolToVisibilityConverter converter = new BoolToVisibilityConverter();
 
     [Fact]
     public void Convert_True_ReturnsVisible()
