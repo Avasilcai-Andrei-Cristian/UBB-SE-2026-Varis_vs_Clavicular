@@ -6,7 +6,7 @@ using matchmaking.Domain.Enums;
 
 namespace matchmaking.Repositories;
 
-public class SqlInteractionRepository(string connectionString) : SqlRepositoryBase(connectionString)
+public class SqlInteractionRepository(string connectionString) : SqlRepositoryBase(connectionString), IInteractionRepository
 {
     public Interaction? GetById(int interactionId)
     {

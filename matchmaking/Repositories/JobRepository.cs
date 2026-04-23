@@ -5,7 +5,7 @@ using matchmaking.Domain.Entities;
 
 namespace matchmaking.Repositories;
 
-public class JobRepository
+public class JobRepository : IJobRepository
 {
     private readonly List<Job> _jobs =
     [

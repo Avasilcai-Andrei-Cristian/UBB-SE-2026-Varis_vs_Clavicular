@@ -4,11 +4,11 @@ using matchmaking.Repositories;
 
 namespace matchmaking.Services;
 
-public class JobService
+public class JobService : IJobService
 {
-    private readonly JobRepository _jobRepository;
+    private readonly IJobRepository _jobRepository;
 
-    public JobService(JobRepository jobRepository)
+    public JobService(IJobRepository jobRepository)
     {
         _jobRepository = jobRepository;
     }

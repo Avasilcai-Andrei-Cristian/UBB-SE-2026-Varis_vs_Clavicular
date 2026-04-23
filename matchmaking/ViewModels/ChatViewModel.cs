@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using matchmaking.Domain.Entities;
 using matchmaking.Domain.Session;
 using matchmaking.Domain.Enums;
@@ -39,6 +40,9 @@ public class ChatViewModel : ObservableObject
     private readonly UserRepository _userRepository;
     private readonly CompanyRepository _companyRepository;
     private readonly NavigationService _navigationService;
+
+    public bool HasPendingAttachments => false;
+    public ObservableCollection<object> PendingAttachments { get; } = [];
 
     public ChatViewModel(
         ChatService chatService,
@@ -312,6 +316,7 @@ public class ChatViewModel : ObservableObject
         Messages.Clear();
         foreach (var message in messages)
         {
+            message.SenderInitials = ResolveSenderInitials(message.SenderId);
             Messages.Add(message);
         }
 
@@ -459,6 +464,7 @@ public class ChatViewModel : ObservableObject
             Messages.Clear();
             foreach (var message in latestMessages)
             {
+                message.SenderInitials = ResolveSenderInitials(message.SenderId);
                 Messages.Add(message);
             }
         }
@@ -650,6 +656,44 @@ public class ChatViewModel : ObservableObject
             : $"📎 {fileName}";
     }
 
+    private string ResolveSenderInitials(int senderId)
+    {
+        if (_sessionContext.CurrentMode == AppMode.UserMode)
+        {
+            if (_sessionContext.CurrentUserId is int currentUserId && senderId == currentUserId)
+            {
+                return "U";
+            }
+
+            var user = _userRepository.GetById(senderId);
+            return CreateInitials(user?.Name) ?? "U";
+        }
+
+        if (_sessionContext.CurrentCompanyId is int currentCompanyId && senderId == currentCompanyId)
+        {
+            return "C";
+        }
+
+        var company = _companyRepository.GetById(senderId);
+        return CreateInitials(company?.CompanyName) ?? "C";
+    }
+
+    private static string? CreateInitials(string? name)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            return null;
+        }
+
+        var parts = name.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        if (parts.Length == 1)
+        {
+            return parts[0][0].ToString().ToUpperInvariant();
+        }
+
+        return string.Concat(parts[0][0], parts[1][0]).ToUpperInvariant();
+    }
+
     private void UpdateVisibility()
     {
         if (SelectedChat is null)
@@ -725,6 +769,34 @@ public class ChatViewModel : ObservableObject
     public void HandleAttachmentSelected(string filePath)
     {
         HandleAttachmentSelected(filePath, System.IO.Path.GetExtension(filePath));
+    }
+
+    public async Task DownloadAttachmentAsync(Message message, string targetPath)
+    {
+        if (message.Type != MessageType.File && message.Type != MessageType.Image)
+            return;
+
+        if (string.IsNullOrWhiteSpace(targetPath))
+        {
+            ErrorMessage = "No save location selected.";
+            return;
+        }
+
+        try
+        {
+            var sourcePath = message.Content;
+            if (string.IsNullOrWhiteSpace(sourcePath) || !File.Exists(sourcePath))
+            {
+                ErrorMessage = "Attachment file is missing.";
+                return;
+            }
+
+            File.Copy(sourcePath, targetPath, overwrite: true);
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = ex.Message;
+        }
     }
 
     public void SearchContacts()

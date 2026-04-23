@@ -5,7 +5,7 @@ using matchmaking.Domain.Entities;
 
 namespace matchmaking.Repositories;
 
-public class SqlRecommendationRepository(string connectionString) : SqlRepositoryBase(connectionString)
+public class SqlRecommendationRepository(string connectionString) : SqlRepositoryBase(connectionString), IRecommendationRepository
 {
     public Recommendation? GetById(int recommendationId)
     {

@@ -4,11 +4,11 @@ using matchmaking.Repositories;
 
 namespace matchmaking.Services;
 
-public class CompanyService
+public class CompanyService : ICompanyService
 {
-    private readonly CompanyRepository _companyRepository;
+    private readonly ICompanyRepository _companyRepository;
 
-    public CompanyService(CompanyRepository companyRepository)
+    public CompanyService(ICompanyRepository companyRepository)
     {
         _companyRepository = companyRepository;
     }

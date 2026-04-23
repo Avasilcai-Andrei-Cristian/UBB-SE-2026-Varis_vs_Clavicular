@@ -341,12 +341,6 @@ public sealed partial class ChatPageView : Page
         try
         {
             var sourcePath = message.Content;
-            if (string.IsNullOrWhiteSpace(sourcePath) || !File.Exists(sourcePath))
-            {
-                _viewModel.ErrorMessage = "Attachment file is missing.";
-                return;
-            }
-
             var extension = Path.GetExtension(sourcePath);
             if (string.IsNullOrWhiteSpace(extension))
             {
@@ -369,7 +363,7 @@ public sealed partial class ChatPageView : Page
                 return;
             }
 
-            File.Copy(sourcePath, file.Path, overwrite: true);
+            await _viewModel.DownloadAttachmentAsync(message, file.Path);
         }
         catch (Exception ex)
         {

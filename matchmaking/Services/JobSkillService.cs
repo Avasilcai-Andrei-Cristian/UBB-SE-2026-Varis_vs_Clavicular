@@ -4,11 +4,11 @@ using matchmaking.Repositories;
 
 namespace matchmaking.Services;
 
-public class JobSkillService
+public class JobSkillService : IJobSkillService
 {
-    private readonly JobSkillRepository _jobSkillRepository;
+    private readonly IJobSkillRepository _jobSkillRepository;
 
-    public JobSkillService(JobSkillRepository jobSkillRepository)
+    public JobSkillService(IJobSkillRepository jobSkillRepository)
     {
         _jobSkillRepository = jobSkillRepository;
     }

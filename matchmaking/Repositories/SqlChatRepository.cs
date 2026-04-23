@@ -5,7 +5,7 @@ using matchmaking.Domain.Entities;
 
 namespace matchmaking.Repositories;
 
-public class SqlChatRepository(string connectionString) : SqlRepositoryBase(connectionString)
+public class SqlChatRepository(string connectionString) : SqlRepositoryBase(connectionString), IChatRepository
 {
     public IReadOnlyList<Chat> GetByUserId(int userId)
     {

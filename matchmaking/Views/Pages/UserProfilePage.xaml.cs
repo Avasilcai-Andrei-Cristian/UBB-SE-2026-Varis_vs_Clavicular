@@ -1,44 +1,26 @@
-using matchmaking.Repositories;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
+using matchmaking.ViewModels;
+using matchmaking.Repositories;
 
 namespace matchmaking.Views.Pages;
 
 public sealed partial class UserProfilePage : Page
 {
+    private readonly UserProfileViewModel _viewModel;
+
     public UserProfilePage()
     {
         InitializeComponent();
+        _viewModel = new UserProfileViewModel(new UserRepository());
+        DataContext = _viewModel;
     }
 
     protected override void OnNavigatedTo(NavigationEventArgs e)
     {
         base.OnNavigatedTo(e);
-
-        if (e.Parameter is not int userId || userId <= 0)
-        {
-            NameText.Text = "Unknown user";
-            MetaText.Text = string.Empty;
-            ContactText.Text = string.Empty;
-            ResumeText.Text = string.Empty;
-            return;
-        }
-
-        var user = new UserRepository().GetById(userId);
-        if (user is null)
-        {
-            NameText.Text = "User not found";
-            MetaText.Text = string.Empty;
-            ContactText.Text = string.Empty;
-            ResumeText.Text = string.Empty;
-            return;
-        }
-
-        NameText.Text = user.Name;
-        MetaText.Text = $"{user.Location} · {user.YearsOfExperience} years · {user.Education}";
-        ContactText.Text = $"{user.Email} · {user.Phone}";
-        ResumeText.Text = string.IsNullOrWhiteSpace(user.Resume) ? "No resume provided." : user.Resume;
+        _viewModel.Load(e.Parameter is int userId ? userId : 0);
     }
 
     private void Back_Click(object sender, RoutedEventArgs e)

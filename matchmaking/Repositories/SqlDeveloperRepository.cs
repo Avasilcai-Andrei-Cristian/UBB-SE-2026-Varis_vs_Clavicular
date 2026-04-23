@@ -5,7 +5,7 @@ using matchmaking.Domain.Entities;
 
 namespace matchmaking.Repositories;
 
-public class SqlDeveloperRepository(string connectionString) : SqlRepositoryBase(connectionString)
+public class SqlDeveloperRepository(string connectionString) : SqlRepositoryBase(connectionString), IDeveloperRepository
 {
     public Developer? GetById(int developerId)
     {

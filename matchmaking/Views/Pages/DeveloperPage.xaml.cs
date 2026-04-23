@@ -42,12 +42,10 @@ public sealed partial class DeveloperPage : Page
             HorizontalAlignment = HorizontalAlignment.Stretch,
             MinWidth = 380
         };
-        _parameterComboBox.Items.Add(new ComboBoxItem { Content = "mitigation factor",                  Tag = "mitigation factor" });
-        _parameterComboBox.Items.Add(new ComboBoxItem { Content = "weighted distance score weight",     Tag = "weighted distance score weight" });
-        _parameterComboBox.Items.Add(new ComboBoxItem { Content = "job-resume similarity score weight", Tag = "job-resume similarity score weight" });
-        _parameterComboBox.Items.Add(new ComboBoxItem { Content = "preference score weight",            Tag = "preference score weight" });
-        _parameterComboBox.Items.Add(new ComboBoxItem { Content = "promotion score weight",             Tag = "promotion score weight" });
-        _parameterComboBox.Items.Add(new ComboBoxItem { Content = "relevant keyword",                   Tag = "relevant keyword" });
+        foreach (var option in DeveloperPostOptions.Options)
+        {
+            _parameterComboBox.Items.Add(new ComboBoxItem { Content = option.Content, Tag = option.Tag });
+        }
 
         _valueTextBox = new TextBox
         {

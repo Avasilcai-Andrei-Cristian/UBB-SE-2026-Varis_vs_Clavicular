@@ -5,7 +5,7 @@ using matchmaking.Domain.Enums;
 
 namespace matchmaking.Repositories;
 
-public class UserStatusMatchRepository(string connectionString) : SqlRepositoryBase(connectionString)
+public class UserStatusMatchRepository(string connectionString) : SqlRepositoryBase(connectionString), IUserStatusMatchRepository
 {
     public IReadOnlyList<Match> GetByUserId(int userId)
     {

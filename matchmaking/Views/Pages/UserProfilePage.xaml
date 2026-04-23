@@ -20,12 +20,12 @@
         <ScrollViewer Grid.Row="1">
             <Border Background="#FFFFFF" BorderBrush="#D1D5DB" BorderThickness="1" CornerRadius="10" Padding="18" MaxWidth="860">
                 <StackPanel Spacing="10">
-                    <TextBlock x:Name="NameText" FontSize="20" FontWeight="SemiBold" Foreground="#111827" />
-                    <TextBlock x:Name="MetaText" Foreground="#374151" TextWrapping="Wrap" />
+                    <TextBlock Text="{Binding Name}" FontSize="20" FontWeight="SemiBold" Foreground="#111827" />
+                    <TextBlock Text="{Binding Meta}" Foreground="#374151" TextWrapping="Wrap" />
                     <TextBlock Text="Contact" FontWeight="SemiBold" Margin="0,8,0,0" />
-                    <TextBlock x:Name="ContactText" TextWrapping="Wrap" Foreground="#111827" />
+                    <TextBlock Text="{Binding Contact}" TextWrapping="Wrap" Foreground="#111827" />
                     <TextBlock Text="Resume" FontWeight="SemiBold" Margin="0,8,0,0" />
-                    <TextBlock x:Name="ResumeText" TextWrapping="Wrap" Foreground="#111827" />
+                    <TextBlock Text="{Binding Resume}" TextWrapping="Wrap" Foreground="#111827" />
                 </StackPanel>
             </Border>
         </ScrollViewer>
