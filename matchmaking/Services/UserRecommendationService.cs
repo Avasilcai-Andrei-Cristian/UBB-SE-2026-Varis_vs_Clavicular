@@ -56,6 +56,18 @@ public sealed class UserRecommendationService
 
     public JobRecommendationResult? RecalculateTopCardIgnoringCooldown(int userId, UserMatchmakingFilters filters)
     {
+        var ranked = BuildRankedListIgnoringCooldown(userId, filters);
+        if (ranked.Count == 0)
+        {
+            return null;
+        }
+
+        var best = ranked[0];
+        return BuildCardWithShownRecord(userId, best.Job, best.Score);
+    }
+
+    private List<(Job Job, double Score)> BuildRankedListIgnoringCooldown(int userId, UserMatchmakingFilters filters)
+    {
         var user = _userRepository.GetById(userId)
             ?? throw new InvalidOperationException("User not found.");
 
@@ -74,13 +86,7 @@ public sealed class UserRecommendationService
             ranked.Add((job, score));
         }
 
-        if (ranked.Count == 0)
-        {
-            return null;
-        }
-
-        var best = ranked.OrderByDescending(x => x.Score).First();
-        return CreateCard(best.Job, best.Score, displayRecommendationId: null);
+        return ranked.OrderByDescending(x => x.Score).ToList();
     }
 
     private double ComputeCompatibilityScore(User user, Job job, List<Skill> userSkills, int userId)

@@ -106,13 +106,13 @@ public class UserStatusViewModel : ObservableObject
 
             if (!summary.HasRejections)
             {
-                SkillGapMessage      = "No rejections yet — keep applying to see your skill insights.";
+                SkillGapMessage      = "No rejections yet keep applying to see your skill insights.";
                 HasSkillGapMessage   = true;
                 ShowSkillData        = false;
             }
             else if (!summary.HasSkillGaps)
             {
-                SkillGapMessage      = "Great news — your skills meet the requirements of all jobs you've applied to.";
+                SkillGapMessage      = "Great news - your skills meet the requirements of all jobs you've applied to.";
                 HasSkillGapMessage   = true;
                 ShowSkillData        = false;
             }

@@ -86,32 +86,19 @@ public sealed partial class ChatPageView : Page
         base.OnNavigatedFrom(e);
     }
 
-    private async void OnUserProfileRequested(int userId)
+    private void OnUserProfileRequested(int userId)
     {
-        await ShowNavigationPlaceholderAsync("User Profile", $"User profile page is not available yet (User ID: {userId}).");
+        Frame.Navigate(typeof(UserProfilePage), userId);
     }
 
-    private async void OnCompanyProfileRequested(int companyId)
+    private void OnCompanyProfileRequested(int companyId)
     {
-        await ShowNavigationPlaceholderAsync("Company Profile", $"Company profile page is not available yet (Company ID: {companyId}).");
+        Frame.Navigate(typeof(CompanyProfilePage), companyId);
     }
 
-    private async void OnJobPostRequested(int jobId)
+    private void OnJobPostRequested(int jobId)
     {
-        await ShowNavigationPlaceholderAsync("Job Post", $"Job post page is not available yet (Job ID: {jobId}).");
-    }
-
-    private async System.Threading.Tasks.Task ShowNavigationPlaceholderAsync(string title, string message)
-    {
-        var dialog = new ContentDialog
-        {
-            Title = title,
-            Content = message,
-            CloseButtonText = "OK",
-            XamlRoot = XamlRoot
-        };
-
-        await dialog.ShowAsync();
+        Frame.Navigate(typeof(JobPostPage), jobId);
     }
 
     private void RefreshTimer_Tick(object? sender, object e)

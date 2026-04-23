@@ -116,6 +116,7 @@ public sealed partial class CompanyStatusPage : Page
 
         if (!saved)
         {
+            await ShowDialogAsync("Operation Failed", "We're sorry, an error occurred. The decision was not saved. Please try again.");
             return;
         }
 

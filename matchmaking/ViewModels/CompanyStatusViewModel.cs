@@ -65,6 +65,8 @@ public class CompanyStatusViewModel : ObservableObject
                     LastTestResult = null;
                 }
 
+                RaiseContactVisibilityProperties();
+
                 RaiseCommandStates();
             }
         }
@@ -73,8 +75,46 @@ public class CompanyStatusViewModel : ObservableObject
     public Match? SelectedMatch
     {
         get => _selectedMatch;
-        private set => SetProperty(ref _selectedMatch, value);
+        private set
+        {
+            if (SetProperty(ref _selectedMatch, value))
+            {
+                RaiseContactVisibilityProperties();
+            }
+        }
     }
+
+    public string ContactEmailDisplay
+    {
+        get
+        {
+            if (SelectedApplicant is null)
+            {
+                return string.Empty;
+            }
+
+            return CanRevealContact
+                ? SelectedApplicant.User.Email
+                : MaskEmail(SelectedApplicant.User.Email);
+        }
+    }
+
+    public string ContactPhoneDisplay
+    {
+        get
+        {
+            if (SelectedApplicant is null)
+            {
+                return string.Empty;
+            }
+
+            return CanRevealContact
+                ? SelectedApplicant.User.Phone
+                : MaskPhone(SelectedApplicant.User.Phone);
+        }
+    }
+
+    private bool CanRevealContact => SelectedMatch?.Status == MatchStatus.Accepted;
 
     public MatchStatus? SelectedDecision
     {
@@ -262,9 +302,15 @@ public class CompanyStatusViewModel : ObservableObject
 
     public bool ValidateFeedback()
     {
-        if (SelectedDecision == MatchStatus.Rejected && string.IsNullOrWhiteSpace(FeedbackMessage))
+        if (string.IsNullOrWhiteSpace(FeedbackMessage))
         {
-            ValidationErrorFeedback = "Feedback is required when rejecting an applicant.";
+            ValidationErrorFeedback = "Feedback is required.";
+            return false;
+        }
+
+        if (FeedbackMessage.Trim().Length > 500)
+        {
+            ValidationErrorFeedback = "Feedback must be 500 characters or fewer.";
             return false;
         }
 
@@ -295,14 +341,14 @@ public class CompanyStatusViewModel : ObservableObject
 
         try
         {
-            await _matchService.SubmitDecisionAsync(SelectedMatch.MatchId, SelectedDecision.Value, FeedbackMessage);
+            await _matchService.SubmitDecisionAsync(SelectedMatch.MatchId, SelectedDecision.Value, FeedbackMessage.Trim());
             PageMessage = "Decision saved successfully.";
             await LoadApplicationsAsync();
             return true;
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            ReportError($"Could not submit decision: {ex.Message}");
+            PageMessage = string.Empty;
             return false;
         }
     }
@@ -371,9 +417,41 @@ public class CompanyStatusViewModel : ObservableObject
         _refreshCommand.RaiseCanExecuteChanged();
     }
 
+    private void RaiseContactVisibilityProperties()
+    {
+        OnPropertyChanged(nameof(ContactEmailDisplay));
+        OnPropertyChanged(nameof(ContactPhoneDisplay));
+    }
+
     private void ReportError(string message)
     {
         PageMessage = string.Empty;
         ErrorOccurred?.Invoke(message);
+    }
+
+    private static string MaskEmail(string email)
+    {
+        if (string.IsNullOrWhiteSpace(email))
+        {
+            return string.Empty;
+        }
+
+        var atIndex = email.IndexOf('@');
+        if (atIndex <= 1)
+        {
+            return "***@***";
+        }
+
+        return email[0] + new string('*', atIndex - 1) + email[atIndex..];
+    }
+
+    private static string MaskPhone(string phone)
+    {
+        if (string.IsNullOrWhiteSpace(phone) || phone.Length < 4)
+        {
+            return "***";
+        }
+
+        return phone[..2] + new string('*', phone.Length - 5) + phone[^3..];
     }
 }

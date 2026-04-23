@@ -38,10 +38,15 @@
 
                     <!-- Applicant Card -->
                     <Border Background="{StaticResource CardBackgroundBrush}"
+                            x:Name="ApplicantCardBorder"
                             BorderBrush="{StaticResource CardBorderBrush}"
                             BorderThickness="1"
                             CornerRadius="12"
-                            Padding="28,24">
+                            Padding="28,24"
+                            Tapped="OnExpandClick">
+                        <Border.RenderTransform>
+                            <TranslateTransform />
+                        </Border.RenderTransform>
                         <StackPanel Spacing="0">
 
                             <!-- Name + Match % -->

@@ -239,9 +239,9 @@
                                                FontWeight="SemiBold"
                                                Foreground="#9CA3AF"
                                                CharacterSpacing="80"/>
-                                    <TextBlock Text="{Binding SelectedApplicant.User.Email}"
-                                               FontSize="13"
-                                               Foreground="#065F46"/>
+                                    <TextBlock Text="{Binding ContactEmailDisplay}"
+                                                FontSize="13"
+                                                Foreground="#065F46"/>
                                 </StackPanel>
                                 <StackPanel Grid.Column="1" Spacing="3">
                                     <TextBlock Text="PHONE"
@@ -249,9 +249,9 @@
                                                FontWeight="SemiBold"
                                                Foreground="#9CA3AF"
                                                CharacterSpacing="80"/>
-                                    <TextBlock Text="{Binding SelectedApplicant.User.Phone}"
-                                               FontSize="13"
-                                               Foreground="#065F46"/>
+                                    <TextBlock Text="{Binding ContactPhoneDisplay}"
+                                                FontSize="13"
+                                                Foreground="#065F46"/>
                                 </StackPanel>
                             </Grid>
 
