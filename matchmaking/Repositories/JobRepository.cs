@@ -7,9 +7,9 @@ namespace matchmaking.Repositories;
 
 public class JobRepository : IJobRepository
 {
-    private readonly List<Job> _jobs =
+    private readonly List<Job> jobs =
     [
-        new()
+        new ()
         {
             JobId = 100,
             JobTitle = "Backend Engineer",
@@ -20,7 +20,7 @@ public class JobRepository : IJobRepository
             CompanyId = 1,
             PromotionLevel = 2
         },
-        new()
+        new ()
         {
             JobId = 101,
             JobTitle = "Python Developer",
@@ -31,7 +31,7 @@ public class JobRepository : IJobRepository
             CompanyId = 1,
             PromotionLevel = 2
         },
-        new()
+        new ()
         {
             JobId = 102,
             JobTitle = "Frontend Engineer",
@@ -42,7 +42,7 @@ public class JobRepository : IJobRepository
             CompanyId = 1,
             PromotionLevel = 1
         },
-        new()
+        new ()
         {
             JobId = 103,
             JobTitle = "DevOps Engineer",
@@ -53,7 +53,7 @@ public class JobRepository : IJobRepository
             CompanyId = 1,
             PromotionLevel = 3
         },
-        new()
+        new ()
         {
             JobId = 104,
             JobTitle = "QA Engineer",
@@ -64,7 +64,7 @@ public class JobRepository : IJobRepository
             CompanyId = 1,
             PromotionLevel = 1
         },
-        new()
+        new ()
         {
             JobId = 1,
             JobTitle = "Junior Frontend Developer",
@@ -75,7 +75,7 @@ public class JobRepository : IJobRepository
             CompanyId = 4,
             PromotionLevel = 1
         },
-        new()
+        new ()
         {
             JobId = 2,
             JobTitle = "Backend .NET Developer",
@@ -86,7 +86,7 @@ public class JobRepository : IJobRepository
             CompanyId = 1,
             PromotionLevel = 2
         },
-        new()
+        new ()
         {
             JobId = 3,
             JobTitle = "QA Automation Engineer",
@@ -97,7 +97,7 @@ public class JobRepository : IJobRepository
             CompanyId = 8,
             PromotionLevel = 1
         },
-        new()
+        new ()
         {
             JobId = 4,
             JobTitle = "DevOps Engineer",
@@ -108,7 +108,7 @@ public class JobRepository : IJobRepository
             CompanyId = 2,
             PromotionLevel = 3
         },
-        new()
+        new ()
         {
             JobId = 5,
             JobTitle = "Data Analyst",
@@ -119,7 +119,7 @@ public class JobRepository : IJobRepository
             CompanyId = 3,
             PromotionLevel = 1
         },
-        new()
+        new ()
         {
             JobId = 6,
             JobTitle = "ML Engineer",
@@ -130,7 +130,7 @@ public class JobRepository : IJobRepository
             CompanyId = 9,
             PromotionLevel = 2
         },
-        new()
+        new ()
         {
             JobId = 7,
             JobTitle = "UI/UX Designer",
@@ -141,7 +141,7 @@ public class JobRepository : IJobRepository
             CompanyId = 7,
             PromotionLevel = 1
         },
-        new()
+        new ()
         {
             JobId = 8,
             JobTitle = "Technical Lead",
@@ -152,7 +152,7 @@ public class JobRepository : IJobRepository
             CompanyId = 10,
             PromotionLevel = 4
         },
-        new()
+        new ()
         {
             JobId = 9,
             JobTitle = "Full-Stack Developer",
@@ -163,7 +163,7 @@ public class JobRepository : IJobRepository
             CompanyId = 6,
             PromotionLevel = 2
         },
-        new()
+        new ()
         {
             JobId = 10,
             JobTitle = "Cloud Architect",
@@ -174,7 +174,7 @@ public class JobRepository : IJobRepository
             CompanyId = 5,
             PromotionLevel = 5
         },
-        new()
+        new ()
         {
             JobId = 11,
             JobTitle = "C++ Architect",
@@ -185,7 +185,7 @@ public class JobRepository : IJobRepository
             CompanyId = 5,
             PromotionLevel = 5
         },
-        new()
+        new ()
         {
             JobId = 12,
             JobTitle = "C-- Architect",
@@ -198,21 +198,21 @@ public class JobRepository : IJobRepository
         }
     ];
 
-    public Job? GetById(int jobId) => _jobs.FirstOrDefault(j => j.JobId == jobId);
+    public Job? GetById(int jobId) => jobs.FirstOrDefault(j => j.JobId == jobId);
 
-    public IReadOnlyList<Job> GetAll() => _jobs.ToList();
+    public IReadOnlyList<Job> GetAll() => jobs.ToList();
 
     public IReadOnlyList<Job> GetByCompanyId(int companyId) =>
-        _jobs.Where(j => j.CompanyId == companyId).ToList();
+        jobs.Where(j => j.CompanyId == companyId).ToList();
 
     public void Add(Job job)
     {
-        if (_jobs.Any(j => j.JobId == job.JobId))
+        if (jobs.Any(j => j.JobId == job.JobId))
         {
             throw new InvalidOperationException($"Job with id {job.JobId} already exists.");
         }
 
-        _jobs.Add(job);
+        jobs.Add(job);
     }
 
     public void Update(Job job)
@@ -229,6 +229,6 @@ public class JobRepository : IJobRepository
     public void Remove(int jobId)
     {
         var existing = GetById(jobId) ?? throw new KeyNotFoundException($"Job with id {jobId} was not found.");
-        _jobs.Remove(existing);
+        jobs.Remove(existing);
     }
 }
