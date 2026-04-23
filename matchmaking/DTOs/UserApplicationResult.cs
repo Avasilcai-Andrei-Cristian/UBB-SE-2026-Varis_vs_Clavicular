@@ -9,6 +9,6 @@ public class UserApplicationResult
     public required Match Match { get; set; }
     public required Job Job { get; set; }
     public double CompatibilityScore { get; set; }
-    public IReadOnlyList<Skill> UserSkills { get; set; } = [];
+    public IReadOnlyList<Skill> UserSkills { get; set; } = new List<Skill>();
     public string Feedback { get; set; } = string.Empty;
 }

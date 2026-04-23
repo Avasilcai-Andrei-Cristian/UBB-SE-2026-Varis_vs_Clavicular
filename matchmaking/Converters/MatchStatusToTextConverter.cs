@@ -14,9 +14,10 @@ public class MatchStatusToTextConverter : IValueConverter
             {
                 MatchStatus.Accepted => "Accepted",
                 MatchStatus.Rejected => "Rejected",
-                _                    => "Applied"
+                _ => "Applied"
             };
         }
+
         return "Applied";
     }
 

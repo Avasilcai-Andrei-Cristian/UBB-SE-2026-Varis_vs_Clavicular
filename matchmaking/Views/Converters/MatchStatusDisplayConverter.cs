@@ -57,5 +57,4 @@ public sealed class MatchStatusDisplayConverter : IValueConverter
     {
         throw new NotSupportedException();
     }
-
 }

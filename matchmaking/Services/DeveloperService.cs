@@ -8,30 +8,30 @@ namespace matchmaking.Services;
 
 public class DeveloperService
 {
-    private readonly IDeveloperRepository _developerRepository;
-    private readonly IPostRepository _postRepository;
-    private readonly IInteractionRepository _interactionRepository;
+    private readonly IDeveloperRepository developerRepository;
+    private readonly IPostRepository postRepository;
+    private readonly IInteractionRepository interactionRepository;
 
     public DeveloperService(IDeveloperRepository developerRepository, IPostRepository postRepository, IInteractionRepository interactionRepository)
     {
-        _developerRepository = developerRepository;
-        _postRepository = postRepository;
-        _interactionRepository = interactionRepository;
+        this.developerRepository = developerRepository;
+        this.postRepository = postRepository;
+        this.interactionRepository = interactionRepository;
     }
 
     public IReadOnlyList<Post> GetPosts()
     {
-        return _postRepository.GetAll();
+        return postRepository.GetAll();
     }
 
     public IReadOnlyList<Interaction> GetInteractions()
     {
-        return _interactionRepository.GetAll();
+        return interactionRepository.GetAll();
     }
 
     public Developer? GetDeveloperById(int developerId)
     {
-        return _developerRepository.GetById(developerId);
+        return developerRepository.GetById(developerId);
     }
 
     public void AddPost(int developerId, string parameter, string value)
@@ -42,16 +42,16 @@ public class DeveloperService
             Parameter = parameter,
             Value = value
         };
-        _postRepository.Add(post);
+        postRepository.Add(post);
     }
 
     public void AddInteraction(int developerId, int postId, InteractionType type)
     {
-        var existing = _interactionRepository.GetByDeveloperIdAndPostId(developerId, postId);
+        var existing = interactionRepository.GetByDeveloperIdAndPostId(developerId, postId);
         if (existing is not null)
         {
             existing.Type = type;
-            _interactionRepository.Update(existing);
+            interactionRepository.Update(existing);
             return;
         }
 
@@ -61,11 +61,11 @@ public class DeveloperService
             PostId = postId,
             Type = type
         };
-        _interactionRepository.Add(interaction);
+        interactionRepository.Add(interaction);
     }
 
     public void RemoveInteraction(int interactionId)
     {
-        _interactionRepository.Remove(interactionId);
+        interactionRepository.Remove(interactionId);
     }
 }

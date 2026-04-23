@@ -4,5 +4,5 @@ namespace matchmaking;
 
 public static class App
 {
-    public static SessionContext Session { get; set; } = new();
+    public static SessionContext Session { get; set; } = new SessionContext();
 }

@@ -4,9 +4,14 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
+    <CodeAnalysisRuleSet>..\SE.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="StyleCop.Analyzers" Version="1.1.118">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
     <Compile Include="..\matchmaking\Domain\**\*.cs" LinkBase="Domain" />
     <Compile Include="..\matchmaking\DTOs\**\*.cs" LinkBase="DTOs" />
     <Compile Include="..\matchmaking\Models\**\*.cs" LinkBase="Models" />

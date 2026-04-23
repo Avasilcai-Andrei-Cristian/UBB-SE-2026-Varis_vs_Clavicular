@@ -75,6 +75,6 @@
 
 	<!-- Testing Properties -->
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-		<CodeAnalysisRuleSet>SE.ruleset</CodeAnalysisRuleSet>
+		<CodeAnalysisRuleSet>..\SE.ruleset</CodeAnalysisRuleSet>
 	</PropertyGroup>
 </Project>

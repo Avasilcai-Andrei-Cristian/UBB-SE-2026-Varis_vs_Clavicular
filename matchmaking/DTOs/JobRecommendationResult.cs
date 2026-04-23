@@ -42,9 +42,9 @@ public sealed class JobRecommendationResult
 
     public string MatchLineLabel => $"Match: {MatchScoreDisplay}";
 
-    public IReadOnlyList<string> TopSkillLabels { get; init; } = [];
+    public IReadOnlyList<string> TopSkillLabels { get; init; } = new List<string>();
 
-    public IReadOnlyList<string> AllSkillLabels { get; init; } = [];
+    public IReadOnlyList<string> AllSkillLabels { get; init; } = new List<string>();
 
     public string ContactLine => $"{Company.Email} · {Company.Phone}";
 
