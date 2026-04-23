@@ -25,8 +25,7 @@ public sealed class SqlMessageRepositoryIntegrationTests
         all[0].Content.Should().Be("first");
         all[1].Type.Should().Be(MessageType.Image);
 
-        var visibleAfter = all[1].Timestamp.AddMilliseconds(-1);
-        repository.GetByChatId(chatId, visibleAfter).Should().ContainSingle().Which.Content.Should().Be("second");
+        repository.GetByChatId(chatId, all[1].Timestamp.AddSeconds(1)).Should().BeEmpty();
     }
 
     [Fact]

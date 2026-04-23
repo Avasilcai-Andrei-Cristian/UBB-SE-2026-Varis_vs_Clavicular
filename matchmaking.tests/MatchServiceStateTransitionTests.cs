@@ -167,6 +167,39 @@ public sealed class MatchServiceStateTransitionTests
     }
 
     [Fact]
+    public void SubmitDecision_WhenMatchDoesNotExist_ThrowsKeyNotFoundException()
+    {
+        var repository = new FakeMatchRepository(Array.Empty<Match>());
+        var service = new MatchService(repository, new FakeJobService(Array.Empty<Job>()));
+
+        Action act = () => service.SubmitDecision(42, MatchStatus.Accepted, "ok");
+
+        act.Should().Throw<KeyNotFoundException>();
+    }
+
+    [Fact]
+    public void RevertToApplied_WhenMatchDoesNotExist_ThrowsKeyNotFoundException()
+    {
+        var repository = new FakeMatchRepository(Array.Empty<Match>());
+        var service = new MatchService(repository, new FakeJobService(Array.Empty<Job>()));
+
+        Action act = () => service.RevertToApplied(42);
+
+        act.Should().Throw<KeyNotFoundException>();
+    }
+
+    [Fact]
+    public void IsDecisionTransitionAllowed_WhenCurrentIsRejected_ReturnsFalse()
+    {
+        var service = new MatchService(new FakeMatchRepository(Array.Empty<Match>()), new FakeJobService(Array.Empty<Job>()));
+        var rejected = TestDataFactory.CreateMatch(status: MatchStatus.Rejected);
+
+        service.IsDecisionTransitionAllowed(rejected, MatchStatus.Accepted).Should().BeFalse();
+        service.IsDecisionTransitionAllowed(rejected, MatchStatus.Rejected).Should().BeFalse();
+        service.IsDecisionTransitionAllowed(rejected, MatchStatus.Advanced).Should().BeFalse();
+    }
+
+    [Fact]
     public void RemoveApplication_DelegatesToRepository()
     {
         var repository = new FakeMatchRepository(Array.Empty<Match>());

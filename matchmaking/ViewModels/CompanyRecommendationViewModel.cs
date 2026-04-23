@@ -170,7 +170,7 @@ public class CompanyRecommendationViewModel : ObservableObject
         {
             if (CurrentApplicant is null)
             {
-                return [];
+                return new List<SkillDisplay>();
             }
 
             return CurrentApplicant.UserSkills
@@ -200,7 +200,7 @@ public class CompanyRecommendationViewModel : ObservableObject
         {
             if (CurrentApplicant is null)
             {
-                return [];
+                return new List<SkillDisplay>();
             }
 
             return CurrentApplicant.UserSkills

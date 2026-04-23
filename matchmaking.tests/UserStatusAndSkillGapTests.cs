@@ -38,6 +38,30 @@ public sealed class UserStatusAndSkillGapTests
     }
 
     [Fact]
+    public void GetMissingSkills_WhenMultipleRejectedJobsShareSkills_AggregatesCounts()
+    {
+        var user = TestDataFactory.CreateUser();
+        var rejectedMatches = new[]
+        {
+            TestDataFactory.CreateMatch(1, user.UserId, 100, MatchStatus.Rejected, "first"),
+            TestDataFactory.CreateMatch(2, user.UserId, 101, MatchStatus.Rejected, "second")
+        };
+        var service = CreateSkillGapService(
+            new[] { user },
+            rejectedMatches,
+            new[] { TestDataFactory.CreateSkill(user.UserId, 1, "C#", 80) },
+            new[]
+            {
+                TestDataFactory.CreateJobSkill(100, 2, "SQL", 70),
+                TestDataFactory.CreateJobSkill(101, 2, "SQL", 90)
+            });
+
+        var missingSkills = service.GetMissingSkills(user.UserId);
+
+        missingSkills.Should().ContainSingle(item => item.SkillName == "SQL" && item.RejectedJobCount == 2);
+    }
+
+    [Fact]
     public void GetUnderscoredSkills_WhenUserHasLowerScore_ReturnsImprovementItems()
     {
         var user = TestDataFactory.CreateUser();
@@ -49,6 +73,45 @@ public sealed class UserStatusAndSkillGapTests
         underscoredSkills.Should().ContainSingle();
         underscoredSkills[0].SkillName.Should().Be("C#");
         underscoredSkills[0].AverageRequiredScore.Should().Be(70);
+    }
+
+    [Fact]
+    public void GetUnderscoredSkills_WhenUserMeetsRequirements_ReturnsEmptyList()
+    {
+        var user = TestDataFactory.CreateUser();
+        var rejectedMatch = TestDataFactory.CreateMatch(1, user.UserId, 100, MatchStatus.Rejected, "improve this");
+        var service = CreateSkillGapService(
+            new[] { user },
+            new[] { rejectedMatch },
+            new[] { TestDataFactory.CreateSkill(user.UserId, 1, "C#", 90) },
+            new[] { TestDataFactory.CreateJobSkill(100, 1, "C#", 70) });
+
+        var underscoredSkills = service.GetUnderscoredSkills(user.UserId);
+
+        underscoredSkills.Should().BeEmpty();
+    }
+
+    [Fact]
+    public void GetSummary_WhenRejectionsHaveGaps_ReturnsCounts()
+    {
+        var user = TestDataFactory.CreateUser();
+        var rejectedMatch = TestDataFactory.CreateMatch(1, user.UserId, 100, MatchStatus.Rejected, "improve this");
+        var service = CreateSkillGapService(
+            new[] { user },
+            new[] { rejectedMatch },
+            new[] { TestDataFactory.CreateSkill(user.UserId, 1, "C#", 40) },
+            new[]
+            {
+                TestDataFactory.CreateJobSkill(100, 1, "C#", 70),
+                TestDataFactory.CreateJobSkill(100, 2, "SQL", 80)
+            });
+
+        var summary = service.GetSummary(user.UserId);
+
+        summary.HasRejections.Should().BeTrue();
+        summary.HasSkillGaps.Should().BeTrue();
+        summary.MissingSkillsCount.Should().Be(1);
+        summary.SkillsToImproveCount.Should().Be(1);
     }
 
     [Fact]
@@ -78,6 +141,73 @@ public sealed class UserStatusAndSkillGapTests
         applicants.Should().ContainSingle();
         applicants[0].Match.MatchId.Should().Be(match.MatchId);
         applicants[0].CompatibilityScore.Should().BeGreaterThan(0);
+    }
+
+    [Fact]
+    public async Task GetApplicantsForCompanyAsync_WhenNonVisibleOrMissingData_IgnoresEntries()
+    {
+        var user = TestDataFactory.CreateUser();
+        var company = TestDataFactory.CreateCompany();
+        var job = TestDataFactory.CreateJob(companyId: company.CompanyId);
+        var visible = TestDataFactory.CreateMatch(1, user.UserId, job.JobId, MatchStatus.Advanced, "review");
+        var hidden = TestDataFactory.CreateMatch(2, user.UserId, job.JobId, MatchStatus.Applied, string.Empty);
+        var otherJob = TestDataFactory.CreateMatch(3, user.UserId, 999, MatchStatus.Rejected, "no");
+
+        var service = CreateCompanyStatusService(
+            new[] { user },
+            new[] { company },
+            new[] { job },
+            new[] { TestDataFactory.CreateSkill(user.UserId, 1, "C#", 80) },
+            new[] { TestDataFactory.CreateJobSkill(job.JobId, 1, "C#", 70) },
+            new[] { visible, hidden, otherJob });
+
+        var applicants = await service.GetApplicantsForCompanyAsync(company.CompanyId);
+
+        applicants.Should().ContainSingle(item => item.Match.MatchId == visible.MatchId);
+    }
+
+    [Fact]
+    public async Task GetApplicantsForCompanyAsync_WhenUserOrJobMissing_SkipsEntry()
+    {
+        var user = TestDataFactory.CreateUser();
+        var company = TestDataFactory.CreateCompany();
+        var job = TestDataFactory.CreateJob(companyId: company.CompanyId);
+        var valid = TestDataFactory.CreateMatch(1, user.UserId, job.JobId, MatchStatus.Accepted, "ok");
+        var missingUser = TestDataFactory.CreateMatch(2, 9999, job.JobId, MatchStatus.Rejected, "missing user");
+        var missingJob = TestDataFactory.CreateMatch(3, user.UserId, 8888, MatchStatus.Advanced, "missing job");
+
+        var service = CreateCompanyStatusService(
+            new[] { user },
+            new[] { company },
+            new[] { job },
+            new[] { TestDataFactory.CreateSkill(user.UserId, 1, "C#", 80) },
+            new[] { TestDataFactory.CreateJobSkill(job.JobId, 1, "C#", 70) },
+            new[] { valid, missingUser, missingJob });
+
+        var applicants = await service.GetApplicantsForCompanyAsync(company.CompanyId);
+
+        applicants.Should().ContainSingle(item => item.Match.MatchId == valid.MatchId);
+    }
+
+    [Fact]
+    public async Task GetApplicantByMatchIdAsync_WhenMatchDoesNotExist_ReturnsNull()
+    {
+        var user = TestDataFactory.CreateUser();
+        var company = TestDataFactory.CreateCompany();
+        var job = TestDataFactory.CreateJob(companyId: company.CompanyId);
+        var match = TestDataFactory.CreateMatch(1, user.UserId, job.JobId, MatchStatus.Accepted, "ok");
+
+        var service = CreateCompanyStatusService(
+            new[] { user },
+            new[] { company },
+            new[] { job },
+            new[] { TestDataFactory.CreateSkill(user.UserId, 1, "C#", 80) },
+            new[] { TestDataFactory.CreateJobSkill(job.JobId, 1, "C#", 70) },
+            new[] { match });
+
+        var applicant = await service.GetApplicantByMatchIdAsync(company.CompanyId, 9999);
+
+        applicant.Should().BeNull();
     }
 
     [Fact]

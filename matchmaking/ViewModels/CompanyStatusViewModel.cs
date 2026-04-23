@@ -49,8 +49,12 @@ public class CompanyStatusViewModel : ObservableObject
         _refreshCommand = new RelayCommand(async () => await RefreshAsync(), () => !IsLoading);
     }
 
-    public ObservableCollection<UserApplicationResult> Applications { get; } = [];
-    public ObservableCollection<MatchStatus> DecisionOptions { get; } = [MatchStatus.Accepted, MatchStatus.Rejected];
+    public ObservableCollection<UserApplicationResult> Applications { get; } = new ObservableCollection<UserApplicationResult>();
+    public ObservableCollection<MatchStatus> DecisionOptions { get; } = new ObservableCollection<MatchStatus>
+    {
+        MatchStatus.Accepted,
+        MatchStatus.Rejected
+    };
 
     public UserApplicationResult? SelectedApplicant
     {
@@ -211,7 +215,6 @@ public class CompanyStatusViewModel : ObservableObject
                 Applications.Add(result);
             }
 
-            
             CancelEvaluation();
 
             if (Applications.Count == 0)
@@ -312,9 +315,9 @@ public class CompanyStatusViewModel : ObservableObject
 
         if (FeedbackMessage.Trim().Length > MaximumFeedbackLength)
         {
-            ValidationErrorFeedback = $"Feedback must be {MaximumFeedbackLength} characters or fewer.";
-            return false;
-        }
+                ValidationErrorFeedback = $"Feedback must be {MaximumFeedbackLength} characters or fewer.";
+                return false;
+            }
 
         ValidationErrorFeedback = string.Empty;
         return true;

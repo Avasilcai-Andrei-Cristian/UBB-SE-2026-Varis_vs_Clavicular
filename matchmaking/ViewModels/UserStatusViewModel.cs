@@ -31,13 +31,11 @@ public class UserStatusViewModel : ObservableObject
     private string _skillGapSummaryText = string.Empty;
     private bool _showGoToRecommendations;
 
+    public ObservableCollection<ApplicationCardModel> AppliedJobs { get; } = new ObservableCollection<ApplicationCardModel>();
+    public ObservableCollection<ApplicationCardModel> FilteredJobs { get; } = new ObservableCollection<ApplicationCardModel>();
+    public ObservableCollection<UnderscoredSkillModel> UnderscoredSkills { get; } = new ObservableCollection<UnderscoredSkillModel>();
+    public ObservableCollection<MissingSkillModel> SkillGapMissingSkills { get; } = new ObservableCollection<MissingSkillModel>();
 
-    public ObservableCollection<ApplicationCardModel> AppliedJobs { get; } = new();
-    public ObservableCollection<ApplicationCardModel> FilteredJobs { get; } = new();
-    public ObservableCollection<UnderscoredSkillModel> UnderscoredSkills    { get; } = new();
-    public ObservableCollection<MissingSkillModel>     SkillGapMissingSkills { get; } = new();
-
-    
     public bool IsLoading { get => _isLoading; set => SetProperty(ref _isLoading, value); }
     public bool HasError { get => _hasError; set => SetProperty(ref _hasError, value); }
     public bool IsEmpty { get => _isEmpty; set => SetProperty(ref _isEmpty, value); }
@@ -50,13 +48,11 @@ public class UserStatusViewModel : ObservableObject
     public string SkillGapMessage { get => _skillGapMessage; set => SetProperty(ref _skillGapMessage, value); }
     public string SkillGapSummaryText { get => _skillGapSummaryText; set => SetProperty(ref _skillGapSummaryText, value); }
 
-    
     public bool HasUnderscoredSkills => UnderscoredSkills.Count > 0;
     public bool HasSidebarMissingSkills => SkillGapMissingSkills.Count > 0;
 
     public ICommand RefreshCommand { get; }
 
-  
     public UserStatusViewModel()
     {
         var connectionString = App.Configuration.SqlConnectionString;
@@ -96,13 +92,12 @@ public class UserStatusViewModel : ObservableObject
         SkillGapMissingSkills.CollectionChanged += OnSidebarCollectionChanged;
     }
 
-   
     public async Task LoadMatches()
     {
-        IsLoading  = true;
-        HasError   = false;
-        IsEmpty    = false;
-        ShowCards  = false;
+        IsLoading = true;
+        HasError = false;
+        IsEmpty = false;
+        ShowCards = false;
 
         try
         {
@@ -121,7 +116,6 @@ public class UserStatusViewModel : ObservableObject
 
             ApplyFilter(CurrentFilter);
 
-         
             UnderscoredSkills.Clear();
             SkillGapMissingSkills.Clear();
 
@@ -165,7 +159,6 @@ public class UserStatusViewModel : ObservableObject
         }
     }
 
-    
     public void Refresh()
     {
         AppliedJobs.Clear();
@@ -211,7 +204,6 @@ public class UserStatusViewModel : ObservableObject
             ShowGoToRecommendations = false;
         }
     }
-
     public System.Collections.Generic.IReadOnlyList<Domain.Entities.JobSkill> GetJobSkills(int jobId)
     {
         return _jobSkillService.GetByJobId(jobId);

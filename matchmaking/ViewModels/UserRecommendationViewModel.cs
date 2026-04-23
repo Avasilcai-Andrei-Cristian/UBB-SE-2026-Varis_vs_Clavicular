@@ -83,9 +83,9 @@ public sealed class UserRecommendationViewModel : ObservableObject
         "Internship", "Entry level", "Mid-senior level", "Director", "Executive"
     ];
 
-    public ObservableCollection<FilterCheckItem> DraftEmploymentSelections { get; } = [];
-    public ObservableCollection<FilterCheckItem> DraftExperienceSelections { get; } = [];
-    public ObservableCollection<SkillFilterItem> DraftSkillSelections { get; } = [];
+    public ObservableCollection<FilterCheckItem> DraftEmploymentSelections { get; } = new();
+    public ObservableCollection<FilterCheckItem> DraftExperienceSelections { get; } = new();
+    public ObservableCollection<SkillFilterItem> DraftSkillSelections { get; } = new();
 
     public ICommand RefreshCommand => _refreshCommand;
     public ICommand LikeCommand => _likeCommand;

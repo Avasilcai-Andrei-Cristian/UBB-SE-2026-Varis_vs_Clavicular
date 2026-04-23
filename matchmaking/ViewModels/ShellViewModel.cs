@@ -8,8 +8,8 @@ public class ShellViewModel : ObservableObject
     private string _activePage = "MyStatus";
 
     public ICommand RecommendationsCommand { get; }
-    public ICommand MyStatusCommand        { get; }
-    public ICommand ChatCommand            { get; }
+    public ICommand MyStatusCommand { get; }
+    public ICommand ChatCommand { get; }
 
     public string ActivePage
     {
@@ -26,13 +26,13 @@ public class ShellViewModel : ObservableObject
     }
 
     public bool IsRecommendationsActive => ActivePage == "Recommendations";
-    public bool IsMyStatusActive        => ActivePage == "MyStatus";
-    public bool IsChatActive            => ActivePage == "Chat";
+    public bool IsMyStatusActive => ActivePage == "MyStatus";
+    public bool IsChatActive => ActivePage == "Chat";
 
     public ShellViewModel(Action onRecommendations, Action onMyStatus, Action onChat)
     {
         RecommendationsCommand = new RelayCommand(onRecommendations);
-        MyStatusCommand        = new RelayCommand(onMyStatus);
-        ChatCommand            = new RelayCommand(onChat);
+        MyStatusCommand = new RelayCommand(onMyStatus);
+        ChatCommand = new RelayCommand(onChat);
     }
 }

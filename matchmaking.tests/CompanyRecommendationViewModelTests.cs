@@ -80,6 +80,68 @@ public sealed class CompanyRecommendationViewModelTests
         viewModel.IsExpanded.Should().BeFalse();
     }
 
+    [Fact]
+    public void AdvanceApplicant_WhenSessionCompanyDoesNotMatchApplicant_SetsStatusMessage()
+    {
+        var session = new SessionContext();
+        session.LoginAsCompany(1);
+        var match = TestDataFactory.CreateMatch(matchId: 1, userId: 1, jobId: 100, status: MatchStatus.Applied);
+        var viewModel = CreateViewModel(session, new[] { match });
+        var errors = new List<string>();
+
+        viewModel.ErrorOccurred += message => errors.Add(message);
+
+        viewModel.LoadApplicants();
+        session.LoginAsCompany(2);
+
+        viewModel.AdvanceApplicant();
+
+        errors.Should().ContainSingle(message => message == "This applicant does not belong to your company.");
+        viewModel.CurrentApplicant.Should().NotBeNull();
+    }
+
+    [Fact]
+    public void SkipApplicant_WhenMatchWasAlreadyReviewed_LoadsNextApplicant()
+    {
+        var session = new SessionContext();
+        session.LoginAsCompany(1);
+        var match = TestDataFactory.CreateMatch(matchId: 1, userId: 1, jobId: 100, status: MatchStatus.Applied);
+        var viewModel = CreateViewModel(session, new[] { match });
+
+        viewModel.LoadApplicants();
+        viewModel.SkipApplicant();
+
+        viewModel.CurrentApplicant.Should().BeNull();
+        viewModel.StatusMessage.Should().Be("No more applicants to review.");
+    }
+
+    [Fact]
+    public void UndoLastAction_WhenNothingToUndo_DoesNothing()
+    {
+        var session = new SessionContext();
+        session.LoginAsCompany(1);
+        var match = TestDataFactory.CreateMatch(matchId: 1, userId: 1, jobId: 100, status: MatchStatus.Applied);
+        var viewModel = CreateViewModel(session, new[] { match });
+
+        viewModel.UndoLastAction();
+
+        viewModel.CanUndo.Should().BeFalse();
+        viewModel.CurrentApplicant.Should().BeNull();
+    }
+
+    [Fact]
+    public void ExpandCard_WhenNoApplicantExists_DoesNothing()
+    {
+        var session = new SessionContext();
+        session.LoginAsCompany(1);
+        var viewModel = CreateViewModel(session, Array.Empty<Match>());
+
+        viewModel.ExpandCard();
+
+        viewModel.IsExpanded.Should().BeFalse();
+        viewModel.ScoreBreakdown.Should().BeNull();
+    }
+
     private static CompanyRecommendationViewModel CreateViewModel(SessionContext session, IReadOnlyList<Match> matches)
     {
         var user = TestDataFactory.CreateUser();

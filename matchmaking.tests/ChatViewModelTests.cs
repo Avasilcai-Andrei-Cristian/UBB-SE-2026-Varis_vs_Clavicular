@@ -88,6 +88,128 @@ public sealed class ChatViewModelTests
         requestedUserId.Should().Be(2);
     }
 
+    [Fact]
+    public void HandleAttachmentSelected_WhenExtensionIsUnsupported_SetsErrorMessage()
+    {
+        var session = new SessionContext();
+        session.LoginAsUser(1);
+        var viewModel = CreateViewModel(session);
+        SeedChats(viewModel, out _);
+
+        viewModel.HandleAttachmentSelected(@"C:\temp\file.exe", ".exe");
+
+        viewModel.ErrorMessage.Should().Be("Unsupported file type. Allowed: .jpg, .jpeg, .png, .pdf, .doc, .docx");
+    }
+
+    [Fact]
+    public void HandleAttachmentSelected_WhenImageExtensionSelected_QueuesImageMessage()
+    {
+        var session = new SessionContext();
+        session.LoginAsUser(1);
+        var viewModel = CreateViewModel(session);
+        var chat = SeedChats(viewModel, out var chatService);
+
+        viewModel.LoadChats();
+        viewModel.SelectChat(chat);
+        viewModel.HandleAttachmentSelected(@"C:\temp\photo.png", ".png");
+
+        chatService.SentMessages.Should().ContainSingle(message => message.Content == @"C:\temp\photo.png" && message.Type == MessageType.Image);
+        viewModel.SelectedMessageType.Should().Be(MessageType.Text);
+    }
+
+    [Fact]
+    public async Task DownloadAttachmentAsync_WhenTargetPathIsMissing_SetsErrorMessage()
+    {
+        var session = new SessionContext();
+        session.LoginAsUser(1);
+        var viewModel = CreateViewModel(session);
+
+        await viewModel.DownloadAttachmentAsync(new Message { Type = MessageType.File, Content = "x" }, string.Empty);
+
+        viewModel.ErrorMessage.Should().Be("No save location selected.");
+    }
+
+    [Fact]
+    public void SearchContacts_WhenUserModeAndUsersTab_AddsMatchingChats()
+    {
+        var session = new SessionContext();
+        session.LoginAsUser(1);
+        var viewModel = CreateViewModel(session);
+        SeedChats(viewModel, out _);
+
+        viewModel.LoadChats();
+        viewModel.SearchQuery = "Bogdan";
+        viewModel.SearchContacts();
+
+        viewModel.SearchResults.OfType<Chat>().Should().ContainSingle(chat => chat.ChatId == 1);
+    }
+
+    [Fact]
+    public void StartChat_WhenSelectedResultIsUser_CreatesUserChat()
+    {
+        var session = new SessionContext();
+        session.LoginAsUser(1);
+        var viewModel = CreateViewModel(session);
+        SeedChats(viewModel, out var chatService);
+
+        viewModel.StartChat(new User { UserId = 2, Name = "Bogdan Ionescu" });
+
+        chatService.SentMessages.Should().BeEmpty();
+        viewModel.SelectedChat.Should().NotBeNull();
+        viewModel.SearchQuery.Should().BeNull();
+    }
+
+    [Fact]
+    public void BlockUser_WhenSelectedChatIsActive_InvokesService()
+    {
+        var session = new SessionContext();
+        session.LoginAsUser(1);
+        var viewModel = CreateViewModel(session);
+        var chat = SeedChats(viewModel, out var chatService);
+
+        viewModel.LoadChats();
+        viewModel.SelectChat(chat);
+        viewModel.BlockUser();
+
+        chatService.BlockCalls.Should().ContainSingle();
+        chatService.BlockCalls[0].Should().Be((chat.ChatId, 1));
+    }
+
+    [Fact]
+    public void UnblockUser_WhenSelectedChatIsBlocked_InvokesService()
+    {
+        var session = new SessionContext();
+        session.LoginAsUser(1);
+        var viewModel = CreateViewModel(session);
+        var chat = SeedChats(viewModel, out var chatService);
+
+        chat.IsBlocked = true;
+        chat.BlockedByUserId = 1;
+        viewModel.LoadChats();
+        viewModel.SelectChat(chat);
+        viewModel.UnblockUser();
+
+        chatService.UnblockCalls.Should().ContainSingle();
+        chatService.UnblockCalls[0].Should().Be((chat.ChatId, 1));
+    }
+
+    [Fact]
+    public void DeleteChat_WhenSelectedChatExists_RemovesChat()
+    {
+        var session = new SessionContext();
+        session.LoginAsUser(1);
+        var viewModel = CreateViewModel(session);
+        var chat = SeedChats(viewModel, out var chatService);
+
+        viewModel.LoadChats();
+        viewModel.SelectChat(chat);
+        viewModel.DeleteChat();
+
+        chatService.DeleteCalls.Should().ContainSingle();
+        chatService.DeleteCalls[0].Should().Be((chat.ChatId, 1));
+        viewModel.SelectedChat.Should().BeNull();
+    }
+
     private static ChatViewModel CreateViewModel(SessionContext session, NavigationService? navigationService = null)
     {
         return new ChatViewModel(

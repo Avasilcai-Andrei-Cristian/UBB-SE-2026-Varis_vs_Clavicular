@@ -42,7 +42,7 @@ public class ChatViewModel : ObservableObject
     private readonly NavigationService _navigationService;
 
     public bool HasPendingAttachments => false;
-    public ObservableCollection<object> PendingAttachments { get; } = [];
+    public ObservableCollection<object> PendingAttachments { get; } = new();
 
     public ChatViewModel(
         IChatService chatService,
@@ -774,7 +774,9 @@ public class ChatViewModel : ObservableObject
     public async Task DownloadAttachmentAsync(Message message, string targetPath)
     {
         if (message.Type != MessageType.File && message.Type != MessageType.Image)
+        {
             return;
+        }
 
         if (string.IsNullOrWhiteSpace(targetPath))
         {
@@ -804,7 +806,9 @@ public class ChatViewModel : ObservableObject
         SearchResults.Clear();
 
         if (string.IsNullOrWhiteSpace(SearchQuery))
+        {
             return;
+        }
 
         List<object> results = new();
 
@@ -818,8 +822,8 @@ public class ChatViewModel : ObservableObject
 
                 // Filter FilteredChats for user-to-user chats matching the query
                 var matchingChats = FilteredChats
-                    .Where(c => c.SecondUserId.HasValue && 
-                                _userRepository.GetById(c.SecondUserId.Value)?.Name.Contains(SearchQuery, StringComparison.OrdinalIgnoreCase) == true)
+                    .Where(c => c.SecondUserId.HasValue &&
+                        _userRepository.GetById(c.SecondUserId.Value)?.Name.Contains(SearchQuery, StringComparison.OrdinalIgnoreCase) == true)
                     .ToList();
 
                 foreach (var chat in matchingChats)
@@ -835,8 +839,8 @@ public class ChatViewModel : ObservableObject
 
                 // Filter FilteredChats for user-to-company chats matching the query
                 var matchingChats = FilteredChats
-                    .Where(c => c.CompanyId.HasValue && 
-                                _companyRepository.GetById(c.CompanyId.Value)?.CompanyName.Contains(SearchQuery, StringComparison.OrdinalIgnoreCase) == true)
+                    .Where(c => c.CompanyId.HasValue &&
+                        _companyRepository.GetById(c.CompanyId.Value)?.CompanyName.Contains(SearchQuery, StringComparison.OrdinalIgnoreCase) == true)
                     .ToList();
 
                 foreach (var chat in matchingChats)
@@ -853,8 +857,8 @@ public class ChatViewModel : ObservableObject
 
             // Filter Chats for company-to-user chats matching the query
             var matchingChats = Chats
-                .Where(c => c.UserId > 0 && 
-                            _userRepository.GetById(c.UserId)?.Name.Contains(SearchQuery, StringComparison.OrdinalIgnoreCase) == true)
+                .Where(c => c.UserId > 0 &&
+                    _userRepository.GetById(c.UserId)?.Name.Contains(SearchQuery, StringComparison.OrdinalIgnoreCase) == true)
                 .ToList();
 
             foreach (var chat in matchingChats)
@@ -872,7 +876,9 @@ public class ChatViewModel : ObservableObject
     public void StartChat(object? selectedResult)
     {
         if (selectedResult is null)
+        {
             return;
+        }
 
         Chat chat;
 
@@ -971,14 +977,20 @@ public class ChatViewModel : ObservableObject
     public void StartCompanyChat(int companyId, int? jobId)
     {
         if (_sessionContext.CurrentMode != AppMode.UserMode)
+        {
             return;
+        }
 
         var company = _companyRepository.GetById(companyId);
         if (company is null)
+        {
             return;
+        }
 
         if (!TryGetCurrentUserId(out var currentUserId))
+        {
             return;
+        }
 
         var chat = _chatService.FindOrCreateUserCompanyChat(currentUserId, companyId, jobId);
         if (chat is null)
@@ -1013,10 +1025,14 @@ public class ChatViewModel : ObservableObject
     public void BlockUser()
     {
         if (SelectedChat is null || SelectedChat.IsBlocked)
+        {
             return;
+        }
 
         if (!TryGetCurrentCallerId(out var blockerId))
+        {
             return;
+        }
 
         var selectedChatId = SelectedChat.ChatId;
 
@@ -1047,10 +1063,14 @@ public class ChatViewModel : ObservableObject
     public void UnblockUser()
     {
         if (SelectedChat is null || !SelectedChat.IsBlocked)
+        {
             return;
+        }
 
         if (!TryGetCurrentCallerId(out var currentCallerId))
+        {
             return;
+        }
 
         var selectedChatId = SelectedChat.ChatId;
 
@@ -1081,7 +1101,9 @@ public class ChatViewModel : ObservableObject
     public void DeleteChat()
     {
         if (SelectedChat is null)
+        {
             return;
+        }
 
         if (!TryGetCurrentCallerId(out var callerId))
             return;
@@ -1109,11 +1131,15 @@ public class ChatViewModel : ObservableObject
     public void GoToProfile()
     {
         if (SelectedChat is null)
+        {
             return;
+        }
 
         var userId = SelectedChat.SecondUserId ?? SelectedChat.UserId;
         if (userId <= 0)
+        {
             return;
+        }
 
         _navigationService.RequestUserProfile(userId);
     }
@@ -1155,7 +1181,9 @@ public class ChatViewModel : ObservableObject
     public void GoToCompanyProfile()
     {
         if (SelectedChat?.CompanyId is null)
+        {
             return;
+        }
 
         _navigationService.RequestCompanyProfile(SelectedChat.CompanyId.Value);
     }
@@ -1163,7 +1191,9 @@ public class ChatViewModel : ObservableObject
     public void GoToJobPost()
     {
         if (SelectedChat?.JobId is null)
+        {
             return;
+        }
 
         _navigationService.RequestJobPost(SelectedChat.JobId.Value);
     }

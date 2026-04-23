@@ -83,7 +83,12 @@ public sealed class DeveloperViewModelTests
         public IReadOnlyList<Interaction> GetAll() => _interactions;
         public Interaction? GetByDeveloperIdAndPostId(int developerId, int postId) => _interactions.FirstOrDefault(item => item.DeveloperId == developerId && item.PostId == postId);
         public void Add(Interaction interaction) => _interactions.Add(interaction);
-        public void Update(Interaction interaction) { }
-        public void Remove(int interactionId) { }
+        public void Update(Interaction interaction)
+        {
+        }
+
+        public void Remove(int interactionId)
+        {
+        }
     }
 }

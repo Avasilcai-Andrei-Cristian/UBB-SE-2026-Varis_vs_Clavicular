@@ -11,48 +11,43 @@ namespace matchmaking.ViewModels;
 
 public class SkillGapViewModel : ObservableObject
 {
-    private readonly SkillGapService _skillGapService;
+    private readonly SkillGapService skillGapService;
 
-    private bool   _isLoading;
-    private bool   _showContent;
-    private bool   _hasSkillData;
-    private bool   _hasSummaryMessage;
-    private string _summaryMessage  = string.Empty;
-    private int    _missingCount;
-    private int    _improveCount;
+    private bool isLoading;
+    private bool showContent;
+    private bool hasSkillData;
+    private bool hasSummaryMessage;
+    private string summaryMessage = string.Empty;
+    private int missingCount;
+    private int improveCount;
 
-    
-    public ObservableCollection<UnderscoredSkillModel> SkillsToImprove { get; } = new();
-    public ObservableCollection<MissingSkillModel>     MissingSkills   { get; } = new();
+    public ObservableCollection<UnderscoredSkillModel> SkillsToImprove { get; } = new ObservableCollection<UnderscoredSkillModel>();
+    public ObservableCollection<MissingSkillModel> MissingSkills { get; } = new ObservableCollection<MissingSkillModel>();
 
- 
-    public bool   IsLoading         { get => _isLoading;         set => SetProperty(ref _isLoading, value); }
-    public bool   ShowContent       { get => _showContent;       set => SetProperty(ref _showContent, value); }
-    public bool   HasSkillData      { get => _hasSkillData;      set => SetProperty(ref _hasSkillData, value); }
-    public bool   HasSummaryMessage { get => _hasSummaryMessage; set => SetProperty(ref _hasSummaryMessage, value); }
-    public string SummaryMessage    { get => _summaryMessage;    set => SetProperty(ref _summaryMessage, value); }
-    public int    MissingCount      { get => _missingCount;      set => SetProperty(ref _missingCount, value); }
-    public int    ImproveCount      { get => _improveCount;      set => SetProperty(ref _improveCount, value); }
-
+    public bool IsLoading { get => isLoading; set => SetProperty(ref isLoading, value); }
+    public bool ShowContent { get => showContent; set => SetProperty(ref showContent, value); }
+    public bool HasSkillData { get => hasSkillData; set => SetProperty(ref hasSkillData, value); }
+    public bool HasSummaryMessage { get => hasSummaryMessage; set => SetProperty(ref hasSummaryMessage, value); }
+    public string SummaryMessage { get => summaryMessage; set => SetProperty(ref summaryMessage, value); }
+    public int MissingCount { get => missingCount; set => SetProperty(ref missingCount, value); }
+    public int ImproveCount { get => improveCount; set => SetProperty(ref improveCount, value); }
 
     public bool HasSkillsToImprove => SkillsToImprove.Count > 0;
-    public bool HasMissingSkills   => MissingSkills.Count > 0;
+    public bool HasMissingSkills => MissingSkills.Count > 0;
 
-  
     public ICommand RefreshCommand { get; }
 
-   
     public SkillGapViewModel()
     {
         var connectionString = App.Configuration.SqlConnectionString;
-        var matchRepo        = new UserStatusMatchRepository(connectionString);
-        var skillRepo        = new SkillRepository();
-        var jobSkillRepo     = new JobSkillRepository();
-        var skillService     = new SkillService(skillRepo);
-        var jobSkillService  = new JobSkillService(jobSkillRepo);
+        var matchRepo = new UserStatusMatchRepository(connectionString);
+        var skillRepo = new SkillRepository();
+        var jobSkillRepo = new JobSkillRepository();
+        var skillService = new SkillService(skillRepo);
+        var jobSkillService = new JobSkillService(jobSkillRepo);
 
-        _skillGapService = new SkillGapService(matchRepo, jobSkillService, skillService);
-        RefreshCommand   = new RelayCommand(Refresh);
+        skillGapService = new SkillGapService(matchRepo, jobSkillService, skillService);
+        RefreshCommand = new RelayCommand(Refresh);
 
         SkillsToImprove.CollectionChanged += OnCollectionChanged;
         MissingSkills.CollectionChanged   += OnCollectionChanged;
@@ -60,7 +55,7 @@ public class SkillGapViewModel : ObservableObject
 
     public SkillGapViewModel(SkillGapService skillGapService, SessionContext sessionContext)
     {
-        _skillGapService = skillGapService;
+        this.skillGapService = skillGapService;
 
         RefreshCommand = new RelayCommand(Refresh);
 
@@ -68,72 +63,75 @@ public class SkillGapViewModel : ObservableObject
         MissingSkills.CollectionChanged += OnCollectionChanged;
     }
 
-  
     public async Task LoadData()
     {
-        IsLoading         = true;
-        ShowContent       = false;
-        HasSkillData      = false;
+        IsLoading = true;
+        ShowContent = false;
+        HasSkillData = false;
         HasSummaryMessage = false;
 
         try
         {
-            var userId      = App.Session.CurrentUserId ?? 1;
-            var summary     = await Task.Run(() => _skillGapService.GetSummary(userId));
-            var missing     = await Task.Run(() => _skillGapService.GetMissingSkills(userId));
-            var underscored = await Task.Run(() => _skillGapService.GetUnderscoredSkills(userId));
+            var userId = App.Session.CurrentUserId ?? 1;
+            var summary = await Task.Run(() => skillGapService.GetSummary(userId));
+            var missing = await Task.Run(() => skillGapService.GetMissingSkills(userId));
+            var underscored = await Task.Run(() => skillGapService.GetUnderscoredSkills(userId));
 
             SkillsToImprove.Clear();
             MissingSkills.Clear();
 
             if (!summary.HasRejections)
             {
-                SummaryMessage    = "No rejections yet keep applying to see your skill insights.";
+                SummaryMessage = "No rejections yet keep applying to see your skill insights.";
                 HasSummaryMessage = true;
-                HasSkillData      = false;
+                HasSkillData = false;
             }
             else if (!summary.HasSkillGaps)
             {
-                SummaryMessage    = "Great news - your skills meet the requirements of all jobs you've applied to.";
+                SummaryMessage = "Great news - your skills meet the requirements of all jobs you've applied to.";
                 HasSummaryMessage = true;
-                HasSkillData      = false;
+                HasSkillData = false;
             }
             else
             {
-                MissingCount    = summary.MissingSkillsCount;
-                ImproveCount    = summary.SkillsToImproveCount;
+                MissingCount = summary.MissingSkillsCount;
+                ImproveCount = summary.SkillsToImproveCount;
                 HasSummaryMessage = false;
-                HasSkillData      = true;
+                HasSkillData = true;
 
-                foreach (var skill in underscored) SkillsToImprove.Add(skill);
-                foreach (var skill in missing)     MissingSkills.Add(skill);
+                foreach (var skill in underscored)
+                {
+                    SkillsToImprove.Add(skill);
+                }
+
+                foreach (var skill in missing)
+                {
+                    MissingSkills.Add(skill);
+                }
             }
         }
         catch
         {
-            SummaryMessage    = "Unable to load skill gap data. Please try again.";
+            SummaryMessage = "Unable to load skill gap data. Please try again.";
             HasSummaryMessage = true;
-            HasSkillData      = false;
+            HasSkillData = false;
         }
         finally
         {
-            IsLoading   = false;
+            IsLoading = false;
             ShowContent = true;
         }
     }
 
-   
     public void Refresh()
     {
         SkillsToImprove.Clear();
         MissingSkills.Clear();
-        HasSkillData      = false;
+        HasSkillData = false;
         HasSummaryMessage = false;
-        ShowContent       = false;
+        ShowContent = false;
         _ = LoadData();
     }
-
-  
 
     private void OnCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {

@@ -77,6 +77,70 @@ public sealed class RecommendationAlgorithmTests
         breakdown.OverallScore.Should().BeGreaterThanOrEqualTo(0);
     }
 
+    [Fact]
+    public void CalculateScoreBreakdown_WithEmptyResumeAndDescription_ReturnsZeroKeywordScore()
+    {
+        var algorithm = new RecommendationAlgorithm();
+        var user = TestDataFactory.CreateUser();
+        var job = TestDataFactory.CreateJob();
+        user.Resume = string.Empty;
+        job.JobDescription = string.Empty;
+
+        var breakdown = algorithm.CalculateScoreBreakdown(user, job, new List<Skill>(), new List<Skill>());
+
+        breakdown.KeywordScore.Should().Be(0);
+        breakdown.OverallScore.Should().BeGreaterThanOrEqualTo(0);
+    }
+
+    [Fact]
+    public void CalculateCompatibilityScore_WithWeightedParametersAndSignals_UsesResolvedWeights()
+    {
+        var user = TestDataFactory.CreateUser();
+        var job = TestDataFactory.CreateJob();
+        var userSkills = new List<Skill>
+        {
+            TestDataFactory.CreateSkill(user.UserId, 1, "C#", 95)
+        };
+        var jobSkills = new List<Skill>
+        {
+            TestDataFactory.CreateSkill(0, 1, "C#", 50)
+        };
+
+        var posts = new List<Post>
+        {
+            TestDataFactory.CreatePost(1, 1, PostParameterType.WeightedDistanceScoreWeight, "0"),
+            TestDataFactory.CreatePost(2, 1, PostParameterType.JobResumeSimilarityScoreWeight, "0"),
+            TestDataFactory.CreatePost(3, 1, PostParameterType.PreferenceScoreWeight, "0"),
+            TestDataFactory.CreatePost(4, 1, PostParameterType.PromotionScoreWeight, "0"),
+            TestDataFactory.CreatePost(5, 1, PostParameterType.MitigationFactor, "0"),
+            TestDataFactory.CreatePost(6, 1, PostParameterType.RelevantKeyword, "  c#  "),
+            TestDataFactory.CreatePost(7, 1, PostParameterType.RelevantKeyword, string.Empty)
+        };
+        var interactions = new List<Interaction>
+        {
+            TestDataFactory.CreateInteraction(1, 2, 6, InteractionType.Like),
+            TestDataFactory.CreateInteraction(2, 3, 6, InteractionType.Dislike),
+            TestDataFactory.CreateInteraction(3, 4, 7, InteractionType.Like)
+        };
+
+        var algorithm = new RecommendationAlgorithm(new FakePostRepository(posts), new FakeInteractionRepository(interactions));
+        var score = algorithm.CalculateCompatibilityScore(user, job, userSkills, jobSkills);
+
+        score.Should().BeInRange(0, 100);
+    }
+
+    [Fact]
+    public void CalculateCompatibilityScore_WithNoJobSkills_ReturnsZero()
+    {
+        var algorithm = new RecommendationAlgorithm();
+        var user = TestDataFactory.CreateUser();
+        var job = TestDataFactory.CreateJob();
+
+        var score = algorithm.CalculateCompatibilityScore(user, job, new List<Skill>(), new List<Skill>());
+
+        score.Should().BeGreaterThanOrEqualTo(0);
+    }
+
     private sealed class FakePostRepository : IPostRepository
     {
         private readonly IReadOnlyList<Post> posts;

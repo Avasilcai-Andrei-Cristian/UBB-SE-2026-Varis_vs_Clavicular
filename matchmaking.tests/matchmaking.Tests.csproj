@@ -1,7 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
-    <UseWinUI>true</UseWinUI>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <IsPackable>false</IsPackable>
@@ -9,13 +8,13 @@
     <Platforms>x86;x64;ARM64</Platforms>
     <RuntimeIdentifiers>win-x86;win-x64;win-arm64</RuntimeIdentifiers>
     <CodeAnalysisRuleSet>..\SE.ruleset</CodeAnalysisRuleSet>
+    <NoWarn>$(NoWarn);SA0001;SA1000;SA1009;SA1010;SA1025;SA1028;SA1122;SA1309;SA1502;SA1503;SA1507;SA1508</NoWarn>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.Data.SqlClient" Version="5.2.2" />
     <PackageReference Include="coverlet.collector" Version="6.0.4" />
     <PackageReference Include="FluentAssertions" Version="6.12.1" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
-    <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.8.260317003" />
     <PackageReference Include="StyleCop.Analyzers" Version="1.1.118">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -27,43 +26,7 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\matchmaking.core\matchmaking.core.csproj" />
-    <ProjectReference Include="..\matchmaking.ui\matchmaking.ui.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Compile Include="..\matchmaking\ViewModels\ObservableObject.cs" Link="ViewModels\ObservableObject.cs" />
-    <Compile Include="..\matchmaking\ViewModels\RelayCommand.cs" Link="ViewModels\RelayCommand.cs" />
-    <Compile Include="..\matchmaking\ViewModels\FilterCheckItem.cs" Link="ViewModels\FilterCheckItem.cs" />
-    <Compile Include="..\matchmaking\ViewModels\SkillFilterItem.cs" Link="ViewModels\SkillFilterItem.cs" />
-    <Compile Include="..\matchmaking\ViewModels\PostCardViewModel.cs" Link="ViewModels\PostCardViewModel.cs" />
-    <Compile Include="..\matchmaking\ViewModels\ShellViewModel.cs" Link="ViewModels\ShellViewModel.cs" />
-    <Compile Include="..\matchmaking\ViewModels\SampleFormViewModel.cs" Link="ViewModels\SampleFormViewModel.cs" />
-    <Compile Include="..\matchmaking\ViewModels\DeveloperViewModel.cs" Link="ViewModels\DeveloperViewModel.cs" />
-    <Compile Include="..\matchmaking\ViewModels\ChatViewModel.cs" Link="ViewModels\ChatViewModel.cs" />
-    <Compile Include="..\matchmaking\ViewModels\UserRecommendationViewModel.cs" Link="ViewModels\UserRecommendationViewModel.cs" />
-    <Compile Include="..\matchmaking\ViewModels\CompanyRecommendationViewModel.cs" Link="ViewModels\CompanyRecommendationViewModel.cs" />
-    <Compile Include="..\matchmaking\ViewModels\UserStatusViewModel.cs" Link="ViewModels\UserStatusViewModel.cs" />
-    <Compile Include="..\matchmaking\ViewModels\SkillGapViewModel.cs" Link="ViewModels\SkillGapViewModel.cs" />
-    <Compile Include="..\matchmaking\ViewModels\CompanyStatusViewModel.cs" Link="ViewModels\CompanyStatusViewModel.cs" />
-    <Compile Include="..\matchmaking\Repositories\IChatRepository.cs" Link="Repositories\IChatRepository.cs" />
-    <Compile Include="..\matchmaking\Repositories\CompanyRepository.cs" Link="Repositories\CompanyRepository.cs" />
-    <Compile Include="..\matchmaking\Repositories\JobRepository.cs" Link="Repositories\JobRepository.cs" />
-    <Compile Include="..\matchmaking\Repositories\JobSkillRepository.cs" Link="Repositories\JobSkillRepository.cs" />
-    <Compile Include="..\matchmaking\Repositories\SkillRepository.cs" Link="Repositories\SkillRepository.cs" />
-    <Compile Include="..\matchmaking\Repositories\UserRepository.cs" Link="Repositories\UserRepository.cs" />
-    <Compile Include="..\matchmaking\Repositories\SqlRepositoryBase.cs" Link="Repositories\SqlRepositoryBase.cs" />
-    <Compile Include="..\matchmaking\Repositories\SqlChatRepository.cs" Link="Repositories\SqlChatRepository.cs" />
-    <Compile Include="..\matchmaking\Repositories\SqlMessageRepository.cs" Link="Repositories\SqlMessageRepository.cs" />
-    <Compile Include="..\matchmaking\Repositories\SqlDeveloperRepository.cs" Link="Repositories\SqlDeveloperRepository.cs" />
-    <Compile Include="..\matchmaking\Repositories\SqlPostRepository.cs" Link="Repositories\SqlPostRepository.cs" />
-    <Compile Include="..\matchmaking\Repositories\SqlInteractionRepository.cs" Link="Repositories\SqlInteractionRepository.cs" />
-    <Compile Include="..\matchmaking\Repositories\SqlRecommendationRepository.cs" Link="Repositories\SqlRecommendationRepository.cs" />
-    <Compile Include="..\matchmaking\Repositories\SqlMatchRepository.cs" Link="Repositories\SqlMatchRepository.cs" />
-    <Compile Include="..\matchmaking\Repositories\UserStatusMatchRepository.cs" Link="Repositories\UserStatusMatchRepository.cs" />
-    <Compile Include="..\matchmaking\Repositories\SqlConnectionTestRepository.cs" Link="Repositories\SqlConnectionTestRepository.cs" />
-    <Compile Include="..\matchmaking\Services\IChatService.cs" Link="Services\IChatService.cs" />
-    <Compile Include="..\matchmaking\Services\ITestingModuleAdapter.cs" Link="Services\ITestingModuleAdapter.cs" />
+    <ProjectReference Include="..\matchmaking\matchmaking.csproj" AdditionalProperties="WindowsAppSdkBootstrapInitialize=false;WindowsAppSdkDeploymentManagerInitialize=false;WindowsAppSdkUndockedRegFreeWinRTInitialize=false;WindowsAppSdkCompatibilityInitialize=false" />
   </ItemGroup>
 
 </Project>

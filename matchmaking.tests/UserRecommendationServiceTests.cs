@@ -47,6 +47,66 @@ public sealed class UserRecommendationServiceTests
     }
 
     [Fact]
+    public void GetNextCard_WhenUserNotFound_ThrowsInvalidOperationException()
+    {
+        var service = CreateService(
+            users: Array.Empty<User>(),
+            jobs: new[] { TestDataFactory.CreateJob() },
+            skills: Array.Empty<Skill>(),
+            jobSkills: Array.Empty<JobSkill>(),
+            companies: new[] { TestDataFactory.CreateCompany() },
+            matches: Array.Empty<Match>(),
+            recommendations: Array.Empty<Recommendation>());
+
+        Action act = () => service.GetNextCard(1, UserMatchmakingFilters.Empty());
+
+        act.Should().Throw<InvalidOperationException>();
+    }
+
+    [Fact]
+    public void GetNextCard_WhenCompanyMissingForJob_ThrowsInvalidOperationException()
+    {
+        var user = TestDataFactory.CreateUser();
+        var job = TestDataFactory.CreateJob(companyId: 999);
+
+        var service = CreateService(
+            users: new[] { user },
+            jobs: new[] { job },
+            skills: Array.Empty<Skill>(),
+            jobSkills: new[] { TestDataFactory.CreateJobSkill(job.JobId, 1, "C#", 80) },
+            companies: Array.Empty<Company>(),
+            matches: Array.Empty<Match>(),
+            recommendations: Array.Empty<Recommendation>());
+
+        Action act = () => service.GetNextCard(user.UserId, UserMatchmakingFilters.Empty());
+
+        act.Should().Throw<InvalidOperationException>();
+    }
+
+    [Fact]
+    public void RecalculateTopCardIgnoringCooldown_WhenFilteredOut_ReturnsNull()
+    {
+        var user = TestDataFactory.CreateUser();
+        var job = TestDataFactory.CreateJob();
+
+        var service = CreateService(
+            users: new[] { user },
+            jobs: new[] { job },
+            skills: Array.Empty<Skill>(),
+            jobSkills: new[] { TestDataFactory.CreateJobSkill(job.JobId, 1, "C#", 80) },
+            companies: new[] { TestDataFactory.CreateCompany(job.CompanyId) },
+            matches: Array.Empty<Match>(),
+            recommendations: Array.Empty<Recommendation>());
+
+        var filters = UserMatchmakingFilters.Empty();
+        filters.EmploymentTypes.Add("Contract");
+
+        var result = service.RecalculateTopCardIgnoringCooldown(user.UserId, filters);
+
+        result.Should().BeNull();
+    }
+
+    [Fact]
     public void ApplyLike_WhenNoExistingMatchCreatesPendingApplication()
     {
         var service = CreateService(
@@ -131,6 +191,62 @@ public sealed class UserRecommendationServiceTests
         service.UndoDismiss(5, null);
 
         repository.RemovedIds.Should().Contain(5);
+    }
+
+    [Fact]
+    public void ApplyLike_WhenMatchAlreadyExists_ThrowsInvalidOperationException()
+    {
+        var user = TestDataFactory.CreateUser();
+        var job = TestDataFactory.CreateJob();
+        var match = TestDataFactory.CreateMatch(3, user.UserId, job.JobId, MatchStatus.Applied);
+
+        var service = CreateService(
+            users: new[] { user },
+            jobs: new[] { job },
+            skills: Array.Empty<Skill>(),
+            jobSkills: new[] { TestDataFactory.CreateJobSkill(job.JobId, 1, "C#", 80) },
+            companies: new[] { TestDataFactory.CreateCompany(job.CompanyId) },
+            matches: new[] { match },
+            recommendations: Array.Empty<Recommendation>());
+
+        var card = service.GetNextCard(user.UserId, UserMatchmakingFilters.Empty());
+
+        card.Should().BeNull();
+        Action act = () => service.ApplyLike(user.UserId, new JobRecommendationResult { Job = job, Company = TestDataFactory.CreateCompany(job.CompanyId) });
+
+        act.Should().Throw<InvalidOperationException>();
+    }
+
+    [Fact]
+    public void UndoDismiss_WhenDisplayRecommendationMatchesDismissId_DoesNotRemoveTwice()
+    {
+        var repository = new FakeRecommendationRepository([
+            TestDataFactory.CreateRecommendation(5, 1, 100)
+        ]);
+
+        var service = CreateService(
+            users: new[] { TestDataFactory.CreateUser() },
+            jobs: new[] { TestDataFactory.CreateJob() },
+            skills: Array.Empty<Skill>(),
+            jobSkills: new[] { TestDataFactory.CreateJobSkill(100, 1, "C#", 80) },
+            companies: new[] { TestDataFactory.CreateCompany() },
+            matches: Array.Empty<Match>(),
+            recommendations: repository.Recommendations,
+            recommendationRepository: repository);
+
+        service.UndoDismiss(5, 5);
+
+        repository.RemovedIds.Should().Equal(5);
+    }
+
+    [Fact]
+    public void MapUserYearsToExperienceBucket_ReturnsExpectedBuckets()
+    {
+        UserRecommendationService.MapUserYearsToExperienceBucket(0).Should().Be("Internship");
+        UserRecommendationService.MapUserYearsToExperienceBucket(2).Should().Be("Entry");
+        UserRecommendationService.MapUserYearsToExperienceBucket(5).Should().Be("MidSenior");
+        UserRecommendationService.MapUserYearsToExperienceBucket(8).Should().Be("Director");
+        UserRecommendationService.MapUserYearsToExperienceBucket(12).Should().Be("Executive");
     }
 
     private static UserRecommendationService CreateService(

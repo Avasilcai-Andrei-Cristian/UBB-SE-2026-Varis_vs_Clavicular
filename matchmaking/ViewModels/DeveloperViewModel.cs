@@ -12,7 +12,7 @@ public class DeveloperViewModel : ObservableObject
     private readonly DeveloperService _developerService;
     private readonly SessionContext _sessionContext;
 
-    public ObservableCollection<PostCardViewModel> Posts { get; } = new();
+    public ObservableCollection<PostCardViewModel> Posts { get; } = new ObservableCollection<PostCardViewModel>();
 
     public DeveloperViewModel(DeveloperService developerService, SessionContext sessionContext)
     {
@@ -26,19 +26,28 @@ public class DeveloperViewModel : ObservableObject
         if (parameter == "relevant keyword")
         {
             if (string.IsNullOrEmpty(value))
+            {
                 return "Keyword cannot be empty.";
+            }
+
             if (value != value.ToLower())
+            {
                 return "Keyword must be all lowercase.";
+            }
         }
         else if (parameter == "mitigation factor")
         {
             if (!double.TryParse(value, out double val) || val < 1)
+            {
                 return "Mitigation factor must be a number greater than or equal to 1.";
+            }
         }
         else
         {
             if (!double.TryParse(value, out double val) || val < 0 || val > 100)
+            {
                 return "Weight value must be a number between 0 and 100.";
+            }
         }
 
         return null;
