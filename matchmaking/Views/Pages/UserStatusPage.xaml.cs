@@ -13,51 +13,53 @@ namespace matchmaking.Views.Pages;
 
 public sealed partial class UserStatusPage : Page
 {
-    private readonly UserStatusViewModel _vm;
+    private readonly UserStatusViewModel _userStatusViewModel;
 
     public UserStatusPage()
     {
         InitializeComponent();
 
-        _vm         = new UserStatusViewModel();
-        DataContext = _vm;
+        _userStatusViewModel = new UserStatusViewModel();
+        DataContext = _userStatusViewModel;
 
-        Loaded += (_, _) =>
-        {
-            SetActiveFilter(FilterAll);
-            _ = _vm.LoadMatches();
-        };
+        Loaded += OnLoaded;
     }
 
-  
+    private async void OnLoaded(object sender, RoutedEventArgs e)
+    {
+        SetActiveFilter(FilterAll);
+        await _userStatusViewModel.LoadMatches();
+    }
 
     private void Filter_Click(object sender, RoutedEventArgs e)
     {
-        if (sender is not Button btn) return;
-        SetActiveFilter(btn);
-        _vm.ApplyFilter(btn.Tag?.ToString() ?? "All");
+        if (sender is not Button filterButton)
+        {
+            return;
+        }
+
+        SetActiveFilter(filterButton);
+        _userStatusViewModel.ApplyFilter(filterButton.Tag?.ToString() ?? "All");
     }
 
     private void SetActiveFilter(Button activeBtn)
     {
-        foreach (var btn in new[] { FilterAll, FilterApplied, FilterAccepted, FilterRejected })
+        foreach (var filterButton in new[] { FilterAll, FilterApplied, FilterAccepted, FilterRejected })
         {
-            if (btn == activeBtn)
+            if (filterButton == activeBtn)
             {
-                btn.Background  = new SolidColorBrush(Color.FromArgb(255, 30, 30, 30));
-                btn.Foreground  = new SolidColorBrush(Colors.White);
-                btn.BorderBrush = new SolidColorBrush(Color.FromArgb(255, 30, 30, 30));
+                filterButton.Background = new SolidColorBrush(Color.FromArgb(255, 30, 30, 30));
+                filterButton.Foreground = new SolidColorBrush(Colors.White);
+                filterButton.BorderBrush = new SolidColorBrush(Color.FromArgb(255, 30, 30, 30));
             }
             else
             {
-                btn.Background  = new SolidColorBrush(Colors.White);
-                btn.Foreground  = new SolidColorBrush(Colors.Black);
-                btn.BorderBrush = new SolidColorBrush(Colors.Black);
+                filterButton.Background = new SolidColorBrush(Colors.White);
+                filterButton.Foreground = new SolidColorBrush(Colors.Black);
+                filterButton.BorderBrush = new SolidColorBrush(Colors.Black);
             }
         }
     }
-
-  
 
     private async void ViewJobDetails_Click(object sender, RoutedEventArgs e)
     {
@@ -66,7 +68,7 @@ public sealed partial class UserStatusPage : Page
             var payload = new UserStatusJobDetailPayload
             {
                 Card = model,
-                JobSkills = _vm.GetJobSkills(model.JobId)
+                JobSkills = _userStatusViewModel.GetJobSkills(model.JobId)
             };
 
             Frame.Navigate(typeof(UserStatusJobDetailPage), payload);
@@ -82,13 +84,10 @@ public sealed partial class UserStatusPage : Page
         => Frame.Navigate(typeof(SkillGapPage));
 
     private void RefreshButton_Click(object sender, RoutedEventArgs e)
-        => _vm.Refresh();
+        => _userStatusViewModel.Refresh();
 
     private void GoToRecommendationsButton_Click(object sender, RoutedEventArgs e)
     {
         Frame?.Navigate(typeof(UserRecommendationPageView));
     }
-
-   
-
 }

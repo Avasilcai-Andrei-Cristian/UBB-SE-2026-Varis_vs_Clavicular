@@ -14,6 +14,9 @@ namespace matchmaking.Views.Pages;
 
 public sealed partial class CompanyMatchmakingPage : Page
 {
+    private const double CardSlideOffsetPixels = 700.0;
+    private const int CardAnimationDurationMilliseconds = 300;
+
     private readonly CompanyRecommendationViewModel _viewModel;
 
     public CompanyMatchmakingPage()
@@ -267,13 +270,13 @@ public sealed partial class CompanyMatchmakingPage : Page
         }
 
         var completion = new TaskCompletionSource<bool>();
-        var offset = moveRight ? 700.0 : -700.0;
+        var offset = moveRight ? CardSlideOffsetPixels : -CardSlideOffsetPixels;
 
         var slideAnimation = new DoubleAnimation
         {
             From = 0,
             To = offset,
-            Duration = TimeSpan.FromMilliseconds(300),
+            Duration = TimeSpan.FromMilliseconds(CardAnimationDurationMilliseconds),
             EnableDependentAnimation = true
         };
 
@@ -281,7 +284,7 @@ public sealed partial class CompanyMatchmakingPage : Page
         {
             From = 1,
             To = 0,
-            Duration = TimeSpan.FromMilliseconds(300)
+            Duration = TimeSpan.FromMilliseconds(CardAnimationDurationMilliseconds)
         };
 
         var storyboard = new Storyboard();

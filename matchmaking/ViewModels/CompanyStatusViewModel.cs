@@ -13,6 +13,8 @@ namespace matchmaking.ViewModels;
 
 public class CompanyStatusViewModel : ObservableObject
 {
+    private const int MaximumFeedbackLength = 500;
+
     private readonly CompanyStatusService _companyStatusService;
     private readonly MatchService _matchService;
     private readonly ITestingModuleAdapter _testingModuleAdapter;
@@ -308,9 +310,9 @@ public class CompanyStatusViewModel : ObservableObject
             return false;
         }
 
-        if (FeedbackMessage.Trim().Length > 500)
+        if (FeedbackMessage.Trim().Length > MaximumFeedbackLength)
         {
-            ValidationErrorFeedback = "Feedback must be 500 characters or fewer.";
+            ValidationErrorFeedback = $"Feedback must be {MaximumFeedbackLength} characters or fewer.";
             return false;
         }
 

@@ -22,6 +22,8 @@ namespace matchmaking.Views.Pages;
 [SupportedOSPlatform("windows10.0.17763.0")]
 public sealed partial class ChatPageView : Page
 {
+    private const double RefreshIntervalSeconds = 3;
+
     private readonly ChatViewModel _viewModel;
     private readonly DispatcherTimer _refreshTimer;
     private readonly JobService _jobService;
@@ -52,7 +54,7 @@ public sealed partial class ChatPageView : Page
 
         _refreshTimer = new DispatcherTimer
         {
-            Interval = TimeSpan.FromSeconds(3)
+            Interval = TimeSpan.FromSeconds(RefreshIntervalSeconds)
         };
         _refreshTimer.Tick += RefreshTimer_Tick;
     }
