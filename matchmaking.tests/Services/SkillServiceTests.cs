@@ -6,7 +6,7 @@ public sealed class SkillServiceTests
     public void GetById_WhenSkillExists_ReturnsSkill()
     {
         var existingSkill = TestDataFactory.CreateSkill(1, 10, "C#", 85);
-        var repository = new FakeSkillRepository([existingSkill]);
+        var repository = new FakeSkillRepository(new[] { existingSkill });
         var service = new SkillService(repository);
 
         service.GetById(existingSkill.UserId, existingSkill.SkillId).Should().Be(existingSkill);
@@ -16,7 +16,7 @@ public sealed class SkillServiceTests
     public void GetAll_WhenSkillsExist_ReturnsSkills()
     {
         var existingSkill = TestDataFactory.CreateSkill(1, 10, "C#", 85);
-        var repository = new FakeSkillRepository([existingSkill]);
+        var repository = new FakeSkillRepository(new[] { existingSkill });
         var service = new SkillService(repository);
 
         service.GetAll().Should().ContainSingle().Which.Should().Be(existingSkill);
@@ -26,7 +26,7 @@ public sealed class SkillServiceTests
     public void GetByUserId_WhenSkillsExist_ReturnsSkills()
     {
         var existingSkill = TestDataFactory.CreateSkill(1, 10, "C#", 85);
-        var repository = new FakeSkillRepository([existingSkill]);
+        var repository = new FakeSkillRepository(new[] { existingSkill });
         var service = new SkillService(repository);
 
         service.GetByUserId(existingSkill.UserId).Should().ContainSingle().Which.Should().Be(existingSkill);
@@ -36,7 +36,7 @@ public sealed class SkillServiceTests
     public void GetDistinctSkillCatalog_WhenSkillsExist_ReturnsCatalog()
     {
         var existingSkill = TestDataFactory.CreateSkill(1, 10, "C#", 85);
-        var repository = new FakeSkillRepository([existingSkill]);
+        var repository = new FakeSkillRepository(new[] { existingSkill });
         var service = new SkillService(repository);
 
         service.GetDistinctSkillCatalog().Should().ContainSingle().Which.Should().Be((existingSkill.SkillId, existingSkill.SkillName));
@@ -45,7 +45,7 @@ public sealed class SkillServiceTests
     [Fact]
     public void Add_WhenSkillAdded_DelegatesToRepository()
     {
-        var repository = new FakeSkillRepository([]);
+        var repository = new FakeSkillRepository(Array.Empty<Skill>());
         var service = new SkillService(repository);
         var newSkill = TestDataFactory.CreateSkill(1, 11, "SQL", 80);
 
@@ -58,7 +58,7 @@ public sealed class SkillServiceTests
     public void Update_WhenSkillUpdated_DelegatesToRepository()
     {
         var existingSkill = TestDataFactory.CreateSkill(1, 10, "C#", 85);
-        var repository = new FakeSkillRepository([existingSkill]);
+        var repository = new FakeSkillRepository(new[] { existingSkill });
         var service = new SkillService(repository);
 
         service.Update(existingSkill);
@@ -70,7 +70,7 @@ public sealed class SkillServiceTests
     public void Remove_WhenSkillRemoved_DelegatesToRepository()
     {
         var existingSkill = TestDataFactory.CreateSkill(1, 10, "C#", 85);
-        var repository = new FakeSkillRepository([existingSkill]);
+        var repository = new FakeSkillRepository(new[] { existingSkill });
         var service = new SkillService(repository);
 
         service.Remove(existingSkill.UserId, existingSkill.SkillId);
@@ -87,9 +87,9 @@ public sealed class SkillServiceTests
             this.skills = skills.ToList();
         }
 
-        public List<Skill> AddedSkills { get; } = [];
-        public List<Skill> UpdatedSkills { get; } = [];
-        public List<(int UserId, int SkillId)> RemovedPairs { get; } = [];
+        public List<Skill> AddedSkills { get; } = new List<Skill>();
+        public List<Skill> UpdatedSkills { get; } = new List<Skill>();
+        public List<(int UserId, int SkillId)> RemovedPairs { get; } = new List<(int UserId, int SkillId)>();
 
         public Skill? GetById(int userId, int skillId) => skills.FirstOrDefault(skill => skill.UserId == userId && skill.SkillId == skillId);
         public IReadOnlyList<Skill> GetAll() => skills;

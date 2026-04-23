@@ -6,7 +6,7 @@ public sealed class JobServiceTests
     public void GetById_WhenJobExists_ReturnsJob()
     {
         var existingJob = TestDataFactory.CreateJob(21, 3);
-        var repository = new FakeJobRepository([existingJob]);
+        var repository = new FakeJobRepository(new[] { existingJob });
         var service = new JobService(repository);
 
         service.GetById(existingJob.JobId).Should().Be(existingJob);
@@ -16,7 +16,7 @@ public sealed class JobServiceTests
     public void GetAll_WhenJobsExist_ReturnsJobs()
     {
         var existingJob = TestDataFactory.CreateJob(21, 3);
-        var repository = new FakeJobRepository([existingJob]);
+        var repository = new FakeJobRepository(new[] { existingJob });
         var service = new JobService(repository);
 
         service.GetAll().Should().ContainSingle().Which.Should().Be(existingJob);
@@ -26,7 +26,7 @@ public sealed class JobServiceTests
     public void GetByCompanyId_WhenJobsExist_ReturnsJobs()
     {
         var existingJob = TestDataFactory.CreateJob(21, 3);
-        var repository = new FakeJobRepository([existingJob]);
+        var repository = new FakeJobRepository(new[] { existingJob });
         var service = new JobService(repository);
 
         service.GetByCompanyId(3).Should().ContainSingle().Which.Should().Be(existingJob);
@@ -35,7 +35,7 @@ public sealed class JobServiceTests
     [Fact]
     public void Add_WhenJobAdded_DelegatesToRepository()
     {
-        var repository = new FakeJobRepository([]);
+        var repository = new FakeJobRepository(Array.Empty<Job>());
         var service = new JobService(repository);
         var newJob = TestDataFactory.CreateJob(22, 3);
 
@@ -48,7 +48,7 @@ public sealed class JobServiceTests
     public void Update_WhenJobUpdated_DelegatesToRepository()
     {
         var existingJob = TestDataFactory.CreateJob(21, 3);
-        var repository = new FakeJobRepository([existingJob]);
+        var repository = new FakeJobRepository(new[] { existingJob });
         var service = new JobService(repository);
 
         service.Update(existingJob);
@@ -60,7 +60,7 @@ public sealed class JobServiceTests
     public void Remove_WhenJobRemoved_DelegatesToRepository()
     {
         var existingJob = TestDataFactory.CreateJob(21, 3);
-        var repository = new FakeJobRepository([existingJob]);
+        var repository = new FakeJobRepository(new[] { existingJob });
         var service = new JobService(repository);
 
         service.Remove(existingJob.JobId);
@@ -77,9 +77,9 @@ public sealed class JobServiceTests
             this.jobs = jobs.ToList();
         }
 
-        public List<Job> AddedJobs { get; } = [];
-        public List<Job> UpdatedJobs { get; } = [];
-        public List<int> RemovedJobIds { get; } = [];
+        public List<Job> AddedJobs { get; } = new List<Job>();
+        public List<Job> UpdatedJobs { get; } = new List<Job>();
+        public List<int> RemovedJobIds { get; } = new List<int>();
 
         public Job? GetById(int jobId) => jobs.FirstOrDefault(job => job.JobId == jobId);
         public IReadOnlyList<Job> GetAll() => jobs;

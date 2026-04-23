@@ -7,8 +7,8 @@ public sealed class MatchServiceStateTransitionTests
     [Fact]
     public void CreatePendingApplication_WhenNoExistingMatch_InsertsAppliedMatch()
     {
-        var repository = new FakeMatchRepository([]);
-        var service = new MatchService(repository, new FakeJobService([]));
+        var repository = new FakeMatchRepository(Array.Empty<Match>());
+        var service = new MatchService(repository, new FakeJobService(Array.Empty<Job>()));
 
         var createdId = service.CreatePendingApplication(1, 100);
 
@@ -26,7 +26,7 @@ public sealed class MatchServiceStateTransitionTests
         var repository = new FakeMatchRepository([
             TestDataFactory.CreateMatch(matchId: 2, userId: 1, jobId: 100, status: MatchStatus.Applied)
         ]);
-        var service = new MatchService(repository, new FakeJobService([]));
+        var service = new MatchService(repository, new FakeJobService(Array.Empty<Job>()));
 
         Action act = () => service.CreatePendingApplication(1, 100);
 
@@ -39,7 +39,7 @@ public sealed class MatchServiceStateTransitionTests
         var repository = new FakeMatchRepository([
             TestDataFactory.CreateMatch(matchId: 6, status: MatchStatus.Applied)
         ]);
-        var service = new MatchService(repository, new FakeJobService([]));
+        var service = new MatchService(repository, new FakeJobService(Array.Empty<Job>()));
 
         Action act = () => service.SubmitDecision(6, MatchStatus.Rejected, "   ");
 
@@ -53,7 +53,7 @@ public sealed class MatchServiceStateTransitionTests
         var repository = new FakeMatchRepository([
             TestDataFactory.CreateMatch(matchId: 7, status: MatchStatus.Applied)
         ]);
-        var service = new MatchService(repository, new FakeJobService([]));
+        var service = new MatchService(repository, new FakeJobService(Array.Empty<Job>()));
 
         Action act = () => service.SubmitDecision(7, MatchStatus.Advanced, "ok");
 
@@ -78,10 +78,10 @@ public sealed class MatchServiceStateTransitionTests
     [Fact]
     public void SubmitDecision_WhenValidInput_UpdatesStatusFeedbackAndTimestamp()
     {
-        var match = TestDataFactory.CreateMatch(matchId: 10, status: MatchStatus.Applied, feedback: "");
+        var match = TestDataFactory.CreateMatch(matchId: 10, status: MatchStatus.Applied, feedback: string.Empty);
         var before = match.Timestamp;
-        var repository = new FakeMatchRepository([match]);
-        var service = new MatchService(repository, new FakeJobService([]));
+        var repository = new FakeMatchRepository(new[] { match });
+        var service = new MatchService(repository, new FakeJobService(Array.Empty<Job>()));
 
         service.SubmitDecision(10, MatchStatus.Accepted, "  Great fit  ");
 
@@ -143,8 +143,8 @@ public sealed class MatchServiceStateTransitionTests
         var otherCompany = TestDataFactory.CreateMatch(matchId: 3, userId: 3, jobId: 999, status: MatchStatus.Applied);
         otherCompany.Timestamp = now.AddMinutes(-1);
 
-        var repository = new FakeMatchRepository([matchingOlder, matchingNewer, otherCompany]);
-        IReadOnlyList<Job> jobs = [TestDataFactory.CreateJob(jobId: 100, companyId: 1), TestDataFactory.CreateJob(jobId: 101, companyId: 1)];
+        var repository = new FakeMatchRepository(new[] { matchingOlder, matchingNewer, otherCompany });
+        IReadOnlyList<Job> jobs = new[] { TestDataFactory.CreateJob(jobId: 100, companyId: 1), TestDataFactory.CreateJob(jobId: 101, companyId: 1) };
         var service = new MatchService(repository, new FakeJobService(jobs));
 
         var result = await service.GetByCompanyIdAsync(1);
@@ -155,10 +155,11 @@ public sealed class MatchServiceStateTransitionTests
     [Fact]
     public async Task GetByCompanyIdAsync_WhenCompanyHasNoJobs_ReturnsEmptyList()
     {
-        var repository = new FakeMatchRepository([
+        var repository = new FakeMatchRepository(new[]
+        {
             TestDataFactory.CreateMatch(matchId: 1, userId: 1, jobId: 100, status: MatchStatus.Applied)
-        ]);
-        var service = new MatchService(repository, new FakeJobService([]));
+        });
+        var service = new MatchService(repository, new FakeJobService(Array.Empty<Job>()));
 
         var result = await service.GetByCompanyIdAsync(1);
 
@@ -168,8 +169,8 @@ public sealed class MatchServiceStateTransitionTests
     [Fact]
     public void RemoveApplication_DelegatesToRepository()
     {
-        var repository = new FakeMatchRepository([]);
-        var service = new MatchService(repository, new FakeJobService([]));
+        var repository = new FakeMatchRepository(Array.Empty<Match>());
+        var service = new MatchService(repository, new FakeJobService(Array.Empty<Job>()));
 
         service.RemoveApplication(55);
 
@@ -179,7 +180,7 @@ public sealed class MatchServiceStateTransitionTests
     [Fact]
     public void IsDecisionTransitionAllowed_RespectsDefinedTransitions()
     {
-        var service = new MatchService(new FakeMatchRepository([]), new FakeJobService([]));
+        var service = new MatchService(new FakeMatchRepository(Array.Empty<Match>()), new FakeJobService(Array.Empty<Job>()));
         var applied = TestDataFactory.CreateMatch(status: MatchStatus.Applied);
         var advanced = TestDataFactory.CreateMatch(status: MatchStatus.Advanced);
         var accepted = TestDataFactory.CreateMatch(status: MatchStatus.Accepted);
@@ -195,50 +196,58 @@ public sealed class MatchServiceStateTransitionTests
 
     private sealed class FakeMatchRepository : IMatchRepository
     {
-        private readonly List<Match> _matches;
+        private readonly List<Match> matches;
 
         public FakeMatchRepository(IReadOnlyList<Match> matches)
         {
-            _matches = matches.ToList();
+            this.matches = matches.ToList();
         }
 
-        public List<Match> InsertedMatches { get; } = [];
-        public List<Match> UpdatedMatches { get; } = [];
-        public List<int> RemovedIds { get; } = [];
+        public List<Match> InsertedMatches { get; } = new List<Match>();
+        public List<Match> UpdatedMatches { get; } = new List<Match>();
+        public List<int> RemovedIds { get; } = new List<int>();
 
-        public Match? GetById(int matchId) => _matches.FirstOrDefault(item => item.MatchId == matchId);
-        public IReadOnlyList<Match> GetAll() => _matches;
-        public void Add(Match match) => _matches.Add(match);
+        public Match? GetById(int matchId) => matches.FirstOrDefault(item => item.MatchId == matchId);
+        public IReadOnlyList<Match> GetAll() => matches;
+        public void Add(Match match) => matches.Add(match);
         public void Update(Match match) => UpdatedMatches.Add(match);
         public void Remove(int matchId) => RemovedIds.Add(matchId);
 
         public int InsertReturningId(Match match)
         {
-            var nextId = _matches.Count == 0 ? 1 : _matches.Max(item => item.MatchId) + 1;
+            var nextId = matches.Count == 0 ? 1 : matches.Max(item => item.MatchId) + 1;
             match.MatchId = nextId;
-            _matches.Add(match);
+            matches.Add(match);
             InsertedMatches.Add(match);
             return nextId;
         }
 
         public Match? GetByUserIdAndJobId(int userId, int jobId) =>
-            _matches.FirstOrDefault(item => item.UserId == userId && item.JobId == jobId);
+            matches.FirstOrDefault(item => item.UserId == userId && item.JobId == jobId);
     }
 
     private sealed class FakeJobService : IJobService
     {
-        private readonly IReadOnlyList<Job> _jobs;
+        private readonly IReadOnlyList<Job> jobs;
 
         public FakeJobService(IReadOnlyList<Job> jobs)
         {
-            _jobs = jobs;
+            this.jobs = jobs;
         }
 
-        public Job? GetById(int jobId) => _jobs.FirstOrDefault(job => job.JobId == jobId);
-        public IReadOnlyList<Job> GetAll() => _jobs;
-        public IReadOnlyList<Job> GetByCompanyId(int companyId) => _jobs.Where(job => job.CompanyId == companyId).ToList();
-        public void Add(Job job) { }
-        public void Update(Job job) { }
-        public void Remove(int jobId) { }
+        public Job? GetById(int jobId) => jobs.FirstOrDefault(job => job.JobId == jobId);
+        public IReadOnlyList<Job> GetAll() => jobs;
+        public IReadOnlyList<Job> GetByCompanyId(int companyId) => jobs.Where(job => job.CompanyId == companyId).ToList();
+        public void Add(Job job)
+        {
+        }
+
+        public void Update(Job job)
+        {
+        }
+
+        public void Remove(int jobId)
+        {
+        }
     }
 }

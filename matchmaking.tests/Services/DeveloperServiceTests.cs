@@ -7,8 +7,8 @@ public sealed class DeveloperServiceTests
     {
         var developer = new Developer { DeveloperId = 3, Name = "Dev", Password = "pwd" };
         var developerRepository = new FakeDeveloperRepository(developer);
-        var postRepository = new FakePostRepository([TestDataFactory.CreatePost(postId: 2, developerId: 3)]);
-        var interactionRepository = new FakeInteractionRepository([TestDataFactory.CreateInteraction(interactionId: 9, developerId: 3, postId: 2)]);
+        var postRepository = new FakePostRepository(new[] { TestDataFactory.CreatePost(postId: 2, developerId: 3) });
+        var interactionRepository = new FakeInteractionRepository(new[] { TestDataFactory.CreateInteraction(interactionId: 9, developerId: 3, postId: 2) });
         var service = new DeveloperService(developerRepository, postRepository, interactionRepository);
 
         service.GetDeveloperById(3).Should().Be(developer);
@@ -19,8 +19,8 @@ public sealed class DeveloperServiceTests
     {
         var developer = new Developer { DeveloperId = 3, Name = "Dev", Password = "pwd" };
         var developerRepository = new FakeDeveloperRepository(developer);
-        var postRepository = new FakePostRepository([TestDataFactory.CreatePost(postId: 2, developerId: 3)]);
-        var interactionRepository = new FakeInteractionRepository([TestDataFactory.CreateInteraction(interactionId: 9, developerId: 3, postId: 2)]);
+        var postRepository = new FakePostRepository(new[] { TestDataFactory.CreatePost(postId: 2, developerId: 3) });
+        var interactionRepository = new FakeInteractionRepository(new[] { TestDataFactory.CreateInteraction(interactionId: 9, developerId: 3, postId: 2) });
         var service = new DeveloperService(developerRepository, postRepository, interactionRepository);
 
         service.GetPosts().Should().ContainSingle();
@@ -31,8 +31,8 @@ public sealed class DeveloperServiceTests
     {
         var developer = new Developer { DeveloperId = 3, Name = "Dev", Password = "pwd" };
         var developerRepository = new FakeDeveloperRepository(developer);
-        var postRepository = new FakePostRepository([TestDataFactory.CreatePost(postId: 2, developerId: 3)]);
-        var interactionRepository = new FakeInteractionRepository([TestDataFactory.CreateInteraction(interactionId: 9, developerId: 3, postId: 2)]);
+        var postRepository = new FakePostRepository(new[] { TestDataFactory.CreatePost(postId: 2, developerId: 3) });
+        var interactionRepository = new FakeInteractionRepository(new[] { TestDataFactory.CreateInteraction(interactionId: 9, developerId: 3, postId: 2) });
         var service = new DeveloperService(developerRepository, postRepository, interactionRepository);
 
         service.GetInteractions().Should().ContainSingle();
@@ -42,8 +42,8 @@ public sealed class DeveloperServiceTests
     public void AddPost_WhenPostAdded_PersistsUnknownParameterType()
     {
         var developerRepository = new FakeDeveloperRepository(null);
-        var postRepository = new FakePostRepository([]);
-        var interactionRepository = new FakeInteractionRepository([]);
+        var postRepository = new FakePostRepository(Array.Empty<Post>());
+        var interactionRepository = new FakeInteractionRepository(Array.Empty<Interaction>());
         var service = new DeveloperService(developerRepository, postRepository, interactionRepository);
 
         service.AddPost(3, "burnout_threshold", "6");
@@ -58,8 +58,8 @@ public sealed class DeveloperServiceTests
     public void AddInteraction_WhenExisting_UpdatesInteraction()
     {
         var existing = TestDataFactory.CreateInteraction(interactionId: 12, developerId: 3, postId: 5, type: InteractionType.Dislike);
-        var interactionRepository = new FakeInteractionRepository([existing]);
-        var service = new DeveloperService(new FakeDeveloperRepository(null), new FakePostRepository([]), interactionRepository);
+        var interactionRepository = new FakeInteractionRepository(new[] { existing });
+        var service = new DeveloperService(new FakeDeveloperRepository(null), new FakePostRepository(Array.Empty<Post>()), interactionRepository);
 
         service.AddInteraction(3, 5, InteractionType.Like);
 
@@ -72,8 +72,8 @@ public sealed class DeveloperServiceTests
     [Fact]
     public void AddInteraction_WhenNoExisting_AddsInteraction()
     {
-        var interactionRepository = new FakeInteractionRepository([]);
-        var service = new DeveloperService(new FakeDeveloperRepository(null), new FakePostRepository([]), interactionRepository);
+        var interactionRepository = new FakeInteractionRepository(Array.Empty<Interaction>());
+        var service = new DeveloperService(new FakeDeveloperRepository(null), new FakePostRepository(Array.Empty<Post>()), interactionRepository);
 
         service.AddInteraction(2, 8, InteractionType.Dislike);
 
@@ -87,8 +87,8 @@ public sealed class DeveloperServiceTests
     [Fact]
     public void RemoveInteraction_WhenCalled_RemovesInteraction()
     {
-        var interactionRepository = new FakeInteractionRepository([]);
-        var service = new DeveloperService(new FakeDeveloperRepository(null), new FakePostRepository([]), interactionRepository);
+        var interactionRepository = new FakeInteractionRepository(Array.Empty<Interaction>());
+        var service = new DeveloperService(new FakeDeveloperRepository(null), new FakePostRepository(Array.Empty<Post>()), interactionRepository);
 
         service.RemoveInteraction(44);
 
@@ -97,48 +97,48 @@ public sealed class DeveloperServiceTests
 
     private sealed class FakeDeveloperRepository : IDeveloperRepository
     {
-        private readonly Developer? _developer;
+        private readonly Developer? developer;
 
         public FakeDeveloperRepository(Developer? developer)
         {
-            _developer = developer;
+            this.developer = developer;
         }
 
-        public Developer? GetById(int developerId) => _developer?.DeveloperId == developerId ? _developer : null;
+        public Developer? GetById(int developerId) => developer?.DeveloperId == developerId ? developer : null;
     }
 
     private sealed class FakePostRepository : IPostRepository
     {
-        private readonly List<Post> _posts;
+        private readonly List<Post> posts;
 
         public FakePostRepository(IReadOnlyList<Post> posts)
         {
-            _posts = posts.ToList();
+            this.posts = posts.ToList();
         }
 
-        public List<Post> AddedPosts { get; } = [];
+        public List<Post> AddedPosts { get; } = new List<Post>();
 
-        public IReadOnlyList<Post> GetAll() => _posts;
+        public IReadOnlyList<Post> GetAll() => posts;
         public void Add(Post post) => AddedPosts.Add(post);
     }
 
     private sealed class FakeInteractionRepository : IInteractionRepository
     {
-        private readonly List<Interaction> _interactions;
+        private readonly List<Interaction> interactions;
 
         public FakeInteractionRepository(IReadOnlyList<Interaction> interactions)
         {
-            _interactions = interactions.ToList();
+            this.interactions = interactions.ToList();
         }
 
-        public List<Interaction> AddedInteractions { get; } = [];
-        public List<Interaction> UpdatedInteractions { get; } = [];
-        public List<int> RemovedInteractionIds { get; } = [];
+        public List<Interaction> AddedInteractions { get; } = new List<Interaction>();
+        public List<Interaction> UpdatedInteractions { get; } = new List<Interaction>();
+        public List<int> RemovedInteractionIds { get; } = new List<int>();
 
-        public IReadOnlyList<Interaction> GetAll() => _interactions;
+        public IReadOnlyList<Interaction> GetAll() => interactions;
 
         public Interaction? GetByDeveloperIdAndPostId(int developerId, int postId) =>
-            _interactions.FirstOrDefault(item => item.DeveloperId == developerId && item.PostId == postId);
+            interactions.FirstOrDefault(item => item.DeveloperId == developerId && item.PostId == postId);
 
         public void Add(Interaction interaction) => AddedInteractions.Add(interaction);
         public void Update(Interaction interaction) => UpdatedInteractions.Add(interaction);

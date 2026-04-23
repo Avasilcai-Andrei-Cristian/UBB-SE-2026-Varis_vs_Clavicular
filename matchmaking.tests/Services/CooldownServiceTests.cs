@@ -8,7 +8,7 @@ public sealed class CooldownServiceTests
     [Fact]
     public void IsOnCooldown_WhenNoRecommendationExists_ReturnsFalse()
     {
-        var repository = new FakeRecommendationRepository([]);
+        var repository = new FakeRecommendationRepository(Array.Empty<Recommendation>());
         var service = new CooldownService(repository, TimeSpan.FromHours(24));
 
         service.IsOnCooldown(1, 100, DateTime.UtcNow).Should().BeFalse();
@@ -17,9 +17,10 @@ public sealed class CooldownServiceTests
     [Fact]
     public void IsOnCooldown_WhenRecommendationIsRecent_ReturnsTrue()
     {
-        var repository = new FakeRecommendationRepository([
+        var repository = new FakeRecommendationRepository(new[]
+        {
             TestDataFactory.CreateRecommendation(1, 1, 100, DateTime.UtcNow.AddHours(-1))
-        ]);
+        });
         var service = new CooldownService(repository, TimeSpan.FromHours(24));
 
         service.IsOnCooldown(1, 100, DateTime.UtcNow).Should().BeTrue();
@@ -28,9 +29,10 @@ public sealed class CooldownServiceTests
     [Fact]
     public void IsOnCooldown_WhenRecommendationIsOld_ReturnsFalse()
     {
-        var repository = new FakeRecommendationRepository([
+        var repository = new FakeRecommendationRepository(new[]
+        {
             TestDataFactory.CreateRecommendation(1, 1, 100, DateTime.UtcNow.AddDays(-2))
-        ]);
+        });
         var service = new CooldownService(repository, TimeSpan.FromHours(24));
 
         service.IsOnCooldown(1, 100, DateTime.UtcNow).Should().BeFalse();
@@ -38,15 +40,15 @@ public sealed class CooldownServiceTests
 
     private sealed class FakeRecommendationRepository : IRecommendationRepository
     {
-        private readonly IReadOnlyList<Recommendation> _recommendations;
+        private readonly IReadOnlyList<Recommendation> recommendations;
 
         public FakeRecommendationRepository(IReadOnlyList<Recommendation> recommendations)
         {
-            _recommendations = recommendations;
+            this.recommendations = recommendations;
         }
 
-        public Recommendation? GetById(int recommendationId) => _recommendations.FirstOrDefault(r => r.RecommendationId == recommendationId);
-        public IReadOnlyList<Recommendation> GetAll() => _recommendations;
+        public Recommendation? GetById(int recommendationId) => recommendations.FirstOrDefault(r => r.RecommendationId == recommendationId);
+        public IReadOnlyList<Recommendation> GetAll() => recommendations;
         public void Add(Recommendation recommendation)
         {
         }
@@ -59,7 +61,7 @@ public sealed class CooldownServiceTests
         {
         }
 
-        public Recommendation? GetLatestByUserIdAndJobId(int userId, int jobId) => _recommendations.Where(r => r.UserId == userId && r.JobId == jobId).OrderByDescending(r => r.Timestamp).FirstOrDefault();
+        public Recommendation? GetLatestByUserIdAndJobId(int userId, int jobId) => recommendations.Where(r => r.UserId == userId && r.JobId == jobId).OrderByDescending(r => r.Timestamp).FirstOrDefault();
         public int InsertReturningId(Recommendation recommendation) => 1;
     }
 }
