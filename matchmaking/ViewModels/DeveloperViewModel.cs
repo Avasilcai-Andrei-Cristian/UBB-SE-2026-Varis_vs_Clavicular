@@ -10,18 +10,18 @@ namespace matchmaking.ViewModels;
 public class DeveloperViewModel : ObservableObject
 {
     private readonly DeveloperService _developerService;
-    private readonly SessionContext _session;
+    private readonly SessionContext _sessionContext;
 
     public ObservableCollection<PostCardViewModel> Posts { get; } = new();
 
     public DeveloperViewModel(DeveloperService developerService, SessionContext sessionContext)
     {
         _developerService = developerService;
-        _session = sessionContext;
-        Refresh();
+        _sessionContext = sessionContext;
+        RefreshPosts();
     }
 
-    public string? ValidatePost(string parameter, string value)
+    public string? ValidateDeveloperPostInput(string parameter, string value)
     {
         if (parameter == "relevant keyword")
         {
@@ -44,18 +44,18 @@ public class DeveloperViewModel : ObservableObject
         return null;
     }
 
-    public void AddPost(string parameter, string value)
+    public void AddDeveloperPost(string parameter, string value)
     {
-        var developerId = _session.CurrentDeveloperId
+        var developerId = _sessionContext.CurrentDeveloperId
             ?? throw new InvalidOperationException("No developer session is active.");
 
         _developerService.AddPost(developerId, parameter, value);
-        Refresh();
+        RefreshPosts();
     }
 
-    public void HandleLike(int postId)
+    public void HandleLikePost(int postId)
     {
-        var developerId = _session.CurrentDeveloperId
+        var developerId = _sessionContext.CurrentDeveloperId
             ?? throw new InvalidOperationException("No developer session is active.");
 
         var existing = _developerService.GetInteractions()
@@ -75,12 +75,12 @@ public class DeveloperViewModel : ObservableObject
             _developerService.AddInteraction(developerId, postId, InteractionType.Like);
         }
 
-        Refresh();
+        RefreshPosts();
     }
 
-    public void HandleDislike(int postId)
+    public void HandleDislikePost(int postId)
     {
-        var developerId = _session.CurrentDeveloperId
+        var developerId = _sessionContext.CurrentDeveloperId
             ?? throw new InvalidOperationException("No developer session is active.");
 
         var existing = _developerService.GetInteractions()
@@ -100,10 +100,10 @@ public class DeveloperViewModel : ObservableObject
             _developerService.AddInteraction(developerId, postId, InteractionType.Dislike);
         }
 
-        Refresh();
+        RefreshPosts();
     }
 
-    public void Refresh()
+    public void RefreshPosts()
     {
         var posts = _developerService.GetPosts();
         var interactions = _developerService.GetInteractions();
@@ -115,14 +115,16 @@ public class DeveloperViewModel : ObservableObject
                 id => id,
                 id => _developerService.GetDeveloperById(id)?.Name ?? $"Developer #{id}");
 
-        var currentDeveloperId = _session.CurrentDeveloperId ?? 0;
+        var currentDeveloperId = _sessionContext.CurrentDeveloperId ?? 0;
 
         Posts.Clear();
         foreach (var post in posts)
         {
             var postInteractions = interactions.Where(i => i.PostId == post.PostId);
             var authorName = developerNames[post.DeveloperId];
-            Posts.Add(new PostCardViewModel(post, postInteractions, authorName, currentDeveloperId, HandleLike, HandleDislike));
+            Posts.Add(new PostCardViewModel(post, postInteractions, authorName, currentDeveloperId, HandleLikePost, HandleDislikePost));
         }
     }
+
+    public void Refresh() => RefreshPosts();
 }

@@ -5,8 +5,13 @@ using matchmaking.Domain.Entities;
 
 namespace matchmaking.Repositories;
 
-public class SqlChatRepository(string connectionString) : SqlRepositoryBase(connectionString)
+public class SqlChatRepository : SqlRepositoryBase, IChatRepository
 {
+    public SqlChatRepository(string connectionString)
+        : base(connectionString)
+    {
+    }
+
     public IReadOnlyList<Chat> GetByUserId(int userId)
     {
         using var connection = OpenConnection();
@@ -22,7 +27,9 @@ public class SqlChatRepository(string connectionString) : SqlRepositoryBase(conn
         using var reader = command.ExecuteReader();
         var result = new List<Chat>();
         while (reader.Read())
+        {
             result.Add(Map(reader));
+        }
         return result;
     }
 
@@ -41,7 +48,9 @@ public class SqlChatRepository(string connectionString) : SqlRepositoryBase(conn
         using var reader = command.ExecuteReader();
         var result = new List<Chat>();
         while (reader.Read())
+        {
             result.Add(Map(reader));
+        }
         return result;
     }
 
@@ -49,7 +58,9 @@ public class SqlChatRepository(string connectionString) : SqlRepositoryBase(conn
     {
         var ids = string.Join(",", chatIds);
         if (string.IsNullOrEmpty(ids))
+        {
             return new Dictionary<int, DateTime?>();
+        }
 
         using var connection = OpenConnection();
         using var command = new SqlCommand(
@@ -62,7 +73,9 @@ public class SqlChatRepository(string connectionString) : SqlRepositoryBase(conn
         using var reader = command.ExecuteReader();
         var result = new Dictionary<int, DateTime?>();
         while (reader.Read())
+        {
             result[reader.GetInt32(0)] = reader.IsDBNull(1) ? null : reader.GetDateTime(1);
+        }
         return result;
     }
 

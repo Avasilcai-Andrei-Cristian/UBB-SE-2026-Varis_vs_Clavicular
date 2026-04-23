@@ -24,6 +24,36 @@ public static class AppConfigurationLoader
             configuration.SqlConnectionString = sqlConnectionString.GetString() ?? string.Empty;
         }
 
+        if (document.RootElement.TryGetProperty("Startup", out var startup))
+        {
+            if (startup.TryGetProperty("Mode", out var mode))
+            {
+                configuration.StartupMode = mode.GetString() ?? configuration.StartupMode;
+            }
+
+            if (startup.TryGetProperty("UserId", out var userId) && userId.TryGetInt32(out var parsedUserId))
+            {
+                configuration.StartupUserId = parsedUserId;
+            }
+
+            if (startup.TryGetProperty("CompanyId", out var companyId) && companyId.TryGetInt32(out var parsedCompanyId))
+            {
+                configuration.StartupCompanyId = parsedCompanyId;
+            }
+
+            if (startup.TryGetProperty("DeveloperId", out var developerId) && developerId.TryGetInt32(out var parsedDeveloperId))
+            {
+                configuration.StartupDeveloperId = parsedDeveloperId;
+            }
+        }
+
+        if (document.RootElement.TryGetProperty("Recommendations", out var recommendations)
+            && recommendations.TryGetProperty("CooldownHours", out var cooldownHours)
+            && cooldownHours.TryGetInt32(out var parsedCooldownHours))
+        {
+            configuration.RecommendationCooldownHours = parsedCooldownHours;
+        }
+
         return configuration;
     }
 }

@@ -5,8 +5,13 @@ using matchmaking.Domain.Entities;
 
 namespace matchmaking.Repositories;
 
-public class SqlRecommendationRepository(string connectionString) : SqlRepositoryBase(connectionString)
+public class SqlRecommendationRepository : SqlRepositoryBase, IRecommendationRepository
 {
+    public SqlRecommendationRepository(string connectionString)
+        : base(connectionString)
+    {
+    }
+
     public Recommendation? GetById(int recommendationId)
     {
         using var connection = OpenConnection();

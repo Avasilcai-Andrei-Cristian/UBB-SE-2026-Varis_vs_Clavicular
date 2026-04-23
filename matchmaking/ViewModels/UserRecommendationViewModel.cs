@@ -36,6 +36,7 @@ public sealed class UserRecommendationViewModel : ObservableObject
     private bool _isFilterOpen;
     private bool _isDetailOpen;
     private bool _canUndo;
+    private bool _undoConsumedThisSession;
     private UndoSnapshot? _undoSnapshot;
 
     private readonly UserMatchmakingFilters _appliedFilters = UserMatchmakingFilters.Empty();
@@ -79,7 +80,7 @@ public sealed class UserRecommendationViewModel : ObservableObject
 
     public static IReadOnlyList<string> ExperienceLevelOptions { get; } =
     [
-        "Internship", "Entry", "MidSenior", "Director", "Executive"
+        "Internship", "Entry level", "Mid-senior level", "Director", "Executive"
     ];
 
     public ObservableCollection<FilterCheckItem> DraftEmploymentSelections { get; } = [];
@@ -221,7 +222,8 @@ public sealed class UserRecommendationViewModel : ObservableObject
         try
         {
             var userId = _session.CurrentUserId.Value;
-            var next = _service.RecalculateTopCardIgnoringCooldown(userId, _appliedFilters);
+            var next = _service.GetNextCard(userId, _appliedFilters)
+                ?? _service.RecalculateTopCardIgnoringCooldown(userId, _appliedFilters);
             CurrentJob = next;
             if (next is null)
             {
@@ -262,7 +264,9 @@ public sealed class UserRecommendationViewModel : ObservableObject
             var userId = _session.CurrentUserId.Value;
             var next = persistShownForTopCard
                 ? _service.GetNextCard(userId, _appliedFilters)
-                : _service.RecalculateTopCardIgnoringCooldown(userId, _appliedFilters);
+                    ?? _service.RecalculateTopCardIgnoringCooldown(userId, _appliedFilters)
+                : _service.GetNextCard(userId, _appliedFilters)
+                    ?? _service.RecalculateTopCardIgnoringCooldown(userId, _appliedFilters);
             CurrentJob = next;
             if (next is null)
             {
@@ -300,14 +304,17 @@ public sealed class UserRecommendationViewModel : ObservableObject
             }
 
             var matchId = _service.ApplyLike(userId, job);
-            _undoSnapshot = new UndoSnapshot
+            if (!_undoConsumedThisSession)
             {
-                Card = job,
-                WasApply = true,
-                MatchId = matchId,
-                RecommendationId = null
-            };
-            CanUndo = true;
+                _undoSnapshot = new UndoSnapshot
+                {
+                    Card = job,
+                    WasApply = true,
+                    MatchId = matchId,
+                    RecommendationId = null
+                };
+                CanUndo = true;
+            }
             IsDetailOpen = false;
             await AdvanceAfterActionAsync(userId);
         }
@@ -342,14 +349,17 @@ public sealed class UserRecommendationViewModel : ObservableObject
             }
 
             var recId = _service.ApplyDismiss(userId, job);
-            _undoSnapshot = new UndoSnapshot
+            if (!_undoConsumedThisSession)
             {
-                Card = job,
-                WasApply = false,
-                MatchId = null,
-                RecommendationId = recId
-            };
-            CanUndo = true;
+                _undoSnapshot = new UndoSnapshot
+                {
+                    Card = job,
+                    WasApply = false,
+                    MatchId = null,
+                    RecommendationId = recId
+                };
+                CanUndo = true;
+            }
             IsDetailOpen = false;
             await AdvanceAfterActionAsync(userId);
         }
@@ -394,6 +404,7 @@ public sealed class UserRecommendationViewModel : ObservableObject
 
             CurrentJob = snap.Card;
             _undoSnapshot = null;
+            _undoConsumedThisSession = true;
             CanUndo = false;
         }
         catch (Exception ex)
@@ -428,7 +439,7 @@ public sealed class UserRecommendationViewModel : ObservableObject
         }
 
         IsFilterOpen = false;
-        await LoadDeckAsync(persistShownForTopCard: false);
+        await LoadDeckAsync(persistShownForTopCard: true);
     }
 
     public void ResetDraftFilters()

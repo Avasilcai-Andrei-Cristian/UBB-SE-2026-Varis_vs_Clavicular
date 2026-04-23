@@ -23,9 +23,15 @@ public class PostCardViewModel
     public ICommand LikeCommand { get; }
     public ICommand DislikeCommand { get; }
 
-    public PostCardViewModel(Post post, IEnumerable<Interaction> postInteractions, string authorName, int currentDeveloperId, Action<int> onLike, Action<int> onDislike)
+    private readonly Action<int> _likePost;
+    private readonly Action<int> _dislikePost;
+
+    public PostCardViewModel(Post post, IEnumerable<Interaction> postInteractions, string authorName, int currentDeveloperId, Action<int> likePost, Action<int> dislikePost)
     {
         var interactions = postInteractions.ToList();
+
+        _likePost = likePost;
+        _dislikePost = dislikePost;
 
         PostId = post.PostId;
         AuthorName = authorName;
@@ -41,7 +47,11 @@ public class PostCardViewModel
         IsLikedByCurrentUser = currentUserInteraction?.Type == InteractionType.Like;
         IsDislikedByCurrentUser = currentUserInteraction?.Type == InteractionType.Dislike;
 
-        LikeCommand = new RelayCommand(() => onLike(PostId));
-        DislikeCommand = new RelayCommand(() => onDislike(PostId));
+        LikeCommand = new RelayCommand(ExecuteLikePost);
+        DislikeCommand = new RelayCommand(ExecuteDislikePost);
     }
+
+    private void ExecuteLikePost() => _likePost(PostId);
+
+    private void ExecuteDislikePost() => _dislikePost(PostId);
 }

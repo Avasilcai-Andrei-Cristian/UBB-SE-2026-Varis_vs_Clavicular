@@ -77,13 +77,13 @@ public class SkillGapViewModel : ObservableObject
 
             if (!summary.HasRejections)
             {
-                SummaryMessage    = "No rejections yet — keep applying to see your skill insights.";
+                SummaryMessage    = "No rejections yet keep applying to see your skill insights.";
                 HasSummaryMessage = true;
                 HasSkillData      = false;
             }
             else if (!summary.HasSkillGaps)
             {
-                SummaryMessage    = "Great news — your skills meet the requirements of all jobs you've applied to.";
+                SummaryMessage    = "Great news - your skills meet the requirements of all jobs you've applied to.";
                 HasSummaryMessage = true;
                 HasSkillData      = false;
             }

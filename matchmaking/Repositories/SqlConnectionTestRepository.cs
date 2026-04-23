@@ -2,8 +2,13 @@ using Microsoft.Data.SqlClient;
 
 namespace matchmaking.Repositories;
 
-public class SqlConnectionTestRepository(string connectionString) : SqlRepositoryBase(connectionString)
+public class SqlConnectionTestRepository : SqlRepositoryBase, IConnectionTestRepository
 {
+    public SqlConnectionTestRepository(string connectionString)
+        : base(connectionString)
+    {
+    }
+
     public int Ping()
     {
         using var connection = OpenConnection();

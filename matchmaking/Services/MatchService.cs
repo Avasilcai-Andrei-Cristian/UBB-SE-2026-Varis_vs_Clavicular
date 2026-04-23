@@ -10,19 +10,19 @@ namespace matchmaking.Services;
 
 public class MatchService
 {
-    private readonly SqlMatchRepository _matchRepository;
-    private readonly JobService _jobService;
+    private readonly IMatchRepository matchRepository;
+    private readonly IJobService jobService;
 
-    public MatchService(SqlMatchRepository matchRepository, JobService jobService)
+    public MatchService(IMatchRepository matchRepository, IJobService jobService)
     {
-        _matchRepository = matchRepository;
-        _jobService = jobService;
+        this.matchRepository = matchRepository;
+        this.jobService = jobService;
     }
 
-    public Match? GetById(int matchId) => _matchRepository.GetById(matchId);
+    public Match? GetById(int matchId) => matchRepository.GetById(matchId);
 
     public Match? GetByUserIdAndJobId(int userId, int jobId) =>
-        _matchRepository.GetByUserIdAndJobId(userId, jobId);
+        matchRepository.GetByUserIdAndJobId(userId, jobId);
 
     public int CreatePendingApplication(int userId, int jobId)
     {
@@ -40,16 +40,16 @@ public class MatchService
             FeedbackMessage = string.Empty
         };
 
-        return _matchRepository.InsertReturningId(match);
+        return matchRepository.InsertReturningId(match);
     }
 
-    public void RemoveApplication(int matchId) => _matchRepository.Remove(matchId);
+    public void RemoveApplication(int matchId) => matchRepository.Remove(matchId);
 
-    public IReadOnlyList<Match> GetAllMatches() => _matchRepository.GetAll();
+    public IReadOnlyList<Match> GetAllMatches() => matchRepository.GetAll();
 
     public Task<IReadOnlyList<Match>> GetByCompanyIdAsync(int companyId)
     {
-        var companyJobIds = _jobService
+        var companyJobIds = jobService
             .GetByCompanyId(companyId)
             .Select(job => job.JobId)
             .ToHashSet();
@@ -59,7 +59,7 @@ public class MatchService
             return Task.FromResult<IReadOnlyList<Match>>([]);
         }
 
-        var matches = _matchRepository
+        var matches = matchRepository
             .GetAll()
             .Where(match => companyJobIds.Contains(match.JobId))
             .OrderByDescending(match => match.Timestamp)
@@ -70,7 +70,13 @@ public class MatchService
 
     public Task SubmitDecisionAsync(int matchId, MatchStatus decision, string feedback)
     {
-        var match = _matchRepository.GetById(matchId)
+        SubmitDecision(matchId, decision, feedback);
+        return Task.CompletedTask;
+    }
+
+    public void SubmitDecision(int matchId, MatchStatus decision, string feedback)
+    {
+        var match = matchRepository.GetById(matchId)
             ?? throw new KeyNotFoundException($"Match with id {matchId} was not found.");
 
         ValidateDecisionInput(decision, feedback);
@@ -84,25 +90,28 @@ public class MatchService
         match.Status = decision;
         match.FeedbackMessage = feedback.Trim();
         match.Timestamp = DateTime.UtcNow;
-        _matchRepository.Update(match);
-
-        return Task.CompletedTask;
+        matchRepository.Update(match);
     }
 
     public Task AcceptAsync(int matchId, string feedback)
     {
-        return SubmitDecisionAsync(matchId, MatchStatus.Accepted, feedback);
+        SubmitDecision(matchId, MatchStatus.Accepted, feedback);
+        return Task.CompletedTask;
     }
 
     public Task RejectAsync(int matchId, string feedback)
     {
-        return SubmitDecisionAsync(matchId, MatchStatus.Rejected, feedback);
+        SubmitDecision(matchId, MatchStatus.Rejected, feedback);
+        return Task.CompletedTask;
     }
 
-   
+    public void Reject(int matchId, string feedback)
+    {
+        SubmitDecision(matchId, MatchStatus.Rejected, feedback);
+    }
     public void Advance(int matchId)
     {
-        var match = _matchRepository.GetById(matchId)
+        var match = matchRepository.GetById(matchId)
             ?? throw new KeyNotFoundException($"Match with id {matchId} was not found.");
 
         if (match.Status != MatchStatus.Applied)
@@ -113,18 +122,18 @@ public class MatchService
 
         match.Status = MatchStatus.Advanced;
         match.Timestamp = DateTime.UtcNow;
-        _matchRepository.Update(match);
+        matchRepository.Update(match);
     }
 
     public void RevertToApplied(int matchId)
     {
-        var match = _matchRepository.GetById(matchId)
+        var match = matchRepository.GetById(matchId)
             ?? throw new KeyNotFoundException($"Match with id {matchId} was not found.");
 
         match.Status = MatchStatus.Applied;
         match.FeedbackMessage = string.Empty;
         match.Timestamp = DateTime.UtcNow;
-        _matchRepository.Update(match);
+        matchRepository.Update(match);
     }
 
     public bool IsDecisionTransitionAllowed(Match current, MatchStatus next)
@@ -144,7 +153,7 @@ public class MatchService
 
     private static void ValidateDecisionInput(MatchStatus decision, string feedback)
     {
-        if (decision is not (MatchStatus.Accepted or MatchStatus.Rejected))
+        if (decision != MatchStatus.Accepted && decision != MatchStatus.Rejected)
         {
             throw new ArgumentException("Decision must be either Accepted or Rejected.", nameof(decision));
         }

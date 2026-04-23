@@ -6,8 +6,13 @@ using matchmaking.Domain.Enums;
 
 namespace matchmaking.Repositories;
 
-public class SqlMatchRepository(string connectionString) : SqlRepositoryBase(connectionString)
+public class SqlMatchRepository : SqlRepositoryBase, IMatchRepository
 {
+    public SqlMatchRepository(string connectionString)
+        : base(connectionString)
+    {
+    }
+
     public Match? GetById(int matchId)
     {
         using var connection = OpenConnection();
@@ -130,7 +135,6 @@ public class SqlMatchRepository(string connectionString) : SqlRepositoryBase(con
         };
     }
 
-   
     private static MatchStatus FromDbStatus(string rawStatus)
     {
         if (rawStatus.Equals("accepted", StringComparison.OrdinalIgnoreCase))
@@ -148,6 +152,11 @@ public class SqlMatchRepository(string connectionString) : SqlRepositoryBase(con
             return MatchStatus.Advanced;
         }
 
+        if (rawStatus.Equals("pending", StringComparison.OrdinalIgnoreCase))
+        {
+            return MatchStatus.Applied;
+        }
+
         return MatchStatus.Applied;
     }
 
@@ -158,7 +167,7 @@ public class SqlMatchRepository(string connectionString) : SqlRepositoryBase(con
             MatchStatus.Accepted => "Accepted",
             MatchStatus.Rejected => "Rejected",
             MatchStatus.Advanced => "Advanced",
-            _ => "Pending"
+            _ => "Applied"
         };
     }
 }

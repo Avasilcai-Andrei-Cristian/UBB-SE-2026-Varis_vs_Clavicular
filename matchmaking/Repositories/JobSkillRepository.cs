@@ -5,7 +5,7 @@ using matchmaking.Domain.Entities;
 
 namespace matchmaking.Repositories;
 
-public class JobSkillRepository
+public class JobSkillRepository : IJobSkillRepository
 {
     private readonly List<JobSkill> _jobSkills =
     [

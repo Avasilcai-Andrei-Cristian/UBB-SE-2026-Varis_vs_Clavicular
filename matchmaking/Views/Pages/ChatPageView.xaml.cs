@@ -22,10 +22,13 @@ namespace matchmaking.Views.Pages;
 [SupportedOSPlatform("windows10.0.17763.0")]
 public sealed partial class ChatPageView : Page
 {
+    private const double RefreshIntervalSeconds = 3;
+
     private readonly ChatViewModel _viewModel;
     private readonly DispatcherTimer _refreshTimer;
     private readonly JobService _jobService;
     private bool _isScrollToLatestQueued;
+    private readonly NavigationService _navigationService;
 
     public ChatPageView()
     {
@@ -38,13 +41,20 @@ public sealed partial class ChatPageView : Page
         var chatService = new ChatService(chatRepository, messageRepository, userRepository, companyRepository);
         _jobService = new JobService(new JobRepository());
         var sessionContext = App.Session ?? new SessionContext();
+        _navigationService = App.Navigation;
 
-        _viewModel = new ChatViewModel(chatService, _jobService, sessionContext, userRepository, companyRepository);
+        _viewModel = new ChatViewModel(
+            chatService,
+            _jobService,
+            sessionContext,
+            userRepository,
+            companyRepository,
+            _navigationService);
         DataContext = _viewModel;
 
         _refreshTimer = new DispatcherTimer
         {
-            Interval = TimeSpan.FromSeconds(3)
+            Interval = TimeSpan.FromSeconds(RefreshIntervalSeconds)
         };
         _refreshTimer.Tick += RefreshTimer_Tick;
     }
@@ -52,6 +62,9 @@ public sealed partial class ChatPageView : Page
     protected override void OnNavigatedTo(NavigationEventArgs e)
     {
         base.OnNavigatedTo(e);
+        _navigationService.UserProfileRequested += OnUserProfileRequested;
+        _navigationService.CompanyProfileRequested += OnCompanyProfileRequested;
+        _navigationService.JobPostRequested += OnJobPostRequested;
         _viewModel.Messages.CollectionChanged -= Messages_CollectionChanged;
         _viewModel.Messages.CollectionChanged += Messages_CollectionChanged;
         _viewModel.LoadChats();
@@ -68,8 +81,26 @@ public sealed partial class ChatPageView : Page
     protected override void OnNavigatedFrom(NavigationEventArgs e)
     {
         _refreshTimer.Stop();
+        _navigationService.UserProfileRequested -= OnUserProfileRequested;
+        _navigationService.CompanyProfileRequested -= OnCompanyProfileRequested;
+        _navigationService.JobPostRequested -= OnJobPostRequested;
         _viewModel.Messages.CollectionChanged -= Messages_CollectionChanged;
         base.OnNavigatedFrom(e);
+    }
+
+    private void OnUserProfileRequested(int userId)
+    {
+        Frame.Navigate(typeof(UserProfilePage), userId);
+    }
+
+    private void OnCompanyProfileRequested(int companyId)
+    {
+        Frame.Navigate(typeof(CompanyProfilePage), companyId);
+    }
+
+    private void OnJobPostRequested(int jobId)
+    {
+        Frame.Navigate(typeof(JobPostPage), jobId);
     }
 
     private void RefreshTimer_Tick(object? sender, object e)
@@ -312,12 +343,6 @@ public sealed partial class ChatPageView : Page
         try
         {
             var sourcePath = message.Content;
-            if (string.IsNullOrWhiteSpace(sourcePath) || !File.Exists(sourcePath))
-            {
-                _viewModel.ErrorMessage = "Attachment file is missing.";
-                return;
-            }
-
             var extension = Path.GetExtension(sourcePath);
             if (string.IsNullOrWhiteSpace(extension))
             {
@@ -340,7 +365,7 @@ public sealed partial class ChatPageView : Page
                 return;
             }
 
-            File.Copy(sourcePath, file.Path, overwrite: true);
+            await _viewModel.DownloadAttachmentAsync(message, file.Path);
         }
         catch (Exception ex)
         {

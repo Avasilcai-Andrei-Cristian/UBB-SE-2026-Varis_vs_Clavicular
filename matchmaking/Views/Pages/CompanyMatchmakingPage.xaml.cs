@@ -1,6 +1,9 @@
 using System;
+using System.Threading.Tasks;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Media;
+using Microsoft.UI.Xaml.Media.Animation;
 using matchmaking.algorithm;
 using matchmaking.Domain.Enums;
 using matchmaking.Repositories;
@@ -11,6 +14,9 @@ namespace matchmaking.Views.Pages;
 
 public sealed partial class CompanyMatchmakingPage : Page
 {
+    private const double CardSlideOffsetPixels = 700.0;
+    private const int CardAnimationDurationMilliseconds = 300;
+
     private readonly CompanyRecommendationViewModel _viewModel;
 
     public CompanyMatchmakingPage()
@@ -54,15 +60,19 @@ public sealed partial class CompanyMatchmakingPage : Page
         UpdateView();
     }
 
-    private void OnAdvanceClick(object sender, RoutedEventArgs e)
+    private async void OnAdvanceClick(object sender, RoutedEventArgs e)
     {
+        await AnimateCurrentCardAsync(moveRight: true);
         _viewModel.AdvanceApplicant();
+        ResetCardVisualState();
         UpdateView();
     }
 
-    private void OnSkipClick(object sender, RoutedEventArgs e)
+    private async void OnSkipClick(object sender, RoutedEventArgs e)
     {
+        await AnimateCurrentCardAsync(moveRight: false);
         _viewModel.SkipApplicant();
+        ResetCardVisualState();
         UpdateView();
     }
 
@@ -244,5 +254,65 @@ public sealed partial class CompanyMatchmakingPage : Page
         };
 
         await dialog.ShowAsync();
+    }
+
+    private async Task AnimateCurrentCardAsync(bool moveRight)
+    {
+        if (CardViewPanel.Visibility != Visibility.Visible || _viewModel.CurrentApplicant is null)
+        {
+            return;
+        }
+
+        if (ApplicantCardBorder.RenderTransform is not TranslateTransform translate)
+        {
+            translate = new TranslateTransform();
+            ApplicantCardBorder.RenderTransform = translate;
+        }
+
+        var completion = new TaskCompletionSource<bool>();
+        var offset = moveRight ? CardSlideOffsetPixels : -CardSlideOffsetPixels;
+
+        var slideAnimation = new DoubleAnimation
+        {
+            From = 0,
+            To = offset,
+            Duration = TimeSpan.FromMilliseconds(CardAnimationDurationMilliseconds),
+            EnableDependentAnimation = true
+        };
+
+        var fadeAnimation = new DoubleAnimation
+        {
+            From = 1,
+            To = 0,
+            Duration = TimeSpan.FromMilliseconds(CardAnimationDurationMilliseconds)
+        };
+
+        var storyboard = new Storyboard();
+        Storyboard.SetTarget(slideAnimation, ApplicantCardBorder);
+        Storyboard.SetTargetProperty(slideAnimation, "(UIElement.RenderTransform).(TranslateTransform.X)");
+        Storyboard.SetTarget(fadeAnimation, ApplicantCardBorder);
+        Storyboard.SetTargetProperty(fadeAnimation, "Opacity");
+        storyboard.Children.Add(slideAnimation);
+        storyboard.Children.Add(fadeAnimation);
+
+        void OnCompleted(object? _, object __)
+        {
+            storyboard.Completed -= OnCompleted;
+            completion.TrySetResult(true);
+        }
+
+        storyboard.Completed += OnCompleted;
+        storyboard.Begin();
+        await completion.Task;
+    }
+
+    private void ResetCardVisualState()
+    {
+        if (ApplicantCardBorder.RenderTransform is TranslateTransform translate)
+        {
+            translate.X = 0;
+        }
+
+        ApplicantCardBorder.Opacity = 1;
     }
 }

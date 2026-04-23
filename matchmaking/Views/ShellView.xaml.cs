@@ -97,6 +97,21 @@ public sealed partial class ShellView : UserControl
 
     private void NavigateToChat()
     {
+        if (App.Session.CurrentMode == AppMode.DeveloperMode)
+        {
+            return;
+        }
+
+        if (App.Session.CurrentMode == AppMode.UserMode && App.Session.CurrentUserId is null)
+        {
+            return;
+        }
+
+        if (App.Session.CurrentMode == AppMode.CompanyMode && App.Session.CurrentCompanyId is null)
+        {
+            return;
+        }
+
         _viewModel.ActivePage = "Chat";
         Navigate(typeof(ChatPageView));
     }

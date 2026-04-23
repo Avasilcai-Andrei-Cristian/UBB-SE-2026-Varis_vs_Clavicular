@@ -257,7 +257,8 @@
                                     BorderBrush="{StaticResource CardBorderBrush}"
                                     BorderThickness="1"
                                     CornerRadius="12"
-                                    Padding="28,24">
+                                    Padding="28,24"
+                                    Tapped="OnExpandClick">
                                 <StackPanel Spacing="0">
                                     <Grid>
                                         <Grid.ColumnDefinitions>

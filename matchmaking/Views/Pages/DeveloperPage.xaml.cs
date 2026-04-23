@@ -11,6 +11,8 @@ namespace matchmaking.Views.Pages;
 
 public sealed partial class DeveloperPage : Page
 {
+    private const double RefreshIntervalSeconds = 3;
+
     private ComboBox _parameterComboBox = null!;
     private TextBox _valueTextBox = null!;
     private TextBlock _errorText = null!;
@@ -19,18 +21,18 @@ public sealed partial class DeveloperPage : Page
     public DeveloperPage()
     {
         InitializeComponent();
-        var connStr = App.Configuration.SqlConnectionString;
+        var sqlConnectionString = App.Configuration.SqlConnectionString;
         var developerService = new DeveloperService(
-            new SqlDeveloperRepository(connStr),
-            new SqlPostRepository(connStr),
-            new SqlInteractionRepository(connStr));
+            new SqlDeveloperRepository(sqlConnectionString),
+            new SqlPostRepository(sqlConnectionString),
+            new SqlInteractionRepository(sqlConnectionString));
         DataContext = new DeveloperViewModel(developerService, App.Session);
 
-        _refreshTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(3) };
-        _refreshTimer.Tick += (_, _) => ((DeveloperViewModel)DataContext).Refresh();
+        _refreshTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(RefreshIntervalSeconds) };
+        _refreshTimer.Tick += OnRefreshTimerTick;
 
-        Loaded += (_, _) => _refreshTimer.Start();
-        Unloaded += (_, _) => _refreshTimer.Stop();
+        Loaded += OnLoaded;
+        Unloaded += OnUnloaded;
     }
 
     private async void NewPostButton_Click(object sender, RoutedEventArgs e)
@@ -42,12 +44,10 @@ public sealed partial class DeveloperPage : Page
             HorizontalAlignment = HorizontalAlignment.Stretch,
             MinWidth = 380
         };
-        _parameterComboBox.Items.Add(new ComboBoxItem { Content = "mitigation factor",                  Tag = "mitigation factor" });
-        _parameterComboBox.Items.Add(new ComboBoxItem { Content = "weighted distance score weight",     Tag = "weighted distance score weight" });
-        _parameterComboBox.Items.Add(new ComboBoxItem { Content = "job-resume similarity score weight", Tag = "job-resume similarity score weight" });
-        _parameterComboBox.Items.Add(new ComboBoxItem { Content = "preference score weight",            Tag = "preference score weight" });
-        _parameterComboBox.Items.Add(new ComboBoxItem { Content = "promotion score weight",             Tag = "promotion score weight" });
-        _parameterComboBox.Items.Add(new ComboBoxItem { Content = "relevant keyword",                   Tag = "relevant keyword" });
+        foreach (var option in DeveloperPostOptions.Options)
+        {
+            _parameterComboBox.Items.Add(new ComboBoxItem { Content = option.Content, Tag = option.Tag });
+        }
 
         _valueTextBox = new TextBox
         {
@@ -94,9 +94,9 @@ public sealed partial class DeveloperPage : Page
 
         var tag = selectedItem.Tag as string ?? string.Empty;
         var rawValue = _valueTextBox.Text?.Trim() ?? string.Empty;
-        var vm = (DeveloperViewModel)DataContext;
+        var developerViewModel = (DeveloperViewModel)DataContext;
 
-        var error = vm.ValidatePost(tag, rawValue);
+        var error = developerViewModel.ValidateDeveloperPostInput(tag, rawValue);
         if (error != null)
         {
             ShowDialogError(error);
@@ -105,7 +105,22 @@ public sealed partial class DeveloperPage : Page
         }
 
         _errorText.Visibility = Visibility.Collapsed;
-        vm.AddPost(tag, rawValue);
+        developerViewModel.AddDeveloperPost(tag, rawValue);
+    }
+
+    private void OnRefreshTimerTick(object? sender, object e)
+    {
+        ((DeveloperViewModel)DataContext).RefreshPosts();
+    }
+
+    private void OnLoaded(object sender, RoutedEventArgs e)
+    {
+        _refreshTimer.Start();
+    }
+
+    private void OnUnloaded(object sender, RoutedEventArgs e)
+    {
+        _refreshTimer.Stop();
     }
 
     private void ShowDialogError(string message)

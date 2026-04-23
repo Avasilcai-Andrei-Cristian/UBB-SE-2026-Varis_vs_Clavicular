@@ -37,8 +37,20 @@ public class ChatService
         _companyRepository = companyRepo;
     }
 
-    public Chat FindOrCreateUserCompanyChat(int userId, int companyId, int? jobId = null)
+    public Chat? FindOrCreateUserCompanyChat(int userId, int companyId, int? jobId = null)
     {
+        var blockedConversation = _chatRepository
+            .GetByUserId(userId)
+            .FirstOrDefault(chat =>
+                chat.CompanyId == companyId
+                && chat.IsBlocked
+                && chat.BlockedByUserId != userId);
+
+        if (blockedConversation is not null)
+        {
+            return null;
+        }
+
         var existingChat = _chatRepository.GetByUserAndCompany(userId, companyId, jobId);
         if (existingChat is not null)
         {
@@ -58,12 +70,24 @@ public class ChatService
         return chat;
     }
 
-    public Chat FindOrCreateUserUserChat(int userId, int secondUserId)
+    public Chat? FindOrCreateUserUserChat(int userId, int secondUserId)
     {
         var existingChat = _chatRepository.GetByUsers(userId, secondUserId);
         if (existingChat is not null)
         {
             return existingChat;
+        }
+
+        var blockedConversation = _chatRepository
+            .GetByUserId(userId)
+            .FirstOrDefault(chat =>
+                (chat.UserId == secondUserId || chat.SecondUserId == secondUserId)
+                && chat.IsBlocked
+                && chat.BlockedByUserId != userId);
+
+        if (blockedConversation is not null)
+        {
+            return null;
         }
 
         var chat = new Chat
@@ -86,6 +110,11 @@ public class ChatService
         return chats
             .Where(c =>
             {
+                if (c.IsBlocked && c.BlockedByUserId != userId)
+                {
+                    return false;
+                }
+
                 DateTime? deletedAt = c.UserId == userId
                     ? c.DeletedAtByUser
                     : c.DeletedAtBySecondParty;
@@ -107,6 +136,11 @@ public class ChatService
         return chats
             .Where(c =>
             {
+                if (c.IsBlocked && c.BlockedByUserId != companyId)
+                {
+                    return false;
+                }
+
                 return c.DeletedAtBySecondParty is null
                     || (timestamps.TryGetValue(c.ChatId, out var lastMsg) && lastMsg > c.DeletedAtBySecondParty);
             })
@@ -155,6 +189,11 @@ public class ChatService
             throw new ArgumentException("Message content cannot be empty.");
 
         Chat chat = _chatRepository.GetChatById(chatId);
+        if (chat.IsBlocked && chat.BlockedByUserId != senderId)
+        {
+            return;
+        }
+
         if (chat.IsBlocked)
             throw new InvalidOperationException("Cannot send message in a blocked chat.");
 

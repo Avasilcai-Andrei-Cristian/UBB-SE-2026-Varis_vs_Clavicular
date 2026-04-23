@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
+    <UseWinUI>true</UseWinUI>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <IsPackable>false</IsPackable>
+    <CodeAnalysisRuleSet>..\SE.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.8.260317003" />
+    <PackageReference Include="StyleCop.Analyzers" Version="1.1.118">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Microsoft.UI" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\matchmaking.core\matchmaking.core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\matchmaking\Converters\**\*.cs" LinkBase="Converters" />
+    <Compile Include="..\matchmaking\Views\Converters\**\*.cs" LinkBase="Views\Converters" />
+    <Compile Include="..\matchmaking\Repositories\CompanyRepository.cs" Link="Repositories\CompanyRepository.cs" />
+    <Compile Include="..\matchmaking\Repositories\UserRepository.cs" Link="Repositories\UserRepository.cs" />
+  </ItemGroup>
+</Project>

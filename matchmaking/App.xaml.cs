@@ -16,8 +16,10 @@ using Windows.ApplicationModel.Activation;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
 using matchmaking.Config;
+using matchmaking.Domain.Enums;
 using matchmaking.Domain.Session;
 using matchmaking.Repositories;
+using matchmaking.Services;
 using matchmaking.algorithm;
 
 // To learn more about WinUI, the WinUI project structure,
@@ -36,6 +38,7 @@ namespace matchmaking
         public static bool IsDatabaseConnectionAvailable { get; private set; }
         public static string DatabaseConnectionError { get; private set; } = string.Empty;
         public static Window? MainWindow { get; private set; }
+        public static NavigationService Navigation { get; } = new();
 
         /// <summary>
         /// Initializes the singleton application object.  This is the first line of authored code
@@ -47,11 +50,32 @@ namespace matchmaking
             Configuration = AppConfigurationLoader.Load();
             Session = new SessionContext();
 
-            Session.LoginAsCompany(1);
-            //Session.LoginAsUser(1);
-            //Session.LoginAsDeveloper(1);
+            InitializeStartupSession();
 
             CheckDatabaseConnection();
+        }
+
+        private static void InitializeStartupSession()
+        {
+            var startupMode = (Configuration.StartupMode ?? string.Empty).Trim().ToLowerInvariant();
+
+            switch (startupMode)
+            {
+                case "company":
+                    Session.LoginAsCompany(Configuration.StartupCompanyId);
+                    break;
+                case "developer":
+                    Session.LoginAsDeveloper(Configuration.StartupDeveloperId);
+                    break;
+                default:
+                    Session.LoginAsUser(Configuration.StartupUserId);
+                    break;
+            }
+
+            if (Session.CurrentMode is not (AppMode.UserMode or AppMode.CompanyMode or AppMode.DeveloperMode))
+            {
+                Session.LoginAsUser(Configuration.StartupUserId);
+            }
         }
 
         public static bool CheckDatabaseConnection()

@@ -6,8 +6,13 @@ using matchmaking.Domain.Enums;
 
 namespace matchmaking.Repositories;
 
-public class SqlMessageRepository(string connectionString) : SqlRepositoryBase(connectionString)
+public class SqlMessageRepository : SqlRepositoryBase, IMessageRepository
 {
+    public SqlMessageRepository(string connectionString)
+        : base(connectionString)
+    {
+    }
+
     public IReadOnlyList<Message> GetByChatId(int chatId, DateTime? visibleAfter = null)
     {
         using var connection = OpenConnection();

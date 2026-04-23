@@ -1,10 +1,8 @@
 using System;
-using System.Linq;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Navigation;
-using matchmaking.Domain.Entities;
 using matchmaking.Domain.Enums;
 using matchmaking.Repositories;
 using matchmaking.Services;
@@ -52,8 +50,6 @@ public sealed partial class CompanyStatusPage : Page
         {
             return;
         }
-
-        EnsurePendingApplicants();
 
         await _viewModel.LoadApplicationsAsync();
 
@@ -120,6 +116,7 @@ public sealed partial class CompanyStatusPage : Page
 
         if (!saved)
         {
+            await ShowDialogAsync("Operation Failed", "We're sorry, an error occurred. The decision was not saved. Please try again.");
             return;
         }
 
@@ -174,73 +171,6 @@ public sealed partial class CompanyStatusPage : Page
     private async void OnViewModelErrorOccurred(string message)
     {
         await ShowDialogAsync("Operation Failed", message);
-    }
-
-    private void EnsurePendingApplicants()
-    {
-        if (App.Session.CurrentCompanyId is null)
-        {
-            return;
-        }
-
-        try
-        {
-            var companyId = App.Session.CurrentCompanyId.Value;
-            var jobRepository = new JobRepository();
-            var userRepository = new UserRepository();
-            var matchRepository = new SqlMatchRepository(App.Configuration.SqlConnectionString);
-
-            var companyJobIds = jobRepository.GetByCompanyId(companyId)
-                .Select(job => job.JobId)
-                .ToList();
-
-            if (companyJobIds.Count == 0)
-            {
-                return;
-            }
-
-            var allMatches = matchRepository.GetAll();
-            var companyMatches = allMatches
-                .Where(match => companyJobIds.Contains(match.JobId))
-                .ToList();
-
-            if (companyMatches.Any(match => match.Status == MatchStatus.Applied))
-            {
-                return;
-            }
-
-            var primaryJobId = companyJobIds[0];
-            var existingUserIdsForPrimaryJob = companyMatches
-                .Where(match => match.JobId == primaryJobId)
-                .Select(match => match.UserId)
-                .ToHashSet();
-
-            var usersToSeed = userRepository.GetAll()
-                .Where(user => !existingUserIdsForPrimaryJob.Contains(user.UserId))
-                .Take(2)
-                .ToList();
-
-            if (usersToSeed.Count == 0)
-            {
-                return;
-            }
-
-            foreach (var user in usersToSeed)
-            {
-                matchRepository.Add(new Match
-                {
-                    UserId = user.UserId,
-                    JobId = primaryJobId,
-                    Status = MatchStatus.Applied,
-                    Timestamp = DateTime.UtcNow,
-                    FeedbackMessage = string.Empty
-                });
-            }
-        }
-        catch
-        {
-            // Best-effort seeding for local demo data.
-        }
     }
 
     private async System.Threading.Tasks.Task ShowDialogAsync(string title, string content)

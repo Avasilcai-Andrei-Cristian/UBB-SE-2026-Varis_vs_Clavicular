@@ -2,8 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using matchmaking.Domain.Enums;
 using matchmaking.Domain.Entities;
+using matchmaking.Domain.Enums;
 using matchmaking.DTOs;
 using matchmaking.Repositories;
 
@@ -14,41 +14,41 @@ public class RecommendationAlgorithm
     private const double DefaultWeight = 25.0;
     private const double DefaultMitigationFactor = 2.0;
 
-    private readonly bool _hasCachedInteractionParameters;
-    private readonly double _cachedSkillWeight;
-    private readonly double _cachedResumeWeight;
-    private readonly double _cachedPreferenceWeight;
-    private readonly double _cachedPromotionWeight;
-    private readonly double _cachedMitigationFactor;
-    private readonly IReadOnlyDictionary<string, int> _cachedKeywordSignalByKeyword;
+    private readonly bool hasCachedInteractionParameters;
+    private readonly double cachedSkillWeight;
+    private readonly double cachedResumeWeight;
+    private readonly double cachedPreferenceWeight;
+    private readonly double cachedPromotionWeight;
+    private readonly double cachedMitigationFactor;
+    private readonly IReadOnlyDictionary<string, int> cachedKeywordSignalByKeyword;
 
     public RecommendationAlgorithm()
     {
-        _hasCachedInteractionParameters = false;
-        _cachedSkillWeight = DefaultWeight;
-        _cachedResumeWeight = DefaultWeight;
-        _cachedPreferenceWeight = DefaultWeight;
-        _cachedPromotionWeight = DefaultWeight;
-        _cachedMitigationFactor = DefaultMitigationFactor;
-        _cachedKeywordSignalByKeyword = new Dictionary<string, int>(StringComparer.Ordinal);
+        hasCachedInteractionParameters = false;
+        cachedSkillWeight = DefaultWeight;
+        cachedResumeWeight = DefaultWeight;
+        cachedPreferenceWeight = DefaultWeight;
+        cachedPromotionWeight = DefaultWeight;
+        cachedMitigationFactor = DefaultMitigationFactor;
+        cachedKeywordSignalByKeyword = new Dictionary<string, int>(StringComparer.Ordinal);
     }
 
     public RecommendationAlgorithm(
-        SqlPostRepository postRepository,
-        SqlInteractionRepository interactionRepository)
+        IPostRepository postRepository,
+        IInteractionRepository interactionRepository)
     {
         var posts = postRepository.GetAll();
         var interactions = interactionRepository.GetAll();
         var feedbackByPostId = BuildFeedbackByPostId(interactions);
 
         var parameters = ResolveDynamicParameters(posts, feedbackByPostId);
-        _cachedSkillWeight = parameters.SkillWeight;
-        _cachedResumeWeight = parameters.ResumeWeight;
-        _cachedPreferenceWeight = parameters.PreferenceWeight;
-        _cachedPromotionWeight = parameters.PromotionWeight;
-        _cachedMitigationFactor = parameters.MitigationFactor;
-        _cachedKeywordSignalByKeyword = BuildKeywordSignalByKeyword(posts, feedbackByPostId);
-        _hasCachedInteractionParameters = true;
+        cachedSkillWeight = parameters.SkillWeight;
+        cachedResumeWeight = parameters.ResumeWeight;
+        cachedPreferenceWeight = parameters.PreferenceWeight;
+        cachedPromotionWeight = parameters.PromotionWeight;
+        cachedMitigationFactor = parameters.MitigationFactor;
+        cachedKeywordSignalByKeyword = BuildKeywordSignalByKeyword(posts, feedbackByPostId);
+        hasCachedInteractionParameters = true;
     }
 
     public double CalculateCompatibilityScore(User user, Job job, List<Skill> userSkills, List<Skill> jobSkills)
@@ -63,7 +63,7 @@ public class RecommendationAlgorithm
             })
             .ToList();
 
-        if (_hasCachedInteractionParameters)
+        if (hasCachedInteractionParameters)
         {
             return CalculateCompatibilityScoreWithCached(user, job, userSkills, mappedJobSkills);
         }
@@ -73,8 +73,8 @@ public class RecommendationAlgorithm
             job,
             userSkills,
             mappedJobSkills,
-            [],
-            []);
+            new List<Post>(),
+            new List<Interaction>());
     }
 
     public double CalculateCompatibilityScore(
@@ -121,12 +121,12 @@ public class RecommendationAlgorithm
             job,
             userSkills,
             mappedJobSkills,
-            _cachedSkillWeight,
-            _cachedResumeWeight,
-            _cachedPreferenceWeight,
-            _cachedPromotionWeight,
-            _cachedMitigationFactor,
-            _cachedKeywordSignalByKeyword);
+            cachedSkillWeight,
+            cachedResumeWeight,
+            cachedPreferenceWeight,
+            cachedPromotionWeight,
+            cachedMitigationFactor,
+            cachedKeywordSignalByKeyword);
     }
 
     private static CompatibilityBreakdown CalculateBreakdownCore(
@@ -146,11 +146,10 @@ public class RecommendationAlgorithm
         var preferenceScore = CalculatePreferenceScore(user, job);
         var promotionScore = CalculatePromotionScore(job);
 
-        var finalScore =
-            (skillScore * skillWeight +
-             keywordScore * resumeWeight +
-             preferenceScore * preferenceWeight +
-             promotionScore * promotionWeight) / 100.0;
+        var finalScore = ((skillScore * skillWeight) +
+                          (keywordScore * resumeWeight) +
+                          (preferenceScore * preferenceWeight) +
+                          (promotionScore * promotionWeight)) / 100.0;
 
         return new CompatibilityBreakdown
         {
@@ -173,13 +172,14 @@ public class RecommendationAlgorithm
             job,
             userSkills,
             jobSkills,
-            _cachedSkillWeight,
-            _cachedResumeWeight,
-            _cachedPreferenceWeight,
-            _cachedPromotionWeight,
-            _cachedMitigationFactor,
-            _cachedKeywordSignalByKeyword);
+            cachedSkillWeight,
+            cachedResumeWeight,
+            cachedPreferenceWeight,
+            cachedPromotionWeight,
+            cachedMitigationFactor,
+            cachedKeywordSignalByKeyword);
     }
+
     private static double CalculateCompatibilityScoreCore(
         User user,
         Job job,
@@ -197,11 +197,10 @@ public class RecommendationAlgorithm
         var preferenceScore = CalculatePreferenceScore(user, job);
         var promotionScore = CalculatePromotionScore(job);
 
-        var finalScore =
-            (skillScore * skillWeight +
-             keywordScore * resumeWeight +
-             preferenceScore * preferenceWeight +
-             promotionScore * promotionWeight) / 100.0;
+        var finalScore = ((skillScore * skillWeight) +
+                          (keywordScore * resumeWeight) +
+                          (preferenceScore * preferenceWeight) +
+                          (promotionScore * promotionWeight)) / 100.0;
 
         return Clamp(finalScore, 0.0, 100.0);
     }
@@ -314,7 +313,7 @@ public class RecommendationAlgorithm
     {
         var matches = 0;
 
-        if (string.Equals(user.Location, job.Location, StringComparison.OrdinalIgnoreCase))
+        if (string.Equals(user.PreferredLocation, job.Location, StringComparison.OrdinalIgnoreCase))
         {
             matches++;
         }
@@ -345,7 +344,10 @@ public class RecommendationAlgorithm
         var weightSum = rawSkillWeight + rawResumeWeight + rawPreferenceWeight + rawPromotionWeight;
         if (weightSum <= 0)
         {
-            rawSkillWeight = rawResumeWeight = rawPreferenceWeight = rawPromotionWeight = DefaultWeight;
+            rawSkillWeight = DefaultWeight;
+            rawResumeWeight = DefaultWeight;
+            rawPreferenceWeight = DefaultWeight;
+            rawPromotionWeight = DefaultWeight;
             weightSum = 100.0;
         }
 
@@ -428,7 +430,7 @@ public class RecommendationAlgorithm
 
         keywordSignalByKeyword.TryGetValue(normalizedKeyword, out var socialSignal);
 
-        var rawValue = 1.0 + 0.1 * socialSignal;
+        var rawValue = 1.0 + (0.1 * socialSignal);
         return Math.Min(5.0, Math.Abs(rawValue));
     }
 

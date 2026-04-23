@@ -13,4 +13,5 @@ public class Message
     public MessageType Type { get; set; }
     public bool IsRead { get; set; } = false;
     public bool ShowReadReceipt { get; set; }
+    public string SenderInitials { get; set; } = string.Empty;
 }

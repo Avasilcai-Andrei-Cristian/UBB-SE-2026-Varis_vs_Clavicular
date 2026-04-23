@@ -4,19 +4,19 @@ using matchmaking.Repositories;
 
 namespace matchmaking.Services;
 
-public class JobService
+public class JobService : IJobService
 {
-    private readonly JobRepository _jobRepository;
+    private readonly IJobRepository jobRepository;
 
-    public JobService(JobRepository jobRepository)
+    public JobService(IJobRepository jobRepository)
     {
-        _jobRepository = jobRepository;
+        this.jobRepository = jobRepository;
     }
 
-    public Job? GetById(int jobId) => _jobRepository.GetById(jobId);
-    public IReadOnlyList<Job> GetAll() => _jobRepository.GetAll();
-    public IReadOnlyList<Job> GetByCompanyId(int companyId) => _jobRepository.GetByCompanyId(companyId);
-    public void Add(Job job) => _jobRepository.Add(job);
-    public void Update(Job job) => _jobRepository.Update(job);
-    public void Remove(int jobId) => _jobRepository.Remove(jobId);
+    public Job? GetById(int jobId) => jobRepository.GetById(jobId);
+    public IReadOnlyList<Job> GetAll() => jobRepository.GetAll();
+    public IReadOnlyList<Job> GetByCompanyId(int companyId) => jobRepository.GetByCompanyId(companyId);
+    public void Add(Job job) => jobRepository.Add(job);
+    public void Update(Job job) => jobRepository.Update(job);
+    public void Remove(int jobId) => jobRepository.Remove(jobId);
 }

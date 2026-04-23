@@ -5,8 +5,13 @@ using matchmaking.Domain.Enums;
 
 namespace matchmaking.Repositories;
 
-public class UserStatusMatchRepository(string connectionString) : SqlRepositoryBase(connectionString)
+public class UserStatusMatchRepository : SqlRepositoryBase, IUserStatusMatchRepository
 {
+    public UserStatusMatchRepository(string connectionString)
+        : base(connectionString)
+    {
+    }
+
     public IReadOnlyList<Match> GetByUserId(int userId)
     {
         using var connection = OpenConnection();
@@ -18,7 +23,9 @@ public class UserStatusMatchRepository(string connectionString) : SqlRepositoryB
         using var reader = command.ExecuteReader();
         var result = new List<Match>();
         while (reader.Read())
+        {
             result.Add(Map(reader));
+        }
 
         return result;
     }
@@ -34,7 +41,9 @@ public class UserStatusMatchRepository(string connectionString) : SqlRepositoryB
         using var reader = command.ExecuteReader();
         var result = new List<Match>();
         while (reader.Read())
+        {
             result.Add(Map(reader));
+        }
 
         return result;
     }
@@ -45,16 +54,16 @@ public class UserStatusMatchRepository(string connectionString) : SqlRepositoryB
         {
             "Accepted" => MatchStatus.Accepted,
             "Rejected" => MatchStatus.Rejected,
-            _          => MatchStatus.Applied
+            _ => MatchStatus.Applied
         };
 
         return new Match
         {
-            MatchId         = reader.GetInt32(0),
-            UserId          = reader.GetInt32(1),
-            JobId           = reader.GetInt32(2),
-            Status          = status,
-            Timestamp       = reader.GetDateTime(4),
+            MatchId = reader.GetInt32(0),
+            UserId = reader.GetInt32(1),
+            JobId = reader.GetInt32(2),
+            Status = status,
+            Timestamp = reader.GetDateTime(4),
             FeedbackMessage = reader.IsDBNull(5) ? string.Empty : reader.GetString(5)
         };
     }

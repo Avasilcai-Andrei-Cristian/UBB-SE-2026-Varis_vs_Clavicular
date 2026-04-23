@@ -6,8 +6,13 @@ using matchmaking.Domain.Enums;
 
 namespace matchmaking.Repositories;
 
-public class SqlPostRepository(string connectionString) : SqlRepositoryBase(connectionString)
+public class SqlPostRepository : SqlRepositoryBase, IPostRepository
 {
+    public SqlPostRepository(string connectionString)
+        : base(connectionString)
+    {
+    }
+
     public Post? GetById(int postId)
     {
         using var connection = OpenConnection();

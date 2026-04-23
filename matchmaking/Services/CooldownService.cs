@@ -5,25 +5,25 @@ namespace matchmaking.Services;
 
 public sealed class CooldownService
 {
-    public static readonly TimeSpan UserJobDeckCooldown = TimeSpan.FromHours(24);
+    private readonly IRecommendationRepository recommendationRepository;
+    private readonly TimeSpan cooldownPeriod;
 
-    private readonly SqlRecommendationRepository _recommendationRepository;
-
-    public CooldownService(SqlRecommendationRepository recommendationRepository)
+    public CooldownService(IRecommendationRepository recommendationRepository, TimeSpan cooldownPeriod)
     {
-        _recommendationRepository = recommendationRepository;
+        this.recommendationRepository = recommendationRepository;
+        this.cooldownPeriod = cooldownPeriod <= TimeSpan.Zero ? TimeSpan.FromHours(24) : cooldownPeriod;
     }
 
     public bool IsOnCooldown(int userId, int jobId, DateTime utcNow)
     {
-        var latest = _recommendationRepository.GetLatestByUserIdAndJobId(userId, jobId);
+        var latest = recommendationRepository.GetLatestByUserIdAndJobId(userId, jobId);
         if (latest is null)
         {
             return false;
         }
 
         var elapsed = utcNow - NormalizeToUtc(latest.Timestamp);
-        return elapsed < UserJobDeckCooldown;
+        return elapsed < cooldownPeriod;
     }
 
     private static DateTime NormalizeToUtc(DateTime timestamp)

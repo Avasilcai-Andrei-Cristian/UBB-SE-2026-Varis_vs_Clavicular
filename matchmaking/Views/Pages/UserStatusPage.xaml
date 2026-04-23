@@ -210,6 +210,7 @@
                                    FontSize="14" TextAlignment="Center" TextWrapping="Wrap" MaxWidth="360" Foreground="Black"/>
                         <Button x:Name="GoToRecommendationsButton"
                                 Content="Go to Recommendations"
+                                Click="GoToRecommendationsButton_Click"
                                 HorizontalAlignment="Center" Margin="0,8,0,0"
                                 Foreground="Black" Padding="12,6" Height="36"
                                 Visibility="{Binding ShowGoToRecommendations, Converter={StaticResource BoolToVisibility}}">

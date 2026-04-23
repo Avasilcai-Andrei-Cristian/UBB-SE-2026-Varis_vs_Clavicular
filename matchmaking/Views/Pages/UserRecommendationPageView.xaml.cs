@@ -25,7 +25,9 @@ public sealed partial class UserRecommendationPageView : Page
             new SqlMatchRepository(connectionString),
             jobService);
         var recommendationRepository = new SqlRecommendationRepository(connectionString);
-        var cooldownService = new CooldownService(recommendationRepository);
+        var cooldownHours = App.Configuration.RecommendationCooldownHours;
+        var cooldownPeriod = TimeSpan.FromHours(cooldownHours > 0 ? cooldownHours : 24);
+        var cooldownService = new CooldownService(recommendationRepository, cooldownPeriod);
         var algorithm = new RecommendationAlgorithm(
             new SqlPostRepository(connectionString),
             new SqlInteractionRepository(connectionString));
@@ -207,7 +209,9 @@ public sealed partial class UserRecommendationPageView : Page
         }
 
         var name = job.Company.CompanyName;
-        CardCompanyInitial.Text = name.Length > 0 ? name[..1].ToUpperInvariant() : "?";
+        CardCompanyInitial.Text = string.IsNullOrWhiteSpace(job.Company.LogoText)
+            ? (name.Length > 0 ? name[..1].ToUpperInvariant() : "?")
+            : job.Company.LogoText;
         CardCompanyNameText.Text = name;
         CardJobTitleText.Text = job.JobTitleLine;
         CardMatchScoreText.Text = $"{job.CompatibilityScore:F0}%";

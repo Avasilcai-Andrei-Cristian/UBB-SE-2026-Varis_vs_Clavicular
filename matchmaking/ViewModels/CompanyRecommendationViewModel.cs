@@ -312,8 +312,7 @@ public class CompanyRecommendationViewModel : ObservableObject
 
         try
         {
-            
-            _matchService.RejectAsync(CurrentApplicant.Match.MatchId, "Rejected on first pass").Wait();
+            _matchService.Reject(CurrentApplicant.Match.MatchId, "Rejected on first pass");
 
             StoreForUndo();
             _recommendationService.MoveToNext();
