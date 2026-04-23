@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using matchmaking.Domain.Session;
 using matchmaking.Models;
 using matchmaking.Repositories;
 using matchmaking.Services;
@@ -55,6 +56,16 @@ public class SkillGapViewModel : ObservableObject
 
         SkillsToImprove.CollectionChanged += OnCollectionChanged;
         MissingSkills.CollectionChanged   += OnCollectionChanged;
+    }
+
+    public SkillGapViewModel(SkillGapService skillGapService, SessionContext sessionContext)
+    {
+        _skillGapService = skillGapService;
+
+        RefreshCommand = new RelayCommand(Refresh);
+
+        SkillsToImprove.CollectionChanged += OnCollectionChanged;
+        MissingSkills.CollectionChanged += OnCollectionChanged;
     }
 
   

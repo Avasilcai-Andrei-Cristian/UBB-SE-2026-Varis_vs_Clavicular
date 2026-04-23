@@ -16,10 +16,6 @@
     <PackageReference Include="FluentAssertions" Version="6.12.1" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
     <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.8.260317003" />
-    <PackageReference Include="StyleCop.Analyzers" Version="1.1.118">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
     <PackageReference Include="xunit" Version="2.9.2" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2">
       <PrivateAssets>all</PrivateAssets>
@@ -32,6 +28,20 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Include="..\matchmaking\ViewModels\ObservableObject.cs" Link="ViewModels\ObservableObject.cs" />
+    <Compile Include="..\matchmaking\ViewModels\RelayCommand.cs" Link="ViewModels\RelayCommand.cs" />
+    <Compile Include="..\matchmaking\ViewModels\FilterCheckItem.cs" Link="ViewModels\FilterCheckItem.cs" />
+    <Compile Include="..\matchmaking\ViewModels\SkillFilterItem.cs" Link="ViewModels\SkillFilterItem.cs" />
+    <Compile Include="..\matchmaking\ViewModels\PostCardViewModel.cs" Link="ViewModels\PostCardViewModel.cs" />
+    <Compile Include="..\matchmaking\ViewModels\ShellViewModel.cs" Link="ViewModels\ShellViewModel.cs" />
+    <Compile Include="..\matchmaking\ViewModels\SampleFormViewModel.cs" Link="ViewModels\SampleFormViewModel.cs" />
+    <Compile Include="..\matchmaking\ViewModels\DeveloperViewModel.cs" Link="ViewModels\DeveloperViewModel.cs" />
+    <Compile Include="..\matchmaking\ViewModels\ChatViewModel.cs" Link="ViewModels\ChatViewModel.cs" />
+    <Compile Include="..\matchmaking\ViewModels\UserRecommendationViewModel.cs" Link="ViewModels\UserRecommendationViewModel.cs" />
+    <Compile Include="..\matchmaking\ViewModels\CompanyRecommendationViewModel.cs" Link="ViewModels\CompanyRecommendationViewModel.cs" />
+    <Compile Include="..\matchmaking\ViewModels\UserStatusViewModel.cs" Link="ViewModels\UserStatusViewModel.cs" />
+    <Compile Include="..\matchmaking\ViewModels\SkillGapViewModel.cs" Link="ViewModels\SkillGapViewModel.cs" />
+    <Compile Include="..\matchmaking\ViewModels\CompanyStatusViewModel.cs" Link="ViewModels\CompanyStatusViewModel.cs" />
     <Compile Include="..\matchmaking\Repositories\IChatRepository.cs" Link="Repositories\IChatRepository.cs" />
     <Compile Include="..\matchmaking\Repositories\CompanyRepository.cs" Link="Repositories\CompanyRepository.cs" />
     <Compile Include="..\matchmaking\Repositories\JobRepository.cs" Link="Repositories\JobRepository.cs" />
@@ -41,6 +51,9 @@
     <Compile Include="..\matchmaking\Repositories\SqlRepositoryBase.cs" Link="Repositories\SqlRepositoryBase.cs" />
     <Compile Include="..\matchmaking\Repositories\SqlChatRepository.cs" Link="Repositories\SqlChatRepository.cs" />
     <Compile Include="..\matchmaking\Repositories\SqlMessageRepository.cs" Link="Repositories\SqlMessageRepository.cs" />
+    <Compile Include="..\matchmaking\Repositories\JobRepository.cs" Link="Repositories\JobRepository.cs" />
+    <Compile Include="..\matchmaking\Repositories\JobSkillRepository.cs" Link="Repositories\JobSkillRepository.cs" />
+    <Compile Include="..\matchmaking\Repositories\SkillRepository.cs" Link="Repositories\SkillRepository.cs" />
     <Compile Include="..\matchmaking\Repositories\SqlDeveloperRepository.cs" Link="Repositories\SqlDeveloperRepository.cs" />
     <Compile Include="..\matchmaking\Repositories\SqlPostRepository.cs" Link="Repositories\SqlPostRepository.cs" />
     <Compile Include="..\matchmaking\Repositories\SqlInteractionRepository.cs" Link="Repositories\SqlInteractionRepository.cs" />
@@ -48,6 +61,8 @@
     <Compile Include="..\matchmaking\Repositories\SqlMatchRepository.cs" Link="Repositories\SqlMatchRepository.cs" />
     <Compile Include="..\matchmaking\Repositories\UserStatusMatchRepository.cs" Link="Repositories\UserStatusMatchRepository.cs" />
     <Compile Include="..\matchmaking\Repositories\SqlConnectionTestRepository.cs" Link="Repositories\SqlConnectionTestRepository.cs" />
+    <Compile Include="..\matchmaking\Services\IChatService.cs" Link="Services\IChatService.cs" />
+    <Compile Include="..\matchmaking\Services\ITestingModuleAdapter.cs" Link="Services\ITestingModuleAdapter.cs" />
   </ItemGroup>
 
 </Project>

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using matchmaking.Domain.Enums;
+using matchmaking.Domain.Session;
 using matchmaking.Models;
 using matchmaking.Repositories;
 using matchmaking.Services;
@@ -72,6 +73,22 @@ public class UserStatusViewModel : ObservableObject
 
         _userStatusService = new UserStatusService(matchRepository, jobService, companyService, skillService, _jobSkillService);
         _skillGapService = new SkillGapService(matchRepository, _jobSkillService, skillService);
+
+        RefreshCommand = new RelayCommand(Refresh);
+
+        UnderscoredSkills.CollectionChanged += OnSidebarCollectionChanged;
+        SkillGapMissingSkills.CollectionChanged += OnSidebarCollectionChanged;
+    }
+
+    public UserStatusViewModel(
+        UserStatusService userStatusService,
+        SkillGapService skillGapService,
+        JobSkillService jobSkillService,
+        SessionContext sessionContext)
+    {
+        _userStatusService = userStatusService;
+        _skillGapService = skillGapService;
+        _jobSkillService = jobSkillService;
 
         RefreshCommand = new RelayCommand(Refresh);
 

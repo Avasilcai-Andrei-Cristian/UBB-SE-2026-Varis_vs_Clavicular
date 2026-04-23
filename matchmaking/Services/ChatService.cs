@@ -1,14 +1,14 @@
-﻿using matchmaking.Domain.Entities;
-using matchmaking.Repositories;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using matchmaking.Domain.Entities;
 using matchmaking.Domain.Enums;
+using matchmaking.Repositories;
 
 namespace matchmaking.Services;
 
-public class ChatService
+public class ChatService : IChatService
 {
     private static readonly HashSet<string> AllowedImageExtensions = new(StringComparer.OrdinalIgnoreCase)
     {
@@ -20,16 +20,16 @@ public class ChatService
         ".pdf", ".docx", ".doc"
     };
 
-    private readonly SqlChatRepository _chatRepository;
-    private readonly SqlMessageRepository _messageRepository;
-    private readonly UserRepository _userRepository;
-    private readonly CompanyRepository _companyRepository;
+    private readonly IChatRepository _chatRepository;
+    private readonly IMessageRepository _messageRepository;
+    private readonly IUserRepository _userRepository;
+    private readonly ICompanyRepository _companyRepository;
 
     public ChatService(
-        SqlChatRepository chatRepo,
-        SqlMessageRepository messageRepo,
-        UserRepository userRepo,
-        CompanyRepository companyRepo)
+        IChatRepository chatRepo,
+        IMessageRepository messageRepo,
+        IUserRepository userRepo,
+        ICompanyRepository companyRepo)
     {
         _chatRepository = chatRepo;
         _messageRepository = messageRepo;

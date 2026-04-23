@@ -34,8 +34,8 @@ public class ChatViewModel : ObservableObject
     private bool _showGoToCompanyProfile;
     private bool _showGoToJobPost;
 
-    private readonly ChatService _chatService;
-    private readonly JobService _jobService;
+    private readonly IChatService _chatService;
+    private readonly IJobService _jobService;
     private readonly SessionContext _sessionContext;
     private readonly UserRepository _userRepository;
     private readonly CompanyRepository _companyRepository;
@@ -45,8 +45,8 @@ public class ChatViewModel : ObservableObject
     public ObservableCollection<object> PendingAttachments { get; } = [];
 
     public ChatViewModel(
-        ChatService chatService,
-        JobService jobService,
+        IChatService chatService,
+        IJobService jobService,
         SessionContext sessionContext,
         UserRepository userRepository,
         CompanyRepository companyRepository,

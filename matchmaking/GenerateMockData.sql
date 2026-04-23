@@ -3,26 +3,32 @@
 SET QUOTED_IDENTIFIER ON;
 GO
 
+SET NOCOUNT ON;
+SET XACT_ABORT ON;
 
-DELETE FROM Interaction;
-DELETE FROM Post;
-DELETE FROM Message;
-DELETE FROM Chat;
-DELETE FROM Recommendation;
-DELETE FROM [Matches];
-DELETE FROM Developer;
+BEGIN TRY
+    BEGIN TRAN;
+
+
+DELETE FROM dbo.Interaction;
+DELETE FROM dbo.Post;
+DELETE FROM dbo.Message;
+DELETE FROM dbo.Chat;
+DELETE FROM dbo.Recommendation;
+DELETE FROM dbo.[Matches];
+DELETE FROM dbo.Developer;
 
 -- Reset identity seeds so IDs are predictable
-DBCC CHECKIDENT ('Developer', RESEED, 0);
-DBCC CHECKIDENT ('Post', RESEED, 0);
-DBCC CHECKIDENT ('Interaction', RESEED, 0);
-DBCC CHECKIDENT ('Chat', RESEED, 0);
-DBCC CHECKIDENT ('Message', RESEED, 0);
-DBCC CHECKIDENT ('[Matches]', RESEED, 0);
-DBCC CHECKIDENT ('Recommendation', RESEED, 0);
+DBCC CHECKIDENT ('dbo.Developer', RESEED, 0);
+DBCC CHECKIDENT ('dbo.Post', RESEED, 0);
+DBCC CHECKIDENT ('dbo.Interaction', RESEED, 0);
+DBCC CHECKIDENT ('dbo.Chat', RESEED, 0);
+DBCC CHECKIDENT ('dbo.Message', RESEED, 0);
+DBCC CHECKIDENT ('dbo.Matches', RESEED, 0);
+DBCC CHECKIDENT ('dbo.Recommendation', RESEED, 0);
 
 
-INSERT INTO Developer (Name, Password) VALUES
+INSERT INTO dbo.Developer (Name, Password) VALUES
 ('Andrei Mihai', 'pass123'),
 ('Bianca Neagu', 'pass123'),
 ('Cristian Popa', 'pass123'),
@@ -45,7 +51,7 @@ INSERT INTO Developer (Name, Password) VALUES
 ('Viorica Zamfir', 'pass123');
 
 
-INSERT INTO Post (DeveloperId, Parameter, Value) VALUES
+INSERT INTO dbo.Post (DeveloperId, Parameter, Value) VALUES
 -- Mitigation factor proposals
 (1, 'mitigation factor', '0.3'),
 (3, 'mitigation factor', '0.5'),
@@ -99,7 +105,7 @@ INSERT INTO Post (DeveloperId, Parameter, Value) VALUES
 (1, 'job-resume similarity score weight', '32'),
 (1, 'relevant keyword', 'react');
 
-INSERT INTO Interaction (DeveloperId, PostId, Type) VALUES
+INSERT INTO dbo.Interaction (DeveloperId, PostId, Type) VALUES
 -- Votes on mitigation factor posts (PostId 1-4)
 (2, 1, 1), (4, 1, 1), (5, 1, 0), (8, 1, 1), (10, 1, 0),
 (1, 2, 1), (6, 2, 1), (9, 2, 0), (12, 2, 1), (14, 2, 1),
@@ -154,7 +160,7 @@ INSERT INTO Interaction (DeveloperId, PostId, Type) VALUES
 (5, 45, 1), (8, 45, 0), (10, 45, 1), (14, 45, 1), (17, 45, 1);
 
 
-INSERT INTO [Matches] (UserID, JobID, Status, Timestamp, Feedback) VALUES
+INSERT INTO dbo.[Matches] (UserID, JobID, Status, Timestamp, Feedback) VALUES
 -- Alice Pop (User 1) — Frontend dev, skills: C#, React
 (1, 1, 'Accepted', '2026-03-01 09:00:00', 'Strong React skills. Good fit for junior frontend.'),
 (1, 9, 'Pending', '2026-03-15 10:30:00', NULL),
@@ -245,16 +251,16 @@ INSERT INTO [Matches] (UserID, JobID, Status, Timestamp, Feedback) VALUES
 
 -- ============================================================
 -- STEP 6: Chats (between users and companies about jobs)
--- UserId: in-memory user IDs (1-10)
+-- UserId: in-memory user IDs (1-20)
 -- CompanyId: in-memory company IDs (1-10)
 -- SecondUserId: for dev-to-dev chats (uses in-memory user IDs)
 -- CHECK constraint: exactly one of CompanyId/SecondUserId must be set
 -- ============================================================
-INSERT INTO Chat (UserId, CompanyId, SecondUserId, JobId, IsBlocked, BlockedByUserId, DeletedAtByUser, DeletedAtBySecondParty) VALUES
+INSERT INTO dbo.Chat (UserId, CompanyId, SecondUserId, JobId, IsBlocked, BlockedByUserId, DeletedAtByUser, DeletedAtBySecondParty) VALUES
 -- Chat 1: Alice (1) <-> PixelSoft (4) about Junior Frontend (Job 1)
 (1, 4, NULL, 1, 0, NULL, NULL, NULL),
--- Chat 2: Alice (1) <-> TechNova (1) about Backend .NET (Job 2)
-(1, 1, NULL, 2, 0, NULL, NULL, NULL),
+-- Chat 2: Katerina (11) <-> TechNova (1) about Backend .NET (Job 2)
+(11, 1, NULL, 2, 0, NULL, NULL, NULL),
 -- Chat 3: Alice (1) <-> DataForge (3) about Data Analyst (Job 5)
 (1, 3, NULL, 5, 0, NULL, NULL, NULL),
 -- Chat 4: Alice (1) <-> BrightSystems (8) about QA Automation (Job 3)
@@ -271,8 +277,8 @@ INSERT INTO Chat (UserId, CompanyId, SecondUserId, JobId, IsBlocked, BlockedByUs
 (5, 3, NULL, 5, 0, NULL, NULL, NULL),
 -- Chat 10: Florin (6) <-> AI Valley (9) about ML Engineer (Job 6)
 (6, 9, NULL, 6, 0, NULL, NULL, NULL),
--- Chat 11: Gabriela (7) <-> RocketApps (7) about UI/UX Designer (Job 7)
-(7, 7, NULL, 7, 0, NULL, NULL, NULL),
+-- Chat 11: Teodora (19) <-> RocketApps (7) about UI/UX Designer (Job 7)
+(19, 7, NULL, 7, 0, NULL, NULL, NULL),
 -- Chat 12: Horia (8) <-> CodeBridge (10) about Technical Lead (Job 8)
 (8, 10, NULL, 8, 0, NULL, NULL, NULL),
 -- Chat 13: Ioana (9) <-> GreenCode (6) about Full-Stack Developer (Job 9)
@@ -299,15 +305,15 @@ INSERT INTO Chat (UserId, CompanyId, SecondUserId, JobId, IsBlocked, BlockedByUs
 (20, 5, NULL, 10, 0, NULL, NULL, NULL),
 -- Chat 24: Blocked: Maria (13) <-> TechNova (1) about Backend Engineer (Job 100)
 (13, 1, NULL, 100, 1, 13, NULL, NULL),
--- Chat 25: Deleted: Carmen (3) <-> DataForge (3) about Data Analyst (Job 5)
-(3, 3, NULL, 5, 0, NULL, '2026-03-18 08:00:00', NULL);
+-- Chat 25: Deleted: Maria (13) <-> DataForge (3) about Data Analyst (Job 5)
+(13, 3, NULL, 5, 0, NULL, '2026-03-18 08:00:00', NULL);
 
 -- ============================================================
 -- STEP 7: Messages (conversation threads in chats)
 -- Type: 0 = Text, 1 = Image, 2 = File
 -- Columns: Content, SenderId, Timestamp, ChatId, Type, IsRead
 -- ============================================================
-INSERT INTO Message (Content, SenderId, Timestamp, ChatId, Type, IsRead) VALUES
+INSERT INTO dbo.Message (Content, SenderId, Timestamp, ChatId, Type, IsRead) VALUES
 -- Chat 1: Alice <-> PixelSoft (Junior Frontend)
 ('Hi Alice! Thanks for applying to the Junior Frontend Developer position.', 4, '2026-03-15 09:00:00', 1, 0, 1),
 ('Thank you! I am very excited about this opportunity.', 1, '2026-03-15 09:30:00', 1, 0, 1),
@@ -317,9 +323,9 @@ INSERT INTO Message (Content, SenderId, Timestamp, ChatId, Type, IsRead) VALUES
 ('The interview went well! We would like to extend an offer.', 4, '2026-03-19 14:00:00', 1, 0, 1),
 ('That is wonderful news! When can I start?', 1, '2026-03-20 14:00:00', 1, 0, 0),
 
--- Chat 2: Alice <-> TechNova (Backend .NET Job 2)
-('Hi Alice, we noticed your C# skills. Interested in our backend role?', 1, '2026-03-19 09:00:00', 2, 0, 1),
-('Yes! I have been working on .NET projects recently.', 1, '2026-03-19 10:00:00', 2, 0, 1),
+-- Chat 2: Katerina <-> TechNova (Backend .NET Job 2)
+('Hi Katerina, we noticed your C# skills. Interested in our backend role?', 1, '2026-03-19 09:00:00', 2, 0, 1),
+('Yes! I have been working on .NET projects recently.', 11, '2026-03-19 10:00:00', 2, 0, 1),
 ('Great. We will send you a take-home coding challenge.', 1, '2026-03-20 11:00:00', 2, 0, 0),
 
 -- Chat 3: Alice <-> DataForge (Data Analyst Job 5)
@@ -375,9 +381,9 @@ INSERT INTO Message (Content, SenderId, Timestamp, ChatId, Type, IsRead) VALUES
 ('Of course! I deployed a sentiment analysis service last quarter.', 6, '2026-03-16 12:00:00', 10, 0, 1),
 ('We are ready to make an offer. Details attached.', 9, '2026-03-23 16:00:00', 10, 2, 0),
 
--- Chat 11: Gabriela <-> RocketApps (UI/UX Designer)
-('Gabriela, your design portfolio is well-rounded.', 7, '2026-03-12 13:00:00', 11, 0, 1),
-('Thanks! I enjoy creating intuitive user experiences.', 7, '2026-03-12 14:00:00', 11, 0, 1),
+-- Chat 11: Teodora <-> RocketApps (UI/UX Designer)
+('Teodora, your design portfolio is well-rounded.', 7, '2026-03-12 13:00:00', 11, 0, 1),
+('Thanks! I enjoy creating intuitive user experiences.', 19, '2026-03-12 14:00:00', 11, 0, 1),
 ('Design challenge results look great.', 7, '2026-03-20 13:00:00', 11, 0, 1),
 
 -- Chat 12: Horia <-> CodeBridge (Technical Lead)
@@ -453,7 +459,7 @@ INSERT INTO Message (Content, SenderId, Timestamp, ChatId, Type, IsRead) VALUES
 -- STEP 8: Recommendations (algorithm-generated job suggestions)
 -- UserIDs: 1-20, JobIDs: 1-12, 100-104
 -- ============================================================
-INSERT INTO Recommendation (UserId, JobId, Timestamp) VALUES
+INSERT INTO dbo.Recommendation (UserId, JobId, Timestamp) VALUES
 -- Alice Pop (User 1) — lots of recommendations to test the full flow
 (1, 1, '2026-03-01 08:00:00'), (1, 9, '2026-03-01 08:00:00'), (1, 102, '2026-03-01 08:00:00'),
 (1, 7, '2026-03-01 08:00:00'), (1, 2, '2026-03-01 08:00:00'), (1, 5, '2026-03-01 08:00:00'),
@@ -499,21 +505,100 @@ INSERT INTO Recommendation (UserId, JobId, Timestamp) VALUES
 (20, 10, '2026-03-01 08:00:00'), (20, 4, '2026-03-01 08:00:00'), (20, 103, '2026-03-01 08:00:00');
 
 -- ============================================================
+-- STEP 9: Integrity assertions
+-- ============================================================
+IF EXISTS (
+    SELECT 1
+    FROM dbo.Chat
+    WHERE (CompanyId IS NOT NULL AND SecondUserId IS NOT NULL)
+       OR (CompanyId IS NULL AND SecondUserId IS NULL)
+)
+BEGIN
+    THROW 51001, 'Integrity check failed: invalid chat shape (CompanyId/SecondUserId).', 1;
+END;
+
+IF EXISTS (
+    SELECT 1
+    FROM dbo.Interaction i
+    LEFT JOIN dbo.Post p ON p.PostID = i.PostID
+    WHERE p.PostID IS NULL
+)
+BEGIN
+    THROW 51002, 'Integrity check failed: orphan Interaction.PostID detected.', 1;
+END;
+
+IF EXISTS (
+    SELECT 1
+    FROM dbo.Interaction i
+    LEFT JOIN dbo.Developer d ON d.DeveloperID = i.DeveloperID
+    WHERE d.DeveloperID IS NULL
+)
+BEGIN
+    THROW 51003, 'Integrity check failed: orphan Interaction.DeveloperID detected.', 1;
+END;
+
+IF EXISTS (
+    SELECT 1
+    FROM dbo.Message m
+    LEFT JOIN dbo.Chat c ON c.ChatId = m.ChatId
+    WHERE c.ChatId IS NULL
+)
+BEGIN
+    THROW 51004, 'Integrity check failed: orphan Message.ChatId detected.', 1;
+END;
+
+IF EXISTS (
+    SELECT 1
+    FROM dbo.[Matches]
+    WHERE Status NOT IN ('Pending', 'Accepted', 'Rejected', 'Advanced')
+)
+BEGIN
+    THROW 51005, 'Integrity check failed: invalid Matches.Status value detected.', 1;
+END;
+
+IF EXISTS (
+    SELECT 1
+    FROM dbo.Message m
+    INNER JOIN dbo.Chat c ON c.ChatId = m.ChatId
+    WHERE (c.CompanyId IS NOT NULL AND m.SenderID NOT IN (c.UserId, c.CompanyId))
+       OR (c.SecondUserId IS NOT NULL AND m.SenderID NOT IN (c.UserId, c.SecondUserId))
+)
+BEGIN
+    THROW 51006, 'Integrity check failed: Message.SenderId is not a participant of its chat.', 1;
+END;
+
+DECLARE @DeveloperCount INT = (SELECT COUNT(*) FROM dbo.Developer);
+DECLARE @PostCount INT = (SELECT COUNT(*) FROM dbo.Post);
+DECLARE @InteractionCount INT = (SELECT COUNT(*) FROM dbo.Interaction);
+DECLARE @MatchesCount INT = (SELECT COUNT(*) FROM dbo.[Matches]);
+DECLARE @ChatCount INT = (SELECT COUNT(*) FROM dbo.Chat);
+DECLARE @MessageCount INT = (SELECT COUNT(*) FROM dbo.Message);
+DECLARE @RecommendationCount INT = (SELECT COUNT(*) FROM dbo.Recommendation);
+
+COMMIT TRAN;
+
+-- ============================================================
 -- Summary
 -- ============================================================
 PRINT '=== Mock Data Generation Complete ===';
-PRINT 'Developer:       20  (SQL table)';
-PRINT 'Post:            40  (SQL table)';
-PRINT 'Interaction:    ~180 (SQL table)';
-PRINT 'Matches:         ~62 (SQL table)';
-PRINT 'Chat:            21  (SQL table)';
-PRINT 'Message:        ~100 (SQL table)';
-PRINT 'Recommendation:  ~65 (SQL table)';
-PRINT '---';
-PRINT 'NOT in SQL (in-memory only):';
-PRINT '  User:      20 (UserRepository.cs, IDs 1-20)';
-PRINT '  Company:   10 (CompanyRepository.cs, IDs 1-10)';
-PRINT '  Job:       17 (JobRepository.cs, IDs 1-12 + 100-104)';
-PRINT '  Skill:     54 (SkillRepository.cs)';
-PRINT '  JobSkill:  20 (JobSkillRepository.cs)';
-PRINT '==========================================';
+PRINT 'Developer:      ' + CAST(@DeveloperCount AS VARCHAR(20));
+PRINT 'Post:           ' + CAST(@PostCount AS VARCHAR(20));
+PRINT 'Interaction:    ' + CAST(@InteractionCount AS VARCHAR(20));
+PRINT 'Matches:        ' + CAST(@MatchesCount AS VARCHAR(20));
+PRINT 'Chat:           ' + CAST(@ChatCount AS VARCHAR(20));
+PRINT 'Message:        ' + CAST(@MessageCount AS VARCHAR(20));
+PRINT 'Recommendation: ' + CAST(@RecommendationCount AS VARCHAR(20));
+PRINT 'All SQL integrity checks passed.';
+
+END TRY
+BEGIN CATCH
+    IF @@TRANCOUNT > 0
+    BEGIN
+        ROLLBACK TRAN;
+    END;
+
+    DECLARE @ErrorMessage NVARCHAR(4000) =
+        CONCAT('GenerateMockData.sql failed at line ', ERROR_LINE(), ': ', ERROR_MESSAGE());
+
+    THROW 51000, @ErrorMessage, 1;
+END CATCH;

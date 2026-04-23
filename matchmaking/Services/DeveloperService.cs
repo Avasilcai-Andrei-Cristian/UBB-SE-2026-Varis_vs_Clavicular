@@ -6,7 +6,7 @@ using matchmaking.Repositories;
 
 namespace matchmaking.Services;
 
-public class DeveloperService
+public class DeveloperService : IDeveloperService
 {
     private readonly IDeveloperRepository developerRepository;
     private readonly IPostRepository postRepository;
