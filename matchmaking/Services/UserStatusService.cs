@@ -7,18 +7,18 @@ namespace matchmaking.Services;
 
 public class UserStatusService
 {
-    private readonly UserStatusMatchRepository _matchRepository;
-    private readonly JobService                _jobService;
-    private readonly CompanyService            _companyService;
-    private readonly SkillService              _skillService;
-    private readonly JobSkillService           _jobSkillService;
+    private readonly IUserStatusMatchRepository _matchRepository;
+    private readonly IJobService _jobService;
+    private readonly ICompanyService _companyService;
+    private readonly ISkillService _skillService;
+    private readonly IJobSkillService _jobSkillService;
 
     public UserStatusService(
-        UserStatusMatchRepository matchRepository,
-        JobService                jobService,
-        CompanyService            companyService,
-        SkillService              skillService,
-        JobSkillService           jobSkillService)
+        IUserStatusMatchRepository matchRepository,
+        IJobService jobService,
+        ICompanyService companyService,
+        ISkillService skillService,
+        IJobSkillService jobSkillService)
     {
         _matchRepository = matchRepository;
         _jobService      = jobService;

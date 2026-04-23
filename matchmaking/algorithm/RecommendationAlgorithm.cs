@@ -34,8 +34,8 @@ public class RecommendationAlgorithm
     }
 
     public RecommendationAlgorithm(
-        SqlPostRepository postRepository,
-        SqlInteractionRepository interactionRepository)
+        IPostRepository postRepository,
+        IInteractionRepository interactionRepository)
     {
         var posts = postRepository.GetAll();
         var interactions = interactionRepository.GetAll();

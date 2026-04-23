@@ -10,15 +10,15 @@ namespace matchmaking.Services;
 public class CompanyStatusService
 {
     private readonly MatchService _matchService;
-    private readonly UserService _userService;
-    private readonly JobService _jobService;
-    private readonly SkillService _skillService;
+    private readonly IUserService _userService;
+    private readonly IJobService _jobService;
+    private readonly ISkillService _skillService;
 
     public CompanyStatusService(
         MatchService matchService,
-        UserService userService,
-        JobService jobService,
-        SkillService skillService)
+        IUserService userService,
+        IJobService jobService,
+        ISkillService skillService)
     {
         _matchService = matchService;
         _userService = userService;

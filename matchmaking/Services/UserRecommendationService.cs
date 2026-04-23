@@ -10,24 +10,24 @@ namespace matchmaking.Services;
 
 public sealed class UserRecommendationService
 {
-    private readonly UserRepository _userRepository;
-    private readonly JobRepository _jobRepository;
-    private readonly SkillRepository _skillRepository;
-    private readonly JobSkillRepository _jobSkillRepository;
-    private readonly CompanyRepository _companyRepository;
+    private readonly IUserRepository _userRepository;
+    private readonly IJobRepository _jobRepository;
+    private readonly ISkillRepository _skillRepository;
+    private readonly IJobSkillRepository _jobSkillRepository;
+    private readonly ICompanyRepository _companyRepository;
     private readonly MatchService _matchService;
-    private readonly SqlRecommendationRepository _recommendationRepository;
+    private readonly IRecommendationRepository _recommendationRepository;
     private readonly CooldownService _cooldownService;
     private readonly RecommendationAlgorithm _algorithm;
 
     public UserRecommendationService(
-        UserRepository userRepository,
-        JobRepository jobRepository,
-        SkillRepository skillRepository,
-        JobSkillRepository jobSkillRepository,
-        CompanyRepository companyRepository,
+        IUserRepository userRepository,
+        IJobRepository jobRepository,
+        ISkillRepository skillRepository,
+        IJobSkillRepository jobSkillRepository,
+        ICompanyRepository companyRepository,
         MatchService matchService,
-        SqlRecommendationRepository recommendationRepository,
+        IRecommendationRepository recommendationRepository,
         CooldownService cooldownService,
         RecommendationAlgorithm algorithm)
     {

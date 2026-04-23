@@ -39,10 +39,9 @@ public class MatchStatusDisplayConverterTests
     [InlineData(MatchStatus.Advanced)]
     public void Convert_BackgroundMode_ReturnsSolidColorBrush(MatchStatus status)
     {
-        var result = converter.Convert(status, typeof(object), "Background", string.Empty);
+        var result = MatchStatusDisplayConverter.GetBackgroundColor(status);
 
-        result.Should().NotBeNull();
-        result.Should().BeOfType<SolidColorBrush>();
+        result.Should().NotBe(default);
     }
 
     [Theory]
@@ -52,28 +51,27 @@ public class MatchStatusDisplayConverterTests
     [InlineData(MatchStatus.Advanced)]
     public void Convert_ForegroundMode_ReturnsSolidColorBrush(MatchStatus status)
     {
-        var result = converter.Convert(status, typeof(object), "Foreground", string.Empty);
+        var result = MatchStatusDisplayConverter.GetForegroundColor(status);
 
-        result.Should().NotBeNull();
-        result.Should().BeOfType<SolidColorBrush>();
+        result.Should().NotBe(default);
     }
 
     [Fact]
     public void Convert_BackgroundMode_AcceptedAndRejected_HaveDifferentColors()
     {
-        var acceptedBrush = converter.Convert(MatchStatus.Accepted, typeof(object), "Background", string.Empty) as SolidColorBrush;
-        var rejectedBrush = converter.Convert(MatchStatus.Rejected, typeof(object), "Background", string.Empty) as SolidColorBrush;
+        var acceptedBrush = MatchStatusDisplayConverter.GetBackgroundColor(MatchStatus.Accepted);
+        var rejectedBrush = MatchStatusDisplayConverter.GetBackgroundColor(MatchStatus.Rejected);
 
-        acceptedBrush!.Color.Should().NotBe(rejectedBrush!.Color);
+        acceptedBrush.Should().NotBe(rejectedBrush);
     }
 
     [Fact]
     public void Convert_ForegroundMode_AcceptedAndRejected_HaveDifferentColors()
     {
-        var acceptedBrush = converter.Convert(MatchStatus.Accepted, typeof(object), "Foreground", string.Empty) as SolidColorBrush;
-        var rejectedBrush = converter.Convert(MatchStatus.Rejected, typeof(object), "Foreground", string.Empty) as SolidColorBrush;
+        var acceptedBrush = MatchStatusDisplayConverter.GetForegroundColor(MatchStatus.Accepted);
+        var rejectedBrush = MatchStatusDisplayConverter.GetForegroundColor(MatchStatus.Rejected);
 
-        acceptedBrush!.Color.Should().NotBe(rejectedBrush!.Color);
+        acceptedBrush.Should().NotBe(rejectedBrush);
     }
 
     [Fact]

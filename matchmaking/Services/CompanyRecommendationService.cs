@@ -10,10 +10,10 @@ namespace matchmaking.Services;
 public class CompanyRecommendationService
 {
     private readonly MatchService _matchService;
-    private readonly UserService _userService;
-    private readonly JobService _jobService;
-    private readonly SkillService _skillService;
-    private readonly JobSkillService _jobSkillService;
+    private readonly IUserService _userService;
+    private readonly IJobService _jobService;
+    private readonly ISkillService _skillService;
+    private readonly IJobSkillService _jobSkillService;
     private readonly RecommendationAlgorithm _algorithm;
 
     private List<UserApplicationResult> _queue = [];
@@ -21,10 +21,10 @@ public class CompanyRecommendationService
 
     public CompanyRecommendationService(
         MatchService matchService,
-        UserService userService,
-        JobService jobService,
-        SkillService skillService,
-        JobSkillService jobSkillService,
+        IUserService userService,
+        IJobService jobService,
+        ISkillService skillService,
+        IJobSkillService jobSkillService,
         RecommendationAlgorithm algorithm)
     {
         _matchService = matchService;

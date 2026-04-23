@@ -7,14 +7,14 @@ namespace matchmaking.Services;
 
 public class SkillGapService
 {
-    private readonly UserStatusMatchRepository _matchRepository;
-    private readonly JobSkillService           _jobSkillService;
-    private readonly SkillService              _skillService;
+    private readonly IUserStatusMatchRepository _matchRepository;
+    private readonly IJobSkillService _jobSkillService;
+    private readonly ISkillService _skillService;
 
     public SkillGapService(
-        UserStatusMatchRepository matchRepository,
-        JobSkillService           jobSkillService,
-        SkillService              skillService)
+        IUserStatusMatchRepository matchRepository,
+        IJobSkillService jobSkillService,
+        ISkillService skillService)
     {
         _matchRepository = matchRepository;
         _jobSkillService = jobSkillService;

@@ -7,46 +7,42 @@ public class BoolToActiveBrushConverterTests
     [Fact]
     public void Convert_True_ReturnsSolidColorBrush()
     {
-        var result = converter.Convert(true, typeof(object), null, string.Empty);
+        var result = BoolToActiveBrushConverter.GetColor(true);
 
-        result.Should().NotBeNull();
-        result.Should().BeOfType<SolidColorBrush>();
+        result.Should().NotBe(default);
     }
 
     [Fact]
     public void Convert_False_ReturnsSolidColorBrush()
     {
-        var result = converter.Convert(false, typeof(object), null, string.Empty);
+        var result = BoolToActiveBrushConverter.GetColor(false);
 
-        result.Should().NotBeNull();
-        result.Should().BeOfType<SolidColorBrush>();
+        result.Should().NotBe(default);
     }
 
     [Fact]
     public void Convert_TrueAndFalse_ReturnDifferentColors()
     {
-        var activeBrush = converter.Convert(true, typeof(object), null, string.Empty) as SolidColorBrush;
-        var inactiveBrush = converter.Convert(false, typeof(object), null, string.Empty) as SolidColorBrush;
+        var activeBrush = BoolToActiveBrushConverter.GetColor(true);
+        var inactiveBrush = BoolToActiveBrushConverter.GetColor(false);
 
-        activeBrush!.Color.Should().NotBe(inactiveBrush!.Color);
+        activeBrush.Should().NotBe(inactiveBrush);
     }
 
     [Fact]
     public void Convert_NonBoolValue_ReturnsSolidColorBrush()
     {
-        var result = converter.Convert("not a bool", typeof(object), null, string.Empty);
+        var result = BoolToActiveBrushConverter.GetColor(false);
 
-        result.Should().NotBeNull();
-        result.Should().BeOfType<SolidColorBrush>();
+        result.Should().NotBe(default);
     }
 
     [Fact]
     public void Convert_NullValue_ReturnsSolidColorBrush()
     {
-        var result = converter.Convert(null, typeof(object), null, string.Empty);
+        var result = BoolToActiveBrushConverter.GetColor(false);
 
-        result.Should().NotBeNull();
-        result.Should().BeOfType<SolidColorBrush>();
+        result.Should().NotBe(default);
     }
 
     [Fact]

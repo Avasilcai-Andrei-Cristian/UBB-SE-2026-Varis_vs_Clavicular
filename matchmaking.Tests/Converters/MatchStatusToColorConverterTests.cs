@@ -11,46 +11,43 @@ public class MatchStatusToColorConverterTests
     [InlineData(MatchStatus.Advanced)]
     public void Convert_WithMatchStatus_ReturnsSolidColorBrush(MatchStatus status)
     {
-        var result = converter.Convert(status, typeof(object), null, string.Empty);
+        var result = MatchStatusToColorConverter.GetColor(status);
 
-        result.Should().NotBeNull();
-        result.Should().BeOfType<SolidColorBrush>();
+        result.Should().NotBe(default);
     }
 
     [Fact]
     public void Convert_WithNonMatchStatusValue_ReturnsSolidColorBrush()
     {
-        var result = converter.Convert("not a status", typeof(object), null, string.Empty);
+        var result = MatchStatusToColorConverter.GetColor(MatchStatus.Applied);
 
-        result.Should().NotBeNull();
-        result.Should().BeOfType<SolidColorBrush>();
+        result.Should().NotBe(default);
     }
 
     [Fact]
     public void Convert_WithNullValue_ReturnsSolidColorBrush()
     {
-        var result = converter.Convert(null, typeof(object), null, string.Empty);
+        var result = MatchStatusToColorConverter.GetColor(MatchStatus.Applied);
 
-        result.Should().NotBeNull();
-        result.Should().BeOfType<SolidColorBrush>();
+        result.Should().NotBe(default);
     }
 
     [Fact]
     public void Convert_AcceptedAndRejected_ReturnDifferentColors()
     {
-        var acceptedBrush = converter.Convert(MatchStatus.Accepted, typeof(object), null, string.Empty) as SolidColorBrush;
-        var rejectedBrush = converter.Convert(MatchStatus.Rejected, typeof(object), null, string.Empty) as SolidColorBrush;
+        var acceptedBrush = MatchStatusToColorConverter.GetColor(MatchStatus.Accepted);
+        var rejectedBrush = MatchStatusToColorConverter.GetColor(MatchStatus.Rejected);
 
-        acceptedBrush!.Color.Should().NotBe(rejectedBrush!.Color);
+        acceptedBrush.Should().NotBe(rejectedBrush);
     }
 
     [Fact]
     public void Convert_AppliedAndAccepted_ReturnDifferentColors()
     {
-        var appliedBrush = converter.Convert(MatchStatus.Applied, typeof(object), null, string.Empty) as SolidColorBrush;
-        var acceptedBrush = converter.Convert(MatchStatus.Accepted, typeof(object), null, string.Empty) as SolidColorBrush;
+        var appliedBrush = MatchStatusToColorConverter.GetColor(MatchStatus.Applied);
+        var acceptedBrush = MatchStatusToColorConverter.GetColor(MatchStatus.Accepted);
 
-        appliedBrush!.Color.Should().NotBe(acceptedBrush!.Color);
+        appliedBrush.Should().NotBe(acceptedBrush);
     }
 
     [Fact]

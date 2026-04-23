@@ -5,10 +5,10 @@ namespace matchmaking.Services;
 
 public sealed class CooldownService
 {
-    private readonly SqlRecommendationRepository _recommendationRepository;
+    private readonly IRecommendationRepository _recommendationRepository;
     private readonly TimeSpan _cooldownPeriod;
 
-    public CooldownService(SqlRecommendationRepository recommendationRepository, TimeSpan cooldownPeriod)
+    public CooldownService(IRecommendationRepository recommendationRepository, TimeSpan cooldownPeriod)
     {
         _recommendationRepository = recommendationRepository;
         _cooldownPeriod = cooldownPeriod <= TimeSpan.Zero ? TimeSpan.FromHours(24) : cooldownPeriod;

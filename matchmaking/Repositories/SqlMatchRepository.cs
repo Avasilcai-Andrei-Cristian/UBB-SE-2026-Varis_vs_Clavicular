@@ -6,7 +6,7 @@ using matchmaking.Domain.Enums;
 
 namespace matchmaking.Repositories;
 
-public class SqlMatchRepository(string connectionString) : SqlRepositoryBase(connectionString)
+public class SqlMatchRepository(string connectionString) : SqlRepositoryBase(connectionString), IMatchRepository
 {
     public Match? GetById(int matchId)
     {

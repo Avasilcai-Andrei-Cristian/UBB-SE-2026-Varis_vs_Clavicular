@@ -10,10 +10,10 @@ namespace matchmaking.Services;
 
 public class MatchService
 {
-    private readonly SqlMatchRepository _matchRepository;
-    private readonly JobService _jobService;
+    private readonly IMatchRepository _matchRepository;
+    private readonly IJobService _jobService;
 
-    public MatchService(SqlMatchRepository matchRepository, JobService jobService)
+    public MatchService(IMatchRepository matchRepository, IJobService jobService)
     {
         _matchRepository = matchRepository;
         _jobService = jobService;
