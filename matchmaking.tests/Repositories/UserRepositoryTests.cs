@@ -1,102 +1,102 @@
 using System.Collections.Generic;
 using matchmaking.Domain.Entities;
 using matchmaking.Repositories;
+using FluentAssertions;
+using Xunit;
 
 namespace matchmaking.Tests;
 
-[TestFixture]
 public class UserRepositoryTests
 {
-    private UserRepository _repository = null!;
+    private readonly UserRepository repository = new ();
 
-    [SetUp]
-    public void Setup()
-    {
-        _repository = new UserRepository();
-    }
-
-    [Test]
+    [Fact]
     public void GetById_ExistingUserId_ReturnsUser()
     {
-        var result = _repository.GetById(1);
+        var result = repository.GetById(1);
 
-        Assert.That(result, Is.Not.Null);
-        Assert.That(result!.UserId, Is.EqualTo(1));
+        result.Should().NotBeNull();
+        result!.UserId.Should().Be(1);
     }
 
-    [Test]
+    [Fact]
     public void GetById_MissingUserId_ReturnsNull()
     {
-        var result = _repository.GetById(-1);
+        var result = repository.GetById(-1);
 
-        Assert.That(result, Is.Null);
+        result.Should().BeNull();
     }
 
-    [Test]
+    [Fact]
     public void GetAll_WhenCalled_ReturnsAllUsers()
     {
-        var result = _repository.GetAll();
+        var result = repository.GetAll();
 
-        Assert.That(result, Is.Not.Null);
-        Assert.That(result.Count, Is.EqualTo(20));
+        result.Should().HaveCount(20);
     }
 
-    [Test]
+    [Fact]
     public void Add_NewUser_AddsUserToRepository()
     {
         var newUser = CreateUser(1000);
 
-        _repository.Add(newUser);
-        var result = _repository.GetById(1000);
+        repository.Add(newUser);
+        var result = repository.GetById(1000);
 
-        Assert.That(result, Is.Not.Null);
-        Assert.That(result!.Name, Is.EqualTo("Test User"));
+        result.Should().NotBeNull();
+        result!.Name.Should().Be("Test User");
     }
 
-    [Test]
+    [Fact]
     public void Add_DuplicateUserId_ThrowsInvalidOperationException()
     {
         var duplicateUser = CreateUser(1);
 
-        Assert.Throws<InvalidOperationException>(() => _repository.Add(duplicateUser));
+        Action act = () => repository.Add(duplicateUser);
+
+        act.Should().Throw<InvalidOperationException>();
     }
 
-    [Test]
+    [Fact]
     public void Update_ExistingUser_UpdatesStoredUser()
     {
         var updatedUser = CreateUser(1);
         updatedUser.Name = "Updated Name";
         updatedUser.Location = "Updated City";
 
-        _repository.Update(updatedUser);
-        var result = _repository.GetById(1);
+        repository.Update(updatedUser);
+        var result = repository.GetById(1);
 
-        Assert.That(result, Is.Not.Null);
-        Assert.That(result!.Name, Is.EqualTo("Updated Name"));
-        Assert.That(result.Location, Is.EqualTo("Updated City"));
+        result.Should().NotBeNull();
+        result!.Name.Should().Be("Updated Name");
+        result.Location.Should().Be("Updated City");
     }
 
-    [Test]
+    [Fact]
     public void Update_MissingUser_ThrowsKeyNotFoundException()
     {
         var missingUser = CreateUser(9999);
 
-        Assert.Throws<KeyNotFoundException>(() => _repository.Update(missingUser));
+        Action act = () => repository.Update(missingUser);
+
+        act.Should().Throw<KeyNotFoundException>();
     }
 
-    [Test]
+    [Fact]
     public void Remove_ExistingUser_RemovesUserFromRepository()
     {
-        _repository.Remove(1);
-        var result = _repository.GetById(1);
+        repository.Remove(1);
+        var result = repository.GetById(1);
 
-        Assert.That(result, Is.Null);
+        result.Should().BeNull();
     }
 
-    [Test]
+    [Fact]
     public void Remove_MissingUser_ThrowsKeyNotFoundException()
     {
-        Assert.Throws<KeyNotFoundException>(() => _repository.Remove(9999));
+        Action act = () => repository.Remove(9999);
+
+        act.Should().Throw<KeyNotFoundException>();
     }
 
     private static User CreateUser(int userId)

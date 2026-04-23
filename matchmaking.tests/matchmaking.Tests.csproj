@@ -33,6 +33,11 @@
 
   <ItemGroup>
     <Compile Include="..\matchmaking\Repositories\IChatRepository.cs" Link="Repositories\IChatRepository.cs" />
+    <Compile Include="..\matchmaking\Repositories\CompanyRepository.cs" Link="Repositories\CompanyRepository.cs" />
+    <Compile Include="..\matchmaking\Repositories\JobRepository.cs" Link="Repositories\JobRepository.cs" />
+    <Compile Include="..\matchmaking\Repositories\JobSkillRepository.cs" Link="Repositories\JobSkillRepository.cs" />
+    <Compile Include="..\matchmaking\Repositories\SkillRepository.cs" Link="Repositories\SkillRepository.cs" />
+    <Compile Include="..\matchmaking\Repositories\UserRepository.cs" Link="Repositories\UserRepository.cs" />
     <Compile Include="..\matchmaking\Repositories\SqlRepositoryBase.cs" Link="Repositories\SqlRepositoryBase.cs" />
     <Compile Include="..\matchmaking\Repositories\SqlChatRepository.cs" Link="Repositories\SqlChatRepository.cs" />
     <Compile Include="..\matchmaking\Repositories\SqlMessageRepository.cs" Link="Repositories\SqlMessageRepository.cs" />
@@ -44,4 +49,5 @@
     <Compile Include="..\matchmaking\Repositories\UserStatusMatchRepository.cs" Link="Repositories\UserStatusMatchRepository.cs" />
     <Compile Include="..\matchmaking\Repositories\SqlConnectionTestRepository.cs" Link="Repositories\SqlConnectionTestRepository.cs" />
   </ItemGroup>
+
 </Project>
