@@ -9,9 +9,9 @@ internal sealed class FakeMatchRepository : IMatchRepository, IUserStatusMatchRe
         _matches = matches.ToList();
     }
 
-    public List<Match> InsertedMatches { get; } = [];
-    public List<Match> UpdatedMatches { get; } = [];
-    public List<int> RemovedIds { get; } = [];
+    public List<Match> InsertedMatches { get; } = new List<Match>();
+    public List<Match> UpdatedMatches { get; } = new List<Match>();
+    public List<int> RemovedIds { get; } = new List<int>();
 
     public Match? GetById(int matchId) => _matches.FirstOrDefault(item => item.MatchId == matchId);
     public IReadOnlyList<Match> GetAll() => _matches;
@@ -70,14 +70,14 @@ internal sealed class FakeRecommendationRepository : IRecommendationRepository
 
 internal sealed class FakeChatService : IChatService
 {
-    private readonly List<Chat> _chats = [];
-    private readonly Dictionary<int, List<Message>> _messagesByChatId = [];
+    private readonly List<Chat> _chats = new List<Chat>();
+    private readonly Dictionary<int, List<Message>> _messagesByChatId = new Dictionary<int, List<Message>>();
 
-    public List<(int ChatId, int SenderId, string Content, MessageType Type)> SentMessages { get; } = [];
-    public List<(int ChatId, int ReaderId)> MarkReadCalls { get; } = [];
-    public List<(int ChatId, int BlockerId)> BlockCalls { get; } = [];
-    public List<(int ChatId, int UnblockerId)> UnblockCalls { get; } = [];
-    public List<(int ChatId, int CallerId)> DeleteCalls { get; } = [];
+    public List<(int ChatId, int SenderId, string Content, MessageType Type)> SentMessages { get; } = new List<(int ChatId, int SenderId, string Content, MessageType Type)>();
+    public List<(int ChatId, int ReaderId)> MarkReadCalls { get; } = new List<(int ChatId, int ReaderId)>();
+    public List<(int ChatId, int BlockerId)> BlockCalls { get; } = new List<(int ChatId, int BlockerId)>();
+    public List<(int ChatId, int UnblockerId)> UnblockCalls { get; } = new List<(int ChatId, int UnblockerId)>();
+    public List<(int ChatId, int CallerId)> DeleteCalls { get; } = new List<(int ChatId, int CallerId)>();
 
     public Chat? FindOrCreateUserCompanyChat(int userId, int companyId, int? jobId = null)
     {
@@ -115,11 +115,11 @@ internal sealed class FakeChatService : IChatService
     {
         return _messagesByChatId.TryGetValue(chatId, out var messages)
             ? messages
-            : [];
+            : new List<Message>();
     }
 
-    public List<Company> SearchCompanies(string query) => [];
-    public List<User> SearchUsers(string query) => [];
+    public List<Company> SearchCompanies(string query) => new List<Company>();
+    public List<User> SearchUsers(string query) => new List<User>();
 
     public void SendMessage(int chatId, string content, int senderId, MessageType type)
     {
@@ -127,7 +127,7 @@ internal sealed class FakeChatService : IChatService
 
         if (!_messagesByChatId.TryGetValue(chatId, out var messages))
         {
-            messages = [];
+            messages = new List<Message>();
             _messagesByChatId[chatId] = messages;
         }
 
@@ -182,7 +182,7 @@ internal sealed class FakeTestingModuleAdapter : ITestingModuleAdapter
 
     public Task<TestResult?> GetResultForMatchAsync(int matchId) => Task.FromResult(_result);
     public Task<TestResult?> GetLatestResultForCandidateAsync(int externalUserId, int positionId) => Task.FromResult(_result);
-    public Task<IReadOnlyList<TestResult>> GetResultHistoryForCandidateAsync(int externalUserId, int positionId) => Task.FromResult<IReadOnlyList<TestResult>>(_result is null ? [] : [_result]);
+    public Task<IReadOnlyList<TestResult>> GetResultHistoryForCandidateAsync(int externalUserId, int positionId) => Task.FromResult<IReadOnlyList<TestResult>>(_result is null ? new List<TestResult>() : new List<TestResult> { _result });
 }
 
 internal sealed class FakeUserRepository : IUserRepository

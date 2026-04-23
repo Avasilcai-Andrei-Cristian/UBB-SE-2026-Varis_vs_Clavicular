@@ -2,6 +2,7 @@ global using System;
 global using System.Collections.ObjectModel;
 global using Xunit;
 global using FluentAssertions;
+global using matchmaking;
 global using matchmaking.ViewModels;
 global using matchmaking.algorithm;
 global using matchmaking.Converters;
