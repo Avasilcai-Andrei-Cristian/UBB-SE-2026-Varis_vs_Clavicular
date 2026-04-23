@@ -9,26 +9,26 @@ namespace matchmaking.Services;
 
 public class CompanyStatusService
 {
-    private readonly MatchService _matchService;
-    private readonly UserService _userService;
-    private readonly JobService _jobService;
-    private readonly SkillService _skillService;
+    private readonly MatchService matchService;
+    private readonly IUserService userService;
+    private readonly IJobService jobService;
+    private readonly ISkillService skillService;
 
     public CompanyStatusService(
         MatchService matchService,
-        UserService userService,
-        JobService jobService,
-        SkillService skillService)
+        IUserService userService,
+        IJobService jobService,
+        ISkillService skillService)
     {
-        _matchService = matchService;
-        _userService = userService;
-        _jobService = jobService;
-        _skillService = skillService;
+        this.matchService = matchService;
+        this.userService = userService;
+        this.jobService = jobService;
+        this.skillService = skillService;
     }
 
     public async Task<IReadOnlyList<UserApplicationResult>> GetApplicantsForCompanyAsync(int companyId)
     {
-        var matches = await _matchService.GetByCompanyIdAsync(companyId);
+        var matches = await matchService.GetByCompanyIdAsync(companyId);
         var visibleMatches = matches
             .Where(match => match.Status is MatchStatus.Accepted or MatchStatus.Rejected or MatchStatus.Advanced)
             .ToList();
@@ -37,14 +37,14 @@ public class CompanyStatusService
 
         foreach (var match in visibleMatches)
         {
-            var user = _userService.GetById(match.UserId);
-            var job = _jobService.GetById(match.JobId);
+            var user = userService.GetById(match.UserId);
+            var job = jobService.GetById(match.JobId);
             if (user is null || job is null)
             {
                 continue;
             }
 
-            var userSkills = _skillService.GetByUserId(user.UserId);
+            var userSkills = skillService.GetByUserId(user.UserId);
             var result = BuildResult(match, user, job, userSkills);
             results.Add(result);
         }

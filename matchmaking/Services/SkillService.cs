@@ -6,18 +6,18 @@ namespace matchmaking.Services;
 
 public class SkillService : ISkillService
 {
-    private readonly ISkillRepository _skillRepository;
+    private readonly ISkillRepository skillRepository;
 
     public SkillService(ISkillRepository skillRepository)
     {
-        _skillRepository = skillRepository;
+        this.skillRepository = skillRepository;
     }
 
-    public Skill? GetById(int userId, int skillId) => _skillRepository.GetById(userId, skillId);
-    public IReadOnlyList<Skill> GetAll() => _skillRepository.GetAll();
-    public IReadOnlyList<Skill> GetByUserId(int userId) => _skillRepository.GetByUserId(userId);
-    public IReadOnlyList<(int SkillId, string Name)> GetDistinctSkillCatalog() => _skillRepository.GetDistinctSkillCatalog();
-    public void Add(Skill skill) => _skillRepository.Add(skill);
-    public void Update(Skill skill) => _skillRepository.Update(skill);
-    public void Remove(int userId, int skillId) => _skillRepository.Remove(userId, skillId);
+    public Skill? GetById(int userId, int skillId) => skillRepository.GetById(userId, skillId);
+    public IReadOnlyList<Skill> GetAll() => skillRepository.GetAll();
+    public IReadOnlyList<Skill> GetByUserId(int userId) => skillRepository.GetByUserId(userId);
+    public IReadOnlyList<(int SkillId, string Name)> GetDistinctSkillCatalog() => skillRepository.GetDistinctSkillCatalog();
+    public void Add(Skill skill) => skillRepository.Add(skill);
+    public void Update(Skill skill) => skillRepository.Update(skill);
+    public void Remove(int userId, int skillId) => skillRepository.Remove(userId, skillId);
 }

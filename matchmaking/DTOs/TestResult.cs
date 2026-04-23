@@ -14,12 +14,11 @@ public class TestResult
     public MatchStatus Decision { get; set; }
     public string FeedbackMessage { get; set; } = string.Empty;
 
-   
     public TestDefinitionRecord? Test { get; set; }
     public TestAttemptRecord? Attempt { get; set; }
     public InterviewSessionRecord? InterviewSession { get; set; }
-    public IReadOnlyList<QuestionRecord> Questions { get; set; } = [];
+    public IReadOnlyList<QuestionRecord> Questions { get; set; } = new List<QuestionRecord>();
 
     public bool IsValid { get; set; }
-    public IReadOnlyList<string> ValidationErrors { get; set; } = [];
+    public IReadOnlyList<string> ValidationErrors { get; set; } = new List<string>();
 }

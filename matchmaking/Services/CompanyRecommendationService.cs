@@ -9,45 +9,45 @@ namespace matchmaking.Services;
 
 public class CompanyRecommendationService
 {
-    private readonly MatchService _matchService;
-    private readonly UserService _userService;
-    private readonly JobService _jobService;
-    private readonly SkillService _skillService;
-    private readonly JobSkillService _jobSkillService;
-    private readonly RecommendationAlgorithm _algorithm;
+    private readonly MatchService matchService;
+    private readonly IUserService userService;
+    private readonly IJobService jobService;
+    private readonly ISkillService skillService;
+    private readonly IJobSkillService jobSkillService;
+    private readonly RecommendationAlgorithm algorithm;
 
-    private List<UserApplicationResult> _queue = [];
-    private int _currentIndex;
+    private List<UserApplicationResult> queue = new List<UserApplicationResult>();
+    private int currentIndex;
 
     public CompanyRecommendationService(
         MatchService matchService,
-        UserService userService,
-        JobService jobService,
-        SkillService skillService,
-        JobSkillService jobSkillService,
+        IUserService userService,
+        IJobService jobService,
+        ISkillService skillService,
+        IJobSkillService jobSkillService,
         RecommendationAlgorithm algorithm)
     {
-        _matchService = matchService;
-        _userService = userService;
-        _jobService = jobService;
-        _skillService = skillService;
-        _jobSkillService = jobSkillService;
-        _algorithm = algorithm;
+        this.matchService = matchService;
+        this.userService = userService;
+        this.jobService = jobService;
+        this.skillService = skillService;
+        this.jobSkillService = jobSkillService;
+        this.algorithm = algorithm;
     }
 
     public void LoadApplicants(int companyId)
     {
-        var companyJobs = _jobService.GetByCompanyId(companyId);
+        var companyJobs = jobService.GetByCompanyId(companyId);
         var companyJobIds = companyJobs.Select(j => j.JobId).ToHashSet();
 
         if (companyJobIds.Count == 0)
         {
-            _queue = [];
-            _currentIndex = 0;
+            queue = new List<UserApplicationResult>();
+            currentIndex = 0;
             return;
         }
 
-        var allMatches = _matchService.GetAllMatches();
+        var allMatches = matchService.GetAllMatches();
         var appliedMatches = allMatches
             .Where(m => m.Status == MatchStatus.Applied && companyJobIds.Contains(m.JobId))
             .ToList();
@@ -55,17 +55,17 @@ public class CompanyRecommendationService
         var results = new List<UserApplicationResult>();
         foreach (var match in appliedMatches)
         {
-            var user = _userService.GetById(match.UserId);
-            var job = _jobService.GetById(match.JobId);
+            var user = userService.GetById(match.UserId);
+            var job = jobService.GetById(match.JobId);
             if (user is null || job is null)
             {
                 continue;
             }
 
-            var userSkills = _skillService.GetByUserId(user.UserId).ToList();
+            var userSkills = skillService.GetByUserId(user.UserId).ToList();
             var jobSkills = MapJobSkillsToSkills(job.JobId);
 
-            var score = _algorithm.CalculateCompatibilityScore(user, job, userSkills, jobSkills);
+            var score = algorithm.CalculateCompatibilityScore(user, job, userSkills, jobSkills);
 
             results.Add(new UserApplicationResult
             {
@@ -78,40 +78,40 @@ public class CompanyRecommendationService
             });
         }
 
-        _queue = results.OrderByDescending(r => r.CompatibilityScore).ToList();
-        _currentIndex = 0;
+        queue = results.OrderByDescending(r => r.CompatibilityScore).ToList();
+        currentIndex = 0;
     }
 
     public UserApplicationResult? GetNextApplicant()
     {
-        if (_currentIndex >= _queue.Count)
+        if (currentIndex >= queue.Count)
         {
             return null;
         }
 
-        return _queue[_currentIndex];
+        return queue[currentIndex];
     }
 
     public void MoveToNext()
     {
-        _currentIndex++;
+        currentIndex++;
     }
 
     public void MoveToPrevious()
     {
-        if (_currentIndex > 0)
+        if (currentIndex > 0)
         {
-            _currentIndex--;
+            currentIndex--;
         }
     }
 
-    public bool HasMore => _currentIndex < _queue.Count;
+    public bool HasMore => currentIndex < queue.Count;
 
     public CompatibilityBreakdown? GetBreakdown(UserApplicationResult applicant)
     {
         var jobSkills = MapJobSkillsToSkills(applicant.Job.JobId);
 
-        return _algorithm.CalculateScoreBreakdown(
+        return algorithm.CalculateScoreBreakdown(
             applicant.User,
             applicant.Job,
             applicant.UserSkills.ToList(),
@@ -120,7 +120,7 @@ public class CompanyRecommendationService
 
     private List<Skill> MapJobSkillsToSkills(int jobId)
     {
-        return _jobSkillService.GetByJobId(jobId)
+        return jobSkillService.GetByJobId(jobId)
             .Select(js => new Skill { SkillId = js.SkillId, SkillName = js.SkillName, Score = js.Score })
             .ToList();
     }

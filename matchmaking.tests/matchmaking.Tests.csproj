@@ -1,0 +1,47 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
+    <UseWinUI>true</UseWinUI>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <IsPackable>false</IsPackable>
+    <Platform Condition="'$(Platform)' == 'AnyCPU'">x64</Platform>
+    <Platforms>x86;x64;ARM64</Platforms>
+    <RuntimeIdentifiers>win-x86;win-x64;win-arm64</RuntimeIdentifiers>
+    <CodeAnalysisRuleSet>..\SE.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Data.SqlClient" Version="5.2.2" />
+    <PackageReference Include="coverlet.collector" Version="6.0.4" />
+    <PackageReference Include="FluentAssertions" Version="6.12.1" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
+    <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.8.260317003" />
+    <PackageReference Include="StyleCop.Analyzers" Version="1.1.118">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="xunit" Version="2.9.2" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\matchmaking.core\matchmaking.core.csproj" />
+    <ProjectReference Include="..\matchmaking.ui\matchmaking.ui.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\matchmaking\Repositories\IChatRepository.cs" Link="Repositories\IChatRepository.cs" />
+    <Compile Include="..\matchmaking\Repositories\SqlRepositoryBase.cs" Link="Repositories\SqlRepositoryBase.cs" />
+    <Compile Include="..\matchmaking\Repositories\SqlChatRepository.cs" Link="Repositories\SqlChatRepository.cs" />
+    <Compile Include="..\matchmaking\Repositories\SqlMessageRepository.cs" Link="Repositories\SqlMessageRepository.cs" />
+    <Compile Include="..\matchmaking\Repositories\SqlDeveloperRepository.cs" Link="Repositories\SqlDeveloperRepository.cs" />
+    <Compile Include="..\matchmaking\Repositories\SqlPostRepository.cs" Link="Repositories\SqlPostRepository.cs" />
+    <Compile Include="..\matchmaking\Repositories\SqlInteractionRepository.cs" Link="Repositories\SqlInteractionRepository.cs" />
+    <Compile Include="..\matchmaking\Repositories\SqlRecommendationRepository.cs" Link="Repositories\SqlRecommendationRepository.cs" />
+    <Compile Include="..\matchmaking\Repositories\SqlMatchRepository.cs" Link="Repositories\SqlMatchRepository.cs" />
+    <Compile Include="..\matchmaking\Repositories\UserStatusMatchRepository.cs" Link="Repositories\UserStatusMatchRepository.cs" />
+    <Compile Include="..\matchmaking\Repositories\SqlConnectionTestRepository.cs" Link="Repositories\SqlConnectionTestRepository.cs" />
+  </ItemGroup>
+</Project>

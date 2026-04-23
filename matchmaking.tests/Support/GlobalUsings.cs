@@ -1,0 +1,11 @@
+global using System;
+global using Xunit;
+global using FluentAssertions;
+global using matchmaking.Converters;
+global using matchmaking.Domain.Enums;
+global using matchmaking.Domain.Entities;
+global using matchmaking.Repositories;
+global using matchmaking.Services;
+global using matchmaking.Views.Converters;
+global using Microsoft.UI.Xaml;
+global using Microsoft.UI.Xaml.Media;

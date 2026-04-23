@@ -1,0 +1,54 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+    <CodeAnalysisRuleSet>..\SE.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="StyleCop.Analyzers" Version="1.1.118">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <Compile Include="..\matchmaking\Domain\**\*.cs" LinkBase="Domain" />
+    <Compile Include="..\matchmaking\DTOs\**\*.cs" LinkBase="DTOs" />
+    <Compile Include="..\matchmaking\Models\**\*.cs" LinkBase="Models" />
+    <Compile Include="..\matchmaking\algorithm\RecommendationAlgorithm.cs" Link="algorithm\RecommendationAlgorithm.cs" />
+    <Compile Include="..\matchmaking\algorithm\IRecommendationAlgorithm.cs" Link="algorithm\IRecommendationAlgorithm.cs" />
+    <Compile Include="..\matchmaking\Repositories\ICompanyRepository.cs" Link="Repositories\ICompanyRepository.cs" />
+    <Compile Include="..\matchmaking\Repositories\IConnectionTestRepository.cs" Link="Repositories\IConnectionTestRepository.cs" />
+    <Compile Include="..\matchmaking\Repositories\IDeveloperRepository.cs" Link="Repositories\IDeveloperRepository.cs" />
+    <Compile Include="..\matchmaking\Repositories\IInteractionRepository.cs" Link="Repositories\IInteractionRepository.cs" />
+    <Compile Include="..\matchmaking\Repositories\IJobRepository.cs" Link="Repositories\IJobRepository.cs" />
+    <Compile Include="..\matchmaking\Repositories\IJobSkillRepository.cs" Link="Repositories\IJobSkillRepository.cs" />
+    <Compile Include="..\matchmaking\Repositories\IMatchRepository.cs" Link="Repositories\IMatchRepository.cs" />
+    <Compile Include="..\matchmaking\Repositories\IMessageRepository.cs" Link="Repositories\IMessageRepository.cs" />
+    <Compile Include="..\matchmaking\Repositories\IPostRepository.cs" Link="Repositories\IPostRepository.cs" />
+    <Compile Include="..\matchmaking\Repositories\IRecommendationRepository.cs" Link="Repositories\IRecommendationRepository.cs" />
+    <Compile Include="..\matchmaking\Repositories\ISkillRepository.cs" Link="Repositories\ISkillRepository.cs" />
+    <Compile Include="..\matchmaking\Repositories\IUserRepository.cs" Link="Repositories\IUserRepository.cs" />
+    <Compile Include="..\matchmaking\Repositories\IUserStatusMatchRepository.cs" Link="Repositories\IUserStatusMatchRepository.cs" />
+    <Compile Include="..\matchmaking\Services\CompanyRecommendationService.cs" Link="Services\CompanyRecommendationService.cs" />
+    <Compile Include="..\matchmaking\Services\CompanyStatusService.cs" Link="Services\CompanyStatusService.cs" />
+    <Compile Include="..\matchmaking\Services\CooldownService.cs" Link="Services\CooldownService.cs" />
+    <Compile Include="..\matchmaking\Services\JobService.cs" Link="Services\JobService.cs" />
+    <Compile Include="..\matchmaking\Services\JobSkillService.cs" Link="Services\JobSkillService.cs" />
+    <Compile Include="..\matchmaking\Services\MatchService.cs" Link="Services\MatchService.cs" />
+    <Compile Include="..\matchmaking\Services\SkillGapService.cs" Link="Services\SkillGapService.cs" />
+    <Compile Include="..\matchmaking\Services\SkillService.cs" Link="Services\SkillService.cs" />
+    <Compile Include="..\matchmaking\Services\UserRecommendationService.cs" Link="Services\UserRecommendationService.cs" />
+    <Compile Include="..\matchmaking\Services\UserStatusService.cs" Link="Services\UserStatusService.cs" />
+    <Compile Include="..\matchmaking\Services\CompanyService.cs" Link="Services\CompanyService.cs" />
+    <Compile Include="..\matchmaking\Services\DeveloperService.cs" Link="Services\DeveloperService.cs" />
+    <Compile Include="..\matchmaking\Services\UserService.cs" Link="Services\UserService.cs" />
+    <Compile Include="..\matchmaking\Services\NavigationService.cs" Link="Services\NavigationService.cs" />
+    <Compile Include="..\matchmaking\Services\ICompanyService.cs" Link="Services\ICompanyService.cs" />
+    <Compile Include="..\matchmaking\Services\IDeveloperService.cs" Link="Services\IDeveloperService.cs" />
+    <Compile Include="..\matchmaking\Services\IJobService.cs" Link="Services\IJobService.cs" />
+    <Compile Include="..\matchmaking\Services\IJobSkillService.cs" Link="Services\IJobSkillService.cs" />
+    <Compile Include="..\matchmaking\Services\ISkillService.cs" Link="Services\ISkillService.cs" />
+    <Compile Include="..\matchmaking\Services\IUserService.cs" Link="Services\IUserService.cs" />
+  </ItemGroup>
+</Project>

@@ -6,16 +6,16 @@ namespace matchmaking.Services;
 
 public class CompanyService : ICompanyService
 {
-    private readonly ICompanyRepository _companyRepository;
+    private readonly ICompanyRepository companyRepository;
 
     public CompanyService(ICompanyRepository companyRepository)
     {
-        _companyRepository = companyRepository;
+        this.companyRepository = companyRepository;
     }
 
-    public Company? GetById(int companyId) => _companyRepository.GetById(companyId);
-    public IReadOnlyList<Company> GetAll() => _companyRepository.GetAll();
-    public void Add(Company company) => _companyRepository.Add(company);
-    public void Update(Company company) => _companyRepository.Update(company);
-    public void Remove(int companyId) => _companyRepository.Remove(companyId);
+    public Company? GetById(int companyId) => companyRepository.GetById(companyId);
+    public IReadOnlyList<Company> GetAll() => companyRepository.GetAll();
+    public void Add(Company company) => companyRepository.Add(company);
+    public void Update(Company company) => companyRepository.Update(company);
+    public void Remove(int companyId) => companyRepository.Remove(companyId);
 }
