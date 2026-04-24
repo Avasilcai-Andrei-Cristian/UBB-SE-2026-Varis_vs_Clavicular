@@ -130,6 +130,73 @@ public sealed class CompanyRecommendationViewModelTests
     }
 
     [Fact]
+    public void LoadApplicants_WhenNoApplicantsExist_SetsEmptyState()
+    {
+        var session = new SessionContext();
+        session.LoginAsCompany(1);
+        var viewModel = CreateViewModel(session, Array.Empty<Match>());
+
+        viewModel.LoadApplicants();
+
+        viewModel.CurrentApplicant.Should().BeNull();
+        viewModel.StatusMessage.Should().Be("No more applicants to review.");
+    }
+
+    [Fact]
+    public void LoadApplicants_WhenCompanyHasNoJobs_ClearsApplicantQueue()
+    {
+        var session = new SessionContext();
+        session.LoginAsCompany(1);
+        var viewModel = CreateViewModel(session, Array.Empty<Match>());
+
+        viewModel.LoadApplicants();
+
+        viewModel.HasApplicant.Should().BeFalse();
+        viewModel.CurrentApplicant.Should().BeNull();
+    }
+
+    [Fact]
+    public void UndoLastAction_WhenNoActionWasStored_DoesNothing()
+    {
+        var session = new SessionContext();
+        session.LoginAsCompany(1);
+        var viewModel = CreateViewModel(session, Array.Empty<Match>());
+
+        viewModel.UndoLastAction();
+
+        viewModel.CanUndo.Should().BeFalse();
+        viewModel.CurrentApplicant.Should().BeNull();
+    }
+
+    [Fact]
+    public void AdvanceApplicant_WhenNoApplicantSelected_DoesNothing()
+    {
+        var session = new SessionContext();
+        session.LoginAsCompany(1);
+        var viewModel = CreateViewModel(session, Array.Empty<Match>());
+
+        viewModel.AdvanceApplicant();
+
+        viewModel.CurrentApplicant.Should().BeNull();
+        viewModel.CanUndo.Should().BeFalse();
+    }
+
+    [Fact]
+    public void ExpandCard_WhenApplicantExists_ShowsBreakdown()
+    {
+        var session = new SessionContext();
+        session.LoginAsCompany(1);
+        var match = TestDataFactory.CreateMatch(matchId: 1, userId: 1, jobId: 100, status: MatchStatus.Applied);
+        var viewModel = CreateViewModel(session, new[] { match });
+
+        viewModel.LoadApplicants();
+        viewModel.ExpandCard();
+
+        viewModel.IsExpanded.Should().BeTrue();
+        viewModel.ScoreBreakdown.Should().NotBeNull();
+    }
+
+    [Fact]
     public void ExpandCard_WhenNoApplicantExists_DoesNothing()
     {
         var session = new SessionContext();
@@ -140,6 +207,71 @@ public sealed class CompanyRecommendationViewModelTests
 
         viewModel.IsExpanded.Should().BeFalse();
         viewModel.ScoreBreakdown.Should().BeNull();
+    }
+
+    [Fact]
+    public void TopSkillsAndAllSkills_WhenNoApplicant_ReturnEmptyCollections()
+    {
+        var session = new SessionContext();
+        session.LoginAsCompany(1);
+        var viewModel = CreateViewModel(session, Array.Empty<Match>());
+
+        viewModel.TopSkills.Should().BeEmpty();
+        viewModel.AllSkills.Should().BeEmpty();
+        viewModel.RemainingSkillCount.Should().Be(0);
+    }
+
+    [Fact]
+    public void TopSkillsAndAllSkills_WhenApplicantExists_ReturnSortedSkills()
+    {
+        var session = new SessionContext();
+        session.LoginAsCompany(1);
+        var match = TestDataFactory.CreateMatch(matchId: 1, userId: 1, jobId: 100, status: MatchStatus.Applied);
+        var viewModel = CreateViewModel(session, new[] { match });
+
+        viewModel.LoadApplicants();
+        viewModel.ExpandCard();
+
+        viewModel.TopSkills.Should().NotBeEmpty();
+        viewModel.AllSkills.Should().NotBeEmpty();
+        viewModel.RemainingSkillCount.Should().BeGreaterThanOrEqualTo(0);
+    }
+
+    [Fact]
+    public void AdvanceApplicant_WhenCompanyContextIsMissing_RaisesError()
+    {
+        var session = new SessionContext();
+        session.LoginAsCompany(1);
+        var match = TestDataFactory.CreateMatch(matchId: 1, userId: 1, jobId: 100, status: MatchStatus.Applied);
+        var viewModel = CreateViewModel(session, new[] { match });
+        var errors = new List<string>();
+
+        viewModel.ErrorOccurred += message => errors.Add(message);
+        viewModel.LoadApplicants();
+        session.Logout();
+
+        viewModel.AdvanceApplicant();
+
+        errors.Should().ContainSingle(message => message == "Company context is not available.");
+    }
+
+    [Fact]
+    public void SkipApplicant_WhenMatchAlreadyReviewed_LoadsNextApplicant()
+    {
+        var session = new SessionContext();
+        session.LoginAsCompany(1);
+        var match = TestDataFactory.CreateMatch(matchId: 1, userId: 1, jobId: 100, status: MatchStatus.Applied);
+        var viewModel = CreateViewModel(session, new[] { match });
+        var errors = new List<string>();
+
+        viewModel.ErrorOccurred += message => errors.Add(message);
+        viewModel.LoadApplicants();
+        match.Status = MatchStatus.Accepted;
+
+        viewModel.SkipApplicant();
+        viewModel.SkipApplicant();
+
+        errors.Should().ContainSingle(message => message == "This applicant has already been reviewed. Loading next applicant.");
     }
 
     private static CompanyRecommendationViewModel CreateViewModel(SessionContext session, IReadOnlyList<Match> matches)

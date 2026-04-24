@@ -23,12 +23,77 @@ public sealed class DeveloperViewModelTests
     }
 
     [Fact]
+    public void ValidateDeveloperPostInput_WhenKeywordIsLowercase_ReturnsNull()
+    {
+        var viewModel = CreateViewModel();
+
+        var result = viewModel.ValidateDeveloperPostInput("relevant keyword", "csharp");
+
+        result.Should().BeNull();
+    }
+
+    [Fact]
+    public void ValidateDeveloperPostInput_WhenWeightIsOutOfRange_ReturnsError()
+    {
+        var viewModel = CreateViewModel();
+
+        var result = viewModel.ValidateDeveloperPostInput("weight", "101");
+
+        result.Should().Be("Weight value must be a number between 0 and 100.");
+    }
+
+    [Fact]
     public void RefreshPosts_WhenCalled_RebuildsPostsCollection()
     {
         var service = CreateService();
         var viewModel = new DeveloperViewModel(service, CreateSession());
 
         viewModel.Posts.Should().ContainSingle();
+    }
+
+    [Fact]
+    public void AddDeveloperPost_WhenSessionIsMissing_Throws()
+    {
+        var viewModel = new DeveloperViewModel(CreateService(), new SessionContext());
+
+        Action act = () => viewModel.AddDeveloperPost("weight", "10");
+
+        act.Should().Throw<InvalidOperationException>().WithMessage("No developer session is active.");
+    }
+
+    [Fact]
+    public void HandleLikePost_WhenNoInteractionExists_AddsLike()
+    {
+        var service = CreateService();
+        var viewModel = new DeveloperViewModel(service, CreateSession());
+
+        viewModel.HandleLikePost(1);
+
+        viewModel.Posts.Should().ContainSingle(post => post.PostId == 1 && post.LikeCount == 1 && post.IsLikedByCurrentUser);
+    }
+
+    [Fact]
+    public void HandleLikePost_WhenLikeAlreadyExists_RemovesLike()
+    {
+        var service = CreateService();
+        var viewModel = new DeveloperViewModel(service, CreateSession());
+
+        viewModel.HandleLikePost(1);
+        viewModel.HandleLikePost(1);
+
+        viewModel.Posts.Should().ContainSingle(post => post.PostId == 1 && post.LikeCount == 0 && !post.IsLikedByCurrentUser);
+    }
+
+    [Fact]
+    public void HandleDislikePost_WhenLikeExists_SwitchesToDislike()
+    {
+        var service = CreateService();
+        var viewModel = new DeveloperViewModel(service, CreateSession());
+
+        viewModel.HandleLikePost(1);
+        viewModel.HandleDislikePost(1);
+
+        viewModel.Posts.Should().ContainSingle(post => post.PostId == 1 && post.DislikeCount == 1 && post.IsDislikedByCurrentUser);
     }
 
     private static DeveloperViewModel CreateViewModel()
@@ -85,10 +150,13 @@ public sealed class DeveloperViewModelTests
         public void Add(Interaction interaction) => _interactions.Add(interaction);
         public void Update(Interaction interaction)
         {
+            var index = _interactions.FindIndex(item => item.InteractionId == interaction.InteractionId);
+            if (index >= 0)
+            {
+                _interactions[index] = interaction;
+            }
         }
 
-        public void Remove(int interactionId)
-        {
-        }
+        public void Remove(int interactionId) => _interactions.RemoveAll(item => item.InteractionId == interactionId);
     }
 }

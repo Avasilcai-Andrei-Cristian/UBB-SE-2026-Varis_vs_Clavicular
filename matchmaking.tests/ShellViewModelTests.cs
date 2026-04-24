@@ -21,6 +21,30 @@ public sealed class ShellViewModelTests
     }
 
     [Fact]
+    public void ActivePage_WhenSetToChat_UpdatesDerivedFlags()
+    {
+        var viewModel = new ShellViewModel(() => { }, () => { }, () => { });
+
+        viewModel.ActivePage = "Chat";
+
+        viewModel.IsChatActive.Should().BeTrue();
+        viewModel.IsRecommendationsActive.Should().BeFalse();
+        viewModel.IsMyStatusActive.Should().BeFalse();
+    }
+
+    [Fact]
+    public void ActivePage_WhenSetToMyStatus_UpdatesDerivedFlags()
+    {
+        var viewModel = new ShellViewModel(() => { }, () => { }, () => { });
+
+        viewModel.ActivePage = "MyStatus";
+
+        viewModel.IsMyStatusActive.Should().BeTrue();
+        viewModel.IsRecommendationsActive.Should().BeFalse();
+        viewModel.IsChatActive.Should().BeFalse();
+    }
+
+    [Fact]
     public void Commands_WhenExecuted_InvokeProvidedActions()
     {
         var recommendationsCalled = 0;

@@ -130,6 +130,37 @@ public sealed class ChatViewModelTests
     }
 
     [Fact]
+    public async Task DownloadAttachmentAsync_WhenSourceFileExists_CopiesFile()
+    {
+        var session = new SessionContext();
+        session.LoginAsUser(1);
+        var viewModel = CreateViewModel(session);
+        var source = Path.GetTempFileName();
+        var target = Path.ChangeExtension(Path.GetTempFileName(), ".txt");
+
+        try
+        {
+            File.WriteAllText(source, "hello");
+
+            await viewModel.DownloadAttachmentAsync(new Message { Type = MessageType.File, Content = source }, target);
+
+            File.Exists(target).Should().BeTrue();
+        }
+        finally
+        {
+            if (File.Exists(source))
+            {
+                File.Delete(source);
+            }
+
+            if (File.Exists(target))
+            {
+                File.Delete(target);
+            }
+        }
+    }
+
+    [Fact]
     public void SearchContacts_WhenUserModeAndUsersTab_AddsMatchingChats()
     {
         var session = new SessionContext();
@@ -142,6 +173,21 @@ public sealed class ChatViewModelTests
         viewModel.SearchContacts();
 
         viewModel.SearchResults.OfType<Chat>().Should().ContainSingle(chat => chat.ChatId == 1);
+    }
+
+    [Fact]
+    public void SearchContacts_WhenCompanyMode_AddsMatchingUserChats()
+    {
+        var session = new SessionContext();
+        session.LoginAsCompany(1);
+        var viewModel = CreateViewModel(session);
+        SeedChats(viewModel, out _);
+
+        viewModel.LoadChats();
+        viewModel.SearchQuery = "Alice";
+        viewModel.SearchContacts();
+
+        viewModel.SearchResults.Should().NotBeEmpty();
     }
 
     [Fact]
@@ -210,6 +256,268 @@ public sealed class ChatViewModelTests
         viewModel.SelectedChat.Should().BeNull();
     }
 
+    [Fact]
+    public void LoadChats_WhenCallerIsCompany_LoadsCompanyChats()
+    {
+        var session = new SessionContext();
+        session.LoginAsCompany(1);
+        var viewModel = CreateViewModel(session);
+        SeedChats(viewModel, out _);
+
+        viewModel.LoadChats();
+
+        viewModel.Chats.Should().ContainSingle(chat => chat.CompanyId == 1);
+        viewModel.CurrentChatList.Should().BeSameAs(viewModel.Chats);
+    }
+
+    [Fact]
+    public void IsUsersTabActive_WhenToggledOnUserMode_SwitchesTabs()
+    {
+        var session = new SessionContext();
+        session.LoginAsUser(1);
+        var viewModel = CreateViewModel(session);
+
+        viewModel.IsUsersTabActive = true;
+
+        viewModel.ActiveTab.Should().Be("Users");
+    }
+
+    [Fact]
+    public void IsCompaniesTabActive_WhenToggledOnUserMode_SwitchesTabs()
+    {
+        var session = new SessionContext();
+        session.LoginAsUser(1);
+        var viewModel = CreateViewModel(session);
+
+        viewModel.IsCompaniesTabActive = true;
+
+        viewModel.ActiveTab.Should().Be("Company");
+    }
+
+    [Fact]
+    public void HandleAttachmentSelected_WhenFileExtensionSelected_QueuesFileMessage()
+    {
+        var session = new SessionContext();
+        session.LoginAsUser(1);
+        var viewModel = CreateViewModel(session);
+        var chat = SeedChats(viewModel, out var chatService);
+
+        var source = Path.GetTempFileName();
+        var target = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid():N}.pdf");
+
+        try
+        {
+            File.WriteAllText(source, "test");
+            viewModel.LoadChats();
+            viewModel.SelectChat(chat);
+            viewModel.HandleAttachmentSelected(source, ".pdf");
+
+            chatService.SentMessages.Should().ContainSingle(message => message.Type == MessageType.File);
+        }
+        finally
+        {
+            if (File.Exists(source))
+            {
+                File.Delete(source);
+            }
+
+            if (File.Exists(target))
+            {
+                File.Delete(target);
+            }
+        }
+    }
+
+    [Fact]
+    public void StartCompanyChat_WhenSessionIsUserMode_CreatesCompanyChat()
+    {
+        var session = new SessionContext();
+        session.LoginAsUser(1);
+        var viewModel = CreateViewModel(session);
+        SeedChats(viewModel, out _);
+
+        viewModel.StartCompanyChat(1, 2);
+
+        viewModel.SelectedChat.Should().NotBeNull();
+        viewModel.ActiveTab.Should().Be("Company");
+    }
+
+    [Fact]
+    public void StartChat_WhenSelectedResultIsCompany_CreatesCompanyChat()
+    {
+        var session = new SessionContext();
+        session.LoginAsUser(1);
+        var viewModel = CreateViewModel(session);
+        SeedChats(viewModel, out _);
+
+        viewModel.StartChat(new Company { CompanyId = 1, CompanyName = "TechNova" });
+
+        viewModel.SelectedChat.Should().NotBeNull();
+        viewModel.SearchQuery.Should().BeNull();
+    }
+
+    [Fact]
+    public void GoToCompanyProfile_WhenCompanyChatSelected_RaisesEvent()
+    {
+        var session = new SessionContext();
+        session.LoginAsUser(1);
+        var navigationService = new NavigationService();
+        var requestedCompanyId = -1;
+        navigationService.CompanyProfileRequested += id => requestedCompanyId = id;
+        var viewModel = CreateViewModel(session, navigationService);
+        var chat = SeedChats(viewModel, out _);
+
+        viewModel.LoadChats();
+        viewModel.SelectChat(ChatServiceChat(viewModel, 2));
+        viewModel.GoToCompanyProfile();
+
+        requestedCompanyId.Should().Be(1);
+    }
+
+    [Fact]
+    public void GoToJobPost_WhenChatHasJob_RaisesEvent()
+    {
+        var session = new SessionContext();
+        session.LoginAsUser(1);
+        var navigationService = new NavigationService();
+        var requestedJobId = -1;
+        navigationService.JobPostRequested += id => requestedJobId = id;
+        var viewModel = CreateViewModel(session, navigationService);
+        var chat = SeedChats(viewModel, out _);
+
+        viewModel.LoadChats();
+        viewModel.SelectChat(chat);
+        viewModel.GoToJobPost();
+
+        requestedJobId.Should().Be(2);
+    }
+
+    [Fact]
+    public void GoToProfile_WhenSelectedChatIsMissingUserId_DoesNothing()
+    {
+        var session = new SessionContext();
+        session.LoginAsUser(1);
+        var navigationService = new NavigationService();
+        var requestedUserId = -1;
+        navigationService.UserProfileRequested += id => requestedUserId = id;
+        var viewModel = CreateViewModel(session, navigationService);
+
+        viewModel.SelectedChat = new Chat { ChatId = 99 };
+        viewModel.GoToProfile();
+
+        requestedUserId.Should().Be(-1);
+    }
+
+    [Fact]
+    public void RefreshInboxAndSelectedChat_WhenSelectedChatExists_RefreshesMessages()
+    {
+        var session = new SessionContext();
+        session.LoginAsUser(1);
+        var viewModel = CreateViewModel(session);
+        var chat = SeedChats(viewModel, out var chatService);
+
+        viewModel.LoadChats();
+        viewModel.SelectChat(chat);
+        chatService.SeedMessages(1, new[]
+        {
+            new Message { MessageId = 1, ChatId = 1, SenderId = 2, Content = "reply", Type = MessageType.Text, Timestamp = DateTime.UtcNow, IsRead = false }
+        });
+
+        viewModel.RefreshInboxAndSelectedChat();
+
+        viewModel.Messages.Should().ContainSingle(message => message.Content == "reply");
+        viewModel.SelectedChat.Should().NotBeNull();
+    }
+
+    [Fact]
+    public void RefreshInboxAndSelectedChat_WhenUnreadReplyArrives_MarksMessageRead()
+    {
+        var session = new SessionContext();
+        session.LoginAsUser(1);
+        var viewModel = CreateViewModel(session);
+        var chat = SeedChats(viewModel, out var chatService);
+
+        viewModel.LoadChats();
+        viewModel.SelectChat(chat);
+        chatService.SeedMessages(1, new[]
+        {
+            new Message { MessageId = 1, ChatId = 1, SenderId = 2, Content = "reply", Type = MessageType.Text, Timestamp = DateTime.UtcNow, IsRead = false }
+        });
+
+        viewModel.RefreshInboxAndSelectedChat();
+
+        chatService.MarkReadCalls.Should().Contain(call => call.ChatId == 1 && call.ReaderId == 1);
+        viewModel.Messages.Should().ContainSingle(message => message.Content == "reply" && message.IsRead);
+    }
+
+    [Fact]
+    public void HandleAttachmentSelected_WhenNoFileIsSelected_SetsErrorMessage()
+    {
+        var session = new SessionContext();
+        session.LoginAsUser(1);
+        var viewModel = CreateViewModel(session);
+
+        viewModel.HandleAttachmentSelected(string.Empty, string.Empty);
+
+        viewModel.ErrorMessage.Should().Be("No file selected.");
+    }
+
+    [Fact]
+    public void SelectChat_WhenCompanyMode_SetsCompanyVisibilityFlags()
+    {
+        var session = new SessionContext();
+        session.LoginAsCompany(1);
+        var viewModel = CreateViewModel(session);
+        var chat = new Chat { ChatId = 1, UserId = 2, CompanyId = 1, JobId = 2 };
+
+        var chatService = (FakeChatService)viewModel.GetType().GetField("_chatService", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)!.GetValue(viewModel)!;
+        chatService.SeedChat(chat);
+        chatService.SeedMessages(1, new[]
+        {
+            new Message { MessageId = 1, ChatId = 1, SenderId = 2, Content = "hello", Type = MessageType.Text, Timestamp = DateTime.UtcNow, IsRead = false }
+        });
+
+        viewModel.LoadChats();
+        viewModel.SelectChat(chat);
+
+        viewModel.ShowGoToProfile.Should().BeTrue();
+        viewModel.ShowGoToCompanyProfile.Should().BeFalse();
+        viewModel.ShowGoToJobPost.Should().BeTrue();
+    }
+
+    [Fact]
+    public void HandleAttachmentSelected_WhenUsingConvenienceOverload_PicksExtensionAutomatically()
+    {
+        var session = new SessionContext();
+        session.LoginAsUser(1);
+        var viewModel = CreateViewModel(session);
+        var chat = SeedChats(viewModel, out var chatService);
+        var source = Path.GetTempFileName();
+        var renamed = Path.ChangeExtension(source, ".docx");
+
+        try
+        {
+            File.Copy(source, renamed, true);
+            viewModel.LoadChats();
+            viewModel.SelectChat(chat);
+            viewModel.HandleAttachmentSelected(renamed);
+
+            chatService.SentMessages.Should().ContainSingle(message => message.Type == MessageType.File);
+        }
+        finally
+        {
+            if (File.Exists(source))
+            {
+                File.Delete(source);
+            }
+
+            if (File.Exists(renamed))
+            {
+                File.Delete(renamed);
+            }
+        }
+    }
+
     private static ChatViewModel CreateViewModel(SessionContext session, NavigationService? navigationService = null)
     {
         return new ChatViewModel(
@@ -254,5 +562,11 @@ public sealed class ChatViewModelTests
         });
 
         return userChat;
+    }
+
+    private static Chat ChatServiceChat(ChatViewModel viewModel, int chatId)
+    {
+        var chatService = (FakeChatService)viewModel.GetType().GetField("_chatService", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)!.GetValue(viewModel)!;
+        return chatService.GetChatsForUser(1).First(chat => chat.ChatId == chatId);
     }
 }

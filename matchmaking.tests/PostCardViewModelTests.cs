@@ -33,6 +33,24 @@ public sealed class PostCardViewModelTests
     }
 
     [Fact]
+    public void Constructor_WhenPostHasNoAuthorName_UsesFallbackInitial()
+    {
+        var post = TestDataFactory.CreatePost(parameterType: PostParameterType.WeightedDistanceScoreWeight, value: "42");
+
+        var viewModel = new PostCardViewModel(
+            post,
+            Array.Empty<Interaction>(),
+            string.Empty,
+            currentDeveloperId: 1,
+            likePost: _ => { },
+            dislikePost: _ => { });
+
+        viewModel.AuthorInitial.Should().Be("?");
+        viewModel.TypeLabel.Should().Be("Parameter");
+        viewModel.IsKeyword.Should().BeFalse();
+    }
+
+    [Fact]
     public void Commands_WhenExecuted_InvokeCallbacksWithPostId()
     {
         var post = TestDataFactory.CreatePost(postId: 7);
