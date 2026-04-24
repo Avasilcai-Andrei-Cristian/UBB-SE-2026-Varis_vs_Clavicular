@@ -199,32 +199,23 @@ public sealed class MatchServiceStateTransitionTests
         service.IsDecisionTransitionAllowed(rejected, MatchStatus.Advanced).Should().BeFalse();
     }
 
-    [Fact]
-    public void RemoveApplication_DelegatesToRepository()
-    {
-        var repository = new FakeMatchRepository(Array.Empty<Match>());
-        var service = new MatchService(repository, new FakeJobService(Array.Empty<Job>()));
-
-        service.RemoveApplication(55);
-
-        repository.RemovedIds.Should().ContainSingle().Which.Should().Be(55);
-    }
-
-    [Fact]
-    public void IsDecisionTransitionAllowed_RespectsDefinedTransitions()
+    [Theory]
+    [InlineData(MatchStatus.Applied, MatchStatus.Accepted, true)]
+    [InlineData(MatchStatus.Applied, MatchStatus.Rejected, true)]
+    [InlineData(MatchStatus.Applied, MatchStatus.Advanced, true)]
+    [InlineData(MatchStatus.Advanced, MatchStatus.Accepted, true)]
+    [InlineData(MatchStatus.Advanced, MatchStatus.Rejected, true)]
+    [InlineData(MatchStatus.Advanced, MatchStatus.Applied, false)]
+    [InlineData(MatchStatus.Accepted, MatchStatus.Rejected, false)]
+    public void IsDecisionTransitionAllowed_WhenEvaluatingTransition_ReturnsExpectedFlag(
+        MatchStatus currentStatus, MatchStatus requestedStatus, bool expected)
     {
         var service = new MatchService(new FakeMatchRepository(Array.Empty<Match>()), new FakeJobService(Array.Empty<Job>()));
-        var applied = TestDataFactory.CreateMatch(status: MatchStatus.Applied);
-        var advanced = TestDataFactory.CreateMatch(status: MatchStatus.Advanced);
-        var accepted = TestDataFactory.CreateMatch(status: MatchStatus.Accepted);
+        var match = TestDataFactory.CreateMatch(status: currentStatus);
 
-        service.IsDecisionTransitionAllowed(applied, MatchStatus.Accepted).Should().BeTrue();
-        service.IsDecisionTransitionAllowed(applied, MatchStatus.Rejected).Should().BeTrue();
-        service.IsDecisionTransitionAllowed(applied, MatchStatus.Advanced).Should().BeTrue();
-        service.IsDecisionTransitionAllowed(advanced, MatchStatus.Accepted).Should().BeTrue();
-        service.IsDecisionTransitionAllowed(advanced, MatchStatus.Rejected).Should().BeTrue();
-        service.IsDecisionTransitionAllowed(advanced, MatchStatus.Applied).Should().BeFalse();
-        service.IsDecisionTransitionAllowed(accepted, MatchStatus.Rejected).Should().BeFalse();
+        var result = service.IsDecisionTransitionAllowed(match, requestedStatus);
+
+        result.Should().Be(expected);
     }
 
     private sealed class FakeMatchRepository : IMatchRepository

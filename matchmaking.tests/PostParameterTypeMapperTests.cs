@@ -84,19 +84,19 @@ public class PostParameterTypeMapperTests
         result.Should().BeEmpty();
     }
 
-    [Fact]
-    public void FromStorageValue_ToStorageValue_RoundTrip_IsConsistent()
+    [Theory]
+    [InlineData(PostParameterType.MitigationFactor)]
+    [InlineData(PostParameterType.WeightedDistanceScoreWeight)]
+    [InlineData(PostParameterType.JobResumeSimilarityScoreWeight)]
+    [InlineData(PostParameterType.PreferenceScoreWeight)]
+    [InlineData(PostParameterType.PromotionScoreWeight)]
+    [InlineData(PostParameterType.RelevantKeyword)]
+    public void FromStorageValue_WhenInputIsCanonicalStorageOfKnownType_ReturnsSameType(PostParameterType type)
     {
-        foreach (PostParameterType type in Enum.GetValues<PostParameterType>())
-        {
-            if (type == PostParameterType.Unknown)
-            {
-                continue;
-            }
+        var storageValue = PostParameterTypeMapper.ToStorageValue(type);
 
-            var storageValue = PostParameterTypeMapper.ToStorageValue(type);
-            var back = PostParameterTypeMapper.FromStorageValue(storageValue);
-            back.Should().Be(type, because: $"round-trip for {type} should be lossless");
-        }
+        var result = PostParameterTypeMapper.FromStorageValue(storageValue);
+
+        result.Should().Be(type);
     }
 }

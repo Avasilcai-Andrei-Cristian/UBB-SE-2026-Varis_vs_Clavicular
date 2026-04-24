@@ -46,7 +46,7 @@ public class BoolToActiveBrushConverterTests
     }
 
     [Fact]
-    public void ConvertBack_ThrowsNotSupportedException()
+    public void ConvertBack_WhenInvoked_ThrowsNotSupportedException()
     {
         var act = () => converter.ConvertBack(null, typeof(object), null, string.Empty);
 

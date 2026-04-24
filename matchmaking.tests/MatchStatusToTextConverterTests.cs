@@ -41,7 +41,7 @@ public class MatchStatusToTextConverterTests
     }
 
     [Fact]
-    public void ConvertBack_ThrowsNotImplementedException()
+    public void ConvertBack_WhenInvoked_ThrowsNotImplementedException()
     {
         var act = () => converter.ConvertBack(null, typeof(object), null, string.Empty);
 

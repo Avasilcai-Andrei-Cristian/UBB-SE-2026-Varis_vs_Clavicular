@@ -3,7 +3,7 @@ namespace matchmaking.Tests;
 public sealed class NavigationServiceTests
 {
     [Fact]
-    public void RequestUserProfile_RaisesEventWithProvidedUserId()
+    public void RequestUserProfile_WhenSubscriberExists_RaisesEventWithProvidedUserId()
     {
         var service = new NavigationService();
         var raisedUserId = -1;
@@ -21,7 +21,7 @@ public sealed class NavigationServiceTests
     }
 
     [Fact]
-    public void RequestCompanyProfile_RaisesEventWithProvidedCompanyId()
+    public void RequestCompanyProfile_WhenSubscriberExists_RaisesEventWithProvidedCompanyId()
     {
         var service = new NavigationService();
         var raisedCompanyId = -1;
@@ -39,7 +39,7 @@ public sealed class NavigationServiceTests
     }
 
     [Fact]
-    public void RequestJobPost_RaisesEventWithProvidedJobId()
+    public void RequestJobPost_WhenSubscriberExists_RaisesEventWithProvidedJobId()
     {
         var service = new NavigationService();
         var raisedJobId = -1;
@@ -57,16 +57,31 @@ public sealed class NavigationServiceTests
     }
 
     [Fact]
-    public void RequestMethods_WhenNoSubscribers_DoNotThrow()
+    public void RequestUserProfile_WhenNoSubscribers_DoesNotThrow()
     {
         var service = new NavigationService();
 
-        Action act = () =>
-        {
-            service.RequestUserProfile(1);
-            service.RequestCompanyProfile(1);
-            service.RequestJobPost(1);
-        };
+        Action act = () => service.RequestUserProfile(1);
+
+        act.Should().NotThrow();
+    }
+
+    [Fact]
+    public void RequestCompanyProfile_WhenNoSubscribers_DoesNotThrow()
+    {
+        var service = new NavigationService();
+
+        Action act = () => service.RequestCompanyProfile(1);
+
+        act.Should().NotThrow();
+    }
+
+    [Fact]
+    public void RequestJobPost_WhenNoSubscribers_DoesNotThrow()
+    {
+        var service = new NavigationService();
+
+        Action act = () => service.RequestJobPost(1);
 
         act.Should().NotThrow();
     }

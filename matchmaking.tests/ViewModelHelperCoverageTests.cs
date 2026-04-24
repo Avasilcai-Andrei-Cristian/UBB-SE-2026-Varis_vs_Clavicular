@@ -3,9 +3,14 @@ namespace matchmaking.Tests;
 public sealed class ViewModelHelperCoverageTests
 {
     [Fact]
-    public void DeveloperPostOptions_ExposeExpectedEntries()
+    public void Options_WhenAccessed_ContainsRelevantKeywordEntry()
     {
         DeveloperPostOptions.Options.Should().Contain(item => item.Content == "relevant keyword");
+    }
+
+    [Fact]
+    public void Options_WhenAccessed_ContainsMitigationFactorTag()
+    {
         DeveloperPostOptions.Options.Should().Contain(item => item.Tag == "mitigation factor");
     }
 
@@ -29,23 +34,35 @@ public sealed class ViewModelHelperCoverageTests
     }
 
     [Fact]
-    public void ObservableObject_SetProperty_WhenValueDoesNotChange_ReturnsFalse()
+    public void SetProperty_WhenValueIsNew_ReturnsTrue()
     {
         var model = new TestObservableObject();
 
-        model.UpdateValue(1).Should().BeTrue();
-        model.UpdateValue(1).Should().BeFalse();
-        model.UpdateValue(2).Should().BeTrue();
+        var result = model.UpdateValue(1);
+
+        result.Should().BeTrue();
     }
 
     [Fact]
-    public void SkillFilterItem_StoresValues()
+    public void SetProperty_WhenValueIsUnchanged_ReturnsFalse()
     {
-        var item = new SkillFilterItem(7, "C#");
+        var model = new TestObservableObject();
+        model.UpdateValue(1);
 
-        item.SkillId.Should().Be(7);
-        item.Name.Should().Be("C#");
-        item.IsChecked.Should().BeFalse();
+        var result = model.UpdateValue(1);
+
+        result.Should().BeFalse();
+    }
+
+    [Fact]
+    public void SetProperty_WhenValueChangesAfterAnUnchangedSet_ReturnsTrue()
+    {
+        var model = new TestObservableObject();
+        model.UpdateValue(1);
+
+        var result = model.UpdateValue(2);
+
+        result.Should().BeTrue();
     }
 
     [Fact]

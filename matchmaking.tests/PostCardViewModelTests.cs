@@ -51,23 +51,38 @@ public sealed class PostCardViewModelTests
     }
 
     [Fact]
-    public void Commands_WhenExecuted_InvokeCallbacksWithPostId()
+    public void LikeCommand_WhenExecuted_InvokesLikeCallbackWithPostId()
     {
         var post = TestDataFactory.CreatePost(postId: 7);
         var likedIds = new List<int>();
-        var dislikedIds = new List<int>();
         var viewModel = new PostCardViewModel(
             post,
             Array.Empty<Interaction>(),
             "Alice Pop",
             currentDeveloperId: 1,
             likePost: id => likedIds.Add(id),
-            dislikePost: id => dislikedIds.Add(id));
+            dislikePost: _ => { });
 
         viewModel.LikeCommand.Execute(null);
-        viewModel.DislikeCommand.Execute(null);
 
         likedIds.Should().Equal(7);
+    }
+
+    [Fact]
+    public void DislikeCommand_WhenExecuted_InvokesDislikeCallbackWithPostId()
+    {
+        var post = TestDataFactory.CreatePost(postId: 7);
+        var dislikedIds = new List<int>();
+        var viewModel = new PostCardViewModel(
+            post,
+            Array.Empty<Interaction>(),
+            "Alice Pop",
+            currentDeveloperId: 1,
+            likePost: _ => { },
+            dislikePost: id => dislikedIds.Add(id));
+
+        viewModel.DislikeCommand.Execute(null);
+
         dislikedIds.Should().Equal(7);
     }
 }

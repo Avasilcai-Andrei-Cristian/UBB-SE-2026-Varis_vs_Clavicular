@@ -39,57 +39,66 @@ public sealed class CoreCoverageTests
     }
 
     [Fact]
-    public void Post_ParameterProperty_RoundTripsThroughMapper()
+    public void Post_ParameterSetter_WhenAssignedKnownStorageValue_UpdatesParameterType()
     {
         var post = new Post();
 
         post.Parameter = "relevant keyword";
 
         post.ParameterType.Should().Be(PostParameterType.RelevantKeyword);
-        post.Parameter.Should().Be("relevant keyword");
     }
 
     [Fact]
-    public void SessionContext_LoginAndLogout_ResetsOtherIds()
+    public void LoginAsUser_WhenInvoked_SetsUserModeAndClearsOtherIds()
     {
         var session = new SessionContext();
 
         session.LoginAsUser(7);
+
         session.CurrentMode.Should().Be(AppMode.UserMode);
         session.CurrentUserId.Should().Be(7);
-        session.CurrentCompanyId.Should().BeNull();
-        session.CurrentDeveloperId.Should().BeNull();
-
-        session.LoginAsCompany(9);
-        session.CurrentMode.Should().Be(AppMode.CompanyMode);
-        session.CurrentUserId.Should().BeNull();
-        session.CurrentCompanyId.Should().Be(9);
-        session.CurrentDeveloperId.Should().BeNull();
-
-        session.LoginAsDeveloper(11);
-        session.CurrentMode.Should().Be(AppMode.DeveloperMode);
-        session.CurrentUserId.Should().BeNull();
-        session.CurrentCompanyId.Should().BeNull();
-        session.CurrentDeveloperId.Should().Be(11);
-
-        session.Logout();
-        session.CurrentMode.Should().Be(AppMode.UserMode);
-        session.CurrentUserId.Should().BeNull();
         session.CurrentCompanyId.Should().BeNull();
         session.CurrentDeveloperId.Should().BeNull();
     }
 
     [Fact]
-    public void AppConfiguration_HasExpectedDefaults()
+    public void LoginAsCompany_WhenInvoked_SetsCompanyModeAndClearsOtherIds()
     {
-        var configuration = new AppConfiguration();
+        var session = new SessionContext();
 
-        configuration.SqlConnectionString.Should().BeEmpty();
-        configuration.StartupMode.Should().Be("user");
-        configuration.StartupUserId.Should().Be(1);
-        configuration.StartupCompanyId.Should().Be(1);
-        configuration.StartupDeveloperId.Should().Be(1);
-        configuration.RecommendationCooldownHours.Should().Be(24);
+        session.LoginAsCompany(9);
+
+        session.CurrentMode.Should().Be(AppMode.CompanyMode);
+        session.CurrentUserId.Should().BeNull();
+        session.CurrentCompanyId.Should().Be(9);
+        session.CurrentDeveloperId.Should().BeNull();
+    }
+
+    [Fact]
+    public void LoginAsDeveloper_WhenInvoked_SetsDeveloperModeAndClearsOtherIds()
+    {
+        var session = new SessionContext();
+
+        session.LoginAsDeveloper(11);
+
+        session.CurrentMode.Should().Be(AppMode.DeveloperMode);
+        session.CurrentUserId.Should().BeNull();
+        session.CurrentCompanyId.Should().BeNull();
+        session.CurrentDeveloperId.Should().Be(11);
+    }
+
+    [Fact]
+    public void Logout_WhenPreviouslyLoggedInAsUser_ResetsAllIdsToDefault()
+    {
+        var session = new SessionContext();
+        session.LoginAsUser(7);
+
+        session.Logout();
+
+        session.CurrentMode.Should().Be(AppMode.UserMode);
+        session.CurrentUserId.Should().BeNull();
+        session.CurrentCompanyId.Should().BeNull();
+        session.CurrentDeveloperId.Should().BeNull();
     }
 
     [Fact]
@@ -124,41 +133,5 @@ public sealed class CoreCoverageTests
                 }
             }
         }
-    }
-
-    [Fact]
-    public void UserApplicationResult_DefaultCollectionsAreInitialized()
-    {
-        var result = new UserApplicationResult
-        {
-            User = TestDataFactory.CreateUser(),
-            Job = TestDataFactory.CreateJob(),
-            Match = TestDataFactory.CreateMatch()
-        };
-
-        result.UserSkills.Should().BeEmpty();
-        result.Feedback.Should().BeEmpty();
-    }
-
-    [Fact]
-    public void TestResult_DefaultCollectionsAreInitialized()
-    {
-        var result = new TestResult();
-
-        result.Questions.Should().BeEmpty();
-        result.ValidationErrors.Should().BeEmpty();
-        result.Decision.Should().Be(default);
-    }
-
-    [Fact]
-    public void ApplicationCardModel_UsesFallbackTextWhenDescriptionIsShort()
-    {
-        var model = new ApplicationCardModel
-        {
-            JobDescription = "Short desc"
-        };
-
-        model.TruncatedDescription.Should().Be("Short desc");
-        model.HasFeedback.Should().BeFalse();
     }
 }

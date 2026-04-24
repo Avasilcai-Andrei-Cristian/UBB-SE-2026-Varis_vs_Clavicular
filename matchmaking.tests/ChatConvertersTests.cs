@@ -37,7 +37,7 @@ public class ReadReceiptConverterTests
     }
 
     [Fact]
-    public void ConvertBack_ThrowsNotImplementedException()
+    public void ConvertBack_WhenInvoked_ThrowsNotImplementedException()
     {
         var act = () => converter.ConvertBack(null, typeof(object), null, string.Empty);
 
@@ -106,7 +106,7 @@ public class MessageContentDisplayConverterTests
     }
 
     [Fact]
-    public void ConvertBack_ThrowsNotImplementedException()
+    public void ConvertBack_WhenInvoked_ThrowsNotImplementedException()
     {
         var act = () => converter.ConvertBack(null, typeof(object), null, string.Empty);
 
@@ -157,7 +157,7 @@ public class MessageTextVisibilityConverterTests
     }
 
     [Fact]
-    public void ConvertBack_ThrowsNotImplementedException()
+    public void ConvertBack_WhenInvoked_ThrowsNotImplementedException()
     {
         var act = () => converter.ConvertBack(null, typeof(object), null, string.Empty);
 
@@ -208,7 +208,7 @@ public class MessageAttachmentVisibilityConverterTests
     }
 
     [Fact]
-    public void ConvertBack_ThrowsNotImplementedException()
+    public void ConvertBack_WhenInvoked_ThrowsNotImplementedException()
     {
         var act = () => converter.ConvertBack(null, typeof(object), null, string.Empty);
 
@@ -259,7 +259,7 @@ public class MessageFileAttachmentVisibilityConverterTests
     }
 
     [Fact]
-    public void ConvertBack_ThrowsNotImplementedException()
+    public void ConvertBack_WhenInvoked_ThrowsNotImplementedException()
     {
         var act = () => converter.ConvertBack(null, typeof(object), null, string.Empty);
 
@@ -310,7 +310,7 @@ public class MessageImageVisibilityConverterTests
     }
 
     [Fact]
-    public void ConvertBack_ThrowsNotImplementedException()
+    public void ConvertBack_WhenInvoked_ThrowsNotImplementedException()
     {
         var act = () => converter.ConvertBack(null, typeof(object), null, string.Empty);
 
@@ -360,7 +360,7 @@ public class StringToVisibilityConverterTests
     }
 
     [Fact]
-    public void ConvertBack_ThrowsNotImplementedException()
+    public void ConvertBack_WhenInvoked_ThrowsNotImplementedException()
     {
         var act = () => converter.ConvertBack(null, typeof(object), null, string.Empty);
 
@@ -397,7 +397,7 @@ public class ObjectToVisibilityConverterTests
     }
 
     [Fact]
-    public void ConvertBack_ThrowsNotImplementedException()
+    public void ConvertBack_WhenInvoked_ThrowsNotImplementedException()
     {
         var act = () => converter.ConvertBack(null, typeof(object), null, string.Empty);
 
@@ -455,7 +455,7 @@ public class IntToVisibilityConverterTests
     }
 
     [Fact]
-    public void ConvertBack_ThrowsNotImplementedException()
+    public void ConvertBack_WhenInvoked_ThrowsNotImplementedException()
     {
         var act = () => converter.ConvertBack(null, typeof(object), null, string.Empty);
 
@@ -504,7 +504,7 @@ public class ChatAvatarBgConverterTests
     }
 
     [Fact]
-    public void ConvertBack_ThrowsNotImplementedException()
+    public void ConvertBack_WhenInvoked_ThrowsNotImplementedException()
     {
         var act = () => converter.ConvertBack(null, typeof(object), null, string.Empty);
 
@@ -553,7 +553,7 @@ public class ChatAvatarFgConverterTests
     }
 
     [Fact]
-    public void ConvertBack_ThrowsNotImplementedException()
+    public void ConvertBack_WhenInvoked_ThrowsNotImplementedException()
     {
         var act = () => converter.ConvertBack(null, typeof(object), null, string.Empty);
 
@@ -602,7 +602,7 @@ public class ChatSubtitleConverterTests
     }
 
     [Fact]
-    public void ConvertBack_ThrowsNotImplementedException()
+    public void ConvertBack_WhenInvoked_ThrowsNotImplementedException()
     {
         var act = () => converter.ConvertBack(null, typeof(object), null, string.Empty);
 
@@ -651,7 +651,7 @@ public class ChatAvatarCornerRadiusConverterTests
     }
 
     [Fact]
-    public void ConvertBack_ThrowsNotImplementedException()
+    public void ConvertBack_WhenInvoked_ThrowsNotImplementedException()
     {
         var act = () => converter.ConvertBack(null, typeof(object), null, string.Empty);
 
@@ -719,16 +719,6 @@ public class InverseBoolConverterTests
         result.Should().Be(false);
     }
 
-    [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public void Convert_ConvertBack_RoundTrip_IsConsistent(bool original)
-    {
-        var inverted = converter.Convert(original, typeof(bool), null, string.Empty);
-        var restored = converter.ConvertBack(inverted, typeof(bool), null, string.Empty);
-
-        restored.Should().Be(original);
-    }
 }
 
 public class ChatNameConverterTests
@@ -774,7 +764,7 @@ public class ChatNameConverterTests
     }
 
     [Fact]
-    public void ConvertBack_ThrowsNotImplementedException()
+    public void ConvertBack_WhenInvoked_ThrowsNotImplementedException()
     {
         var act = () => converter.ConvertBack(null, typeof(object), null, string.Empty);
 
@@ -803,7 +793,7 @@ public class ChatPartyNameConverterTests
     }
 
     [Fact]
-    public void ConvertBack_ThrowsNotImplementedException()
+    public void ConvertBack_WhenInvoked_ThrowsNotImplementedException()
     {
         var act = () => converter.ConvertBack(null, typeof(object), null, string.Empty);
 

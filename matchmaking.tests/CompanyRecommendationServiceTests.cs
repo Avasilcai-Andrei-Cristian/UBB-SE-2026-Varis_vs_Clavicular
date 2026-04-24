@@ -44,7 +44,7 @@ public sealed class CompanyRecommendationServiceTests
     }
 
     [Fact]
-    public void MoveToNext_AndMoveToPrevious_AdjustCurrentIndex()
+    public void MoveToNext_WhenOnlyOneApplicantExists_ExhaustsQueue()
     {
         var service = CreateService(
             users: new[] { TestDataFactory.CreateUser() },
@@ -52,13 +52,28 @@ public sealed class CompanyRecommendationServiceTests
             skills: Array.Empty<Skill>(),
             jobSkills: new[] { TestDataFactory.CreateJobSkill(100, 1, "C#", 80) },
             matches: new[] { TestDataFactory.CreateMatch(1, 1, 100, MatchStatus.Applied) });
-
         service.LoadApplicants(1);
-        service.HasMore.Should().BeTrue();
+
+        service.MoveToNext();
+
+        service.HasMore.Should().BeFalse();
+    }
+
+    [Fact]
+    public void MoveToPrevious_WhenAdvancedPastFirst_RestoresFirstApplicant()
+    {
+        var service = CreateService(
+            users: new[] { TestDataFactory.CreateUser() },
+            jobs: new[] { TestDataFactory.CreateJob() },
+            skills: Array.Empty<Skill>(),
+            jobSkills: new[] { TestDataFactory.CreateJobSkill(100, 1, "C#", 80) },
+            matches: new[] { TestDataFactory.CreateMatch(1, 1, 100, MatchStatus.Applied) });
+        service.LoadApplicants(1);
         var firstApplicant = service.GetNextApplicant();
         service.MoveToNext();
-        service.HasMore.Should().BeFalse();
+
         service.MoveToPrevious();
+
         service.GetNextApplicant().Should().Be(firstApplicant);
     }
 

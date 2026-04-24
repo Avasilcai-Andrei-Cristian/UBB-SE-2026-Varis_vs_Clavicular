@@ -110,7 +110,7 @@ public sealed class UserRecommendationViewModelTests
     }
 
     [Fact]
-    public async Task LikeAsync_AndUndoAsync_RestoreTheCurrentCard()
+    public async Task LikeAsync_WhenCurrentJobExists_ClearsCurrentJobAndEnablesUndo()
     {
         var previousAvailability = GetAppFlag<bool>(nameof(App.IsDatabaseConnectionAvailable));
         var previousError = GetAppFlag<string>(nameof(App.DatabaseConnectionError));
@@ -122,15 +122,39 @@ public sealed class UserRecommendationViewModelTests
             var user = TestDataFactory.CreateUser();
             var job = TestDataFactory.CreateJob();
             var viewModel = CreateViewModel(user, new[] { job });
-
             await viewModel.InitializeAsync();
-            var originalCard = viewModel.CurrentJob;
 
             await viewModel.LikeAsync();
+
             viewModel.CanUndo.Should().BeTrue();
             viewModel.CurrentJob.Should().BeNull();
+        }
+        finally
+        {
+            SetAppFlag(nameof(App.IsDatabaseConnectionAvailable), previousAvailability);
+            SetAppFlag(nameof(App.DatabaseConnectionError), previousError);
+        }
+    }
+
+    [Fact]
+    public async Task UndoAsync_WhenLastActionWasLike_RestoresOriginalCard()
+    {
+        var previousAvailability = GetAppFlag<bool>(nameof(App.IsDatabaseConnectionAvailable));
+        var previousError = GetAppFlag<string>(nameof(App.DatabaseConnectionError));
+        SetAppFlag(nameof(App.IsDatabaseConnectionAvailable), true);
+        SetAppFlag(nameof(App.DatabaseConnectionError), string.Empty);
+
+        try
+        {
+            var user = TestDataFactory.CreateUser();
+            var job = TestDataFactory.CreateJob();
+            var viewModel = CreateViewModel(user, new[] { job });
+            await viewModel.InitializeAsync();
+            var originalCard = viewModel.CurrentJob;
+            await viewModel.LikeAsync();
 
             await viewModel.UndoAsync();
+
             viewModel.CurrentJob.Should().Be(originalCard);
             viewModel.CanUndo.Should().BeFalse();
         }
@@ -142,7 +166,7 @@ public sealed class UserRecommendationViewModelTests
     }
 
     [Fact]
-    public async Task ResetDraftFilters_ClearsSelections()
+    public async Task ResetDraftFilters_WhenFiltersWereSelected_ClearsAllSelections()
     {
         var previousAvailability = GetAppFlag<bool>(nameof(App.IsDatabaseConnectionAvailable));
         var previousError = GetAppFlag<string>(nameof(App.DatabaseConnectionError));
@@ -174,7 +198,7 @@ public sealed class UserRecommendationViewModelTests
     }
 
     [Fact]
-    public async Task DismissAsync_AndUndoAsync_RestoreTheCurrentCard()
+    public async Task DismissAsync_WhenCurrentJobExists_EnablesUndo()
     {
         var previousAvailability = GetAppFlag<bool>(nameof(App.IsDatabaseConnectionAvailable));
         var previousError = GetAppFlag<string>(nameof(App.DatabaseConnectionError));
@@ -186,14 +210,38 @@ public sealed class UserRecommendationViewModelTests
             var user = TestDataFactory.CreateUser();
             var job = TestDataFactory.CreateJob();
             var viewModel = CreateViewModel(user, new[] { job });
-
             await viewModel.InitializeAsync();
-            var originalCard = viewModel.CurrentJob;
 
             await viewModel.DismissAsync();
+
             viewModel.CanUndo.Should().BeTrue();
+        }
+        finally
+        {
+            SetAppFlag(nameof(App.IsDatabaseConnectionAvailable), previousAvailability);
+            SetAppFlag(nameof(App.DatabaseConnectionError), previousError);
+        }
+    }
+
+    [Fact]
+    public async Task UndoAsync_WhenLastActionWasDismiss_RestoresOriginalCard()
+    {
+        var previousAvailability = GetAppFlag<bool>(nameof(App.IsDatabaseConnectionAvailable));
+        var previousError = GetAppFlag<string>(nameof(App.DatabaseConnectionError));
+        SetAppFlag(nameof(App.IsDatabaseConnectionAvailable), true);
+        SetAppFlag(nameof(App.DatabaseConnectionError), string.Empty);
+
+        try
+        {
+            var user = TestDataFactory.CreateUser();
+            var job = TestDataFactory.CreateJob();
+            var viewModel = CreateViewModel(user, new[] { job });
+            await viewModel.InitializeAsync();
+            var originalCard = viewModel.CurrentJob;
+            await viewModel.DismissAsync();
 
             await viewModel.UndoAsync();
+
             viewModel.CurrentJob.Should().Be(originalCard);
         }
         finally
@@ -414,7 +462,7 @@ public sealed class UserRecommendationViewModelTests
     }
 
     [Fact]
-    public async Task OpenAndCloseDetailCommands_UpdateDetailState()
+    public async Task OpenDetailCommand_WhenExecuted_SetsIsDetailOpenTrue()
     {
         var previousAvailability = GetAppFlag<bool>(nameof(App.IsDatabaseConnectionAvailable));
         var previousError = GetAppFlag<string>(nameof(App.DatabaseConnectionError));
@@ -425,12 +473,36 @@ public sealed class UserRecommendationViewModelTests
         {
             var user = TestDataFactory.CreateUser();
             var viewModel = CreateViewModel(user, new[] { TestDataFactory.CreateJob() });
+            await viewModel.InitializeAsync();
 
+            viewModel.OpenDetailCommand.Execute(null);
+
+            viewModel.IsDetailOpen.Should().BeTrue();
+        }
+        finally
+        {
+            SetAppFlag(nameof(App.IsDatabaseConnectionAvailable), previousAvailability);
+            SetAppFlag(nameof(App.DatabaseConnectionError), previousError);
+        }
+    }
+
+    [Fact]
+    public async Task CloseDetailCommand_WhenDetailIsOpen_SetsIsDetailOpenFalse()
+    {
+        var previousAvailability = GetAppFlag<bool>(nameof(App.IsDatabaseConnectionAvailable));
+        var previousError = GetAppFlag<string>(nameof(App.DatabaseConnectionError));
+        SetAppFlag(nameof(App.IsDatabaseConnectionAvailable), true);
+        SetAppFlag(nameof(App.DatabaseConnectionError), string.Empty);
+
+        try
+        {
+            var user = TestDataFactory.CreateUser();
+            var viewModel = CreateViewModel(user, new[] { TestDataFactory.CreateJob() });
             await viewModel.InitializeAsync();
             viewModel.OpenDetailCommand.Execute(null);
-            viewModel.IsDetailOpen.Should().BeTrue();
 
             viewModel.CloseDetailCommand.Execute(null);
+
             viewModel.IsDetailOpen.Should().BeFalse();
         }
         finally
@@ -441,7 +513,7 @@ public sealed class UserRecommendationViewModelTests
     }
 
     [Fact]
-    public void OpenFiltersCommand_SetsFilterOpen()
+    public void OpenFiltersCommand_WhenExecuted_SetsIsFilterOpenTrue()
     {
         var previousAvailability = GetAppFlag<bool>(nameof(App.IsDatabaseConnectionAvailable));
         var previousError = GetAppFlag<string>(nameof(App.DatabaseConnectionError));

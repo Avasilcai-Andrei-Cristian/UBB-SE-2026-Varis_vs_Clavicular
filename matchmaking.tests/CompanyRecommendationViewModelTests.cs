@@ -45,19 +45,30 @@ public sealed class CompanyRecommendationViewModelTests
     }
 
     [Fact]
-    public void AdvanceApplicant_AndUndoLastAction_RestoreApplicant()
+    public void AdvanceApplicant_WhenCurrentApplicantExists_ClearsCurrentAndEnablesUndo()
     {
         var session = new SessionContext();
         session.LoginAsCompany(1);
         var match = TestDataFactory.CreateMatch(matchId: 1, userId: 1, jobId: 100, status: MatchStatus.Applied);
         var viewModel = CreateViewModel(session, new[] { match });
-
         viewModel.LoadApplicants();
-        var firstApplicant = viewModel.CurrentApplicant;
 
         viewModel.AdvanceApplicant();
+
         viewModel.CurrentApplicant.Should().BeNull();
         viewModel.CanUndo.Should().BeTrue();
+    }
+
+    [Fact]
+    public void UndoLastAction_WhenApplicantWasAdvanced_RestoresOriginalApplicant()
+    {
+        var session = new SessionContext();
+        session.LoginAsCompany(1);
+        var match = TestDataFactory.CreateMatch(matchId: 1, userId: 1, jobId: 100, status: MatchStatus.Applied);
+        var viewModel = CreateViewModel(session, new[] { match });
+        viewModel.LoadApplicants();
+        var firstApplicant = viewModel.CurrentApplicant;
+        viewModel.AdvanceApplicant();
 
         viewModel.UndoLastAction();
 

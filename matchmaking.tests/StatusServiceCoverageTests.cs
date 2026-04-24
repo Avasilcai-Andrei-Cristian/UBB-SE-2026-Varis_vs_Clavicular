@@ -65,7 +65,7 @@ public sealed class StatusServiceCoverageTests
     }
 
     [Fact]
-    public void DeveloperService_AddInteraction_WhenExistingInteractionUpdatesInsteadOfAdding()
+    public void AddInteraction_WhenInteractionAlreadyExists_UpdatesExistingRecordInsteadOfAdding()
     {
         var interaction = TestDataFactory.CreateInteraction(1, 1, 1, InteractionType.Like);
         var service = new DeveloperService(

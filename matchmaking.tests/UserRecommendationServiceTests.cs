@@ -107,7 +107,7 @@ public sealed class UserRecommendationServiceTests
     }
 
     [Fact]
-    public void ApplyLike_WhenNoExistingMatchCreatesPendingApplication()
+    public void ApplyLike_WhenNoExistingMatch_CreatesPendingApplication()
     {
         var service = CreateService(
             users: new[] { TestDataFactory.CreateUser() },
@@ -239,14 +239,17 @@ public sealed class UserRecommendationServiceTests
         repository.RemovedIds.Should().Equal(5);
     }
 
-    [Fact]
-    public void MapUserYearsToExperienceBucket_ReturnsExpectedBuckets()
+    [Theory]
+    [InlineData(0, "Internship")]
+    [InlineData(2, "Entry")]
+    [InlineData(5, "MidSenior")]
+    [InlineData(8, "Director")]
+    [InlineData(12, "Executive")]
+    public void MapUserYearsToExperienceBucket_WhenYearsProvided_ReturnsMatchingBucket(int years, string expected)
     {
-        UserRecommendationService.MapUserYearsToExperienceBucket(0).Should().Be("Internship");
-        UserRecommendationService.MapUserYearsToExperienceBucket(2).Should().Be("Entry");
-        UserRecommendationService.MapUserYearsToExperienceBucket(5).Should().Be("MidSenior");
-        UserRecommendationService.MapUserYearsToExperienceBucket(8).Should().Be("Director");
-        UserRecommendationService.MapUserYearsToExperienceBucket(12).Should().Be("Executive");
+        var result = UserRecommendationService.MapUserYearsToExperienceBucket(years);
+
+        result.Should().Be(expected);
     }
 
     private static UserRecommendationService CreateService(
