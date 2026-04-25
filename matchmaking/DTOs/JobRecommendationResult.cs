@@ -23,13 +23,13 @@ public sealed class JobRecommendationResult
                 return title.Length > 80 ? title[..80] + "…" : title;
             }
 
-            var d = Job.JobDescription.Trim();
-            if (string.IsNullOrEmpty(d))
+            var trimmedDescription = Job.JobDescription.Trim();
+            if (string.IsNullOrEmpty(trimmedDescription))
             {
                 return string.Empty;
             }
 
-            var firstLine = d.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries).FirstOrDefault() ?? d;
+            var firstLine = trimmedDescription.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries).FirstOrDefault() ?? trimmedDescription;
             return firstLine.Length > 80 ? firstLine[..80] + "…" : firstLine;
         }
     }
