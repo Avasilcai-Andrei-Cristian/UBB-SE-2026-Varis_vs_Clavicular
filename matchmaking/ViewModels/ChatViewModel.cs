@@ -304,11 +304,11 @@ public class ChatViewModel : ObservableObject
 
         _chatService.MarkMessageAsRead(SelectedChat.ChatId, currentCallerId);
 
-        for (var i = 0; i < messages.Count; i++)
+        for (var messageIndex = 0; messageIndex < messages.Count; messageIndex++)
         {
-            if (messages[i].SenderId != currentCallerId)
+            if (messages[messageIndex].SenderId != currentCallerId)
             {
-                messages[i].IsRead = true;
+                messages[messageIndex].IsRead = true;
             }
         }
 
@@ -377,20 +377,20 @@ public class ChatViewModel : ObservableObject
                 }
             }
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
-            ErrorMessage = ex.Message;
+            ErrorMessage = exception.Message;
         }
     }
 
     private static void MoveChatToTop(ObservableCollection<Chat> chats, int chatId)
     {
         var index = -1;
-        for (var i = 0; i < chats.Count; i++)
+        for (var chatIndex = 0; chatIndex < chats.Count; chatIndex++)
         {
-            if (chats[i].ChatId == chatId)
+            if (chats[chatIndex].ChatId == chatId)
             {
-                index = i;
+                index = chatIndex;
                 break;
             }
         }
@@ -448,11 +448,11 @@ public class ChatViewModel : ObservableObject
         {
             _chatService.MarkMessageAsRead(refreshedSelectedChat.ChatId, currentCallerId);
 
-            for (var i = 0; i < latestMessages.Count; i++)
+            for (var latestMessageIndex = 0; latestMessageIndex < latestMessages.Count; latestMessageIndex++)
             {
-                if (latestMessages[i].SenderId != currentCallerId)
+                if (latestMessages[latestMessageIndex].SenderId != currentCallerId)
                 {
-                    latestMessages[i].IsRead = true;
+                    latestMessages[latestMessageIndex].IsRead = true;
                 }
             }
         }
@@ -488,16 +488,16 @@ public class ChatViewModel : ObservableObject
         if (!TryGetCurrentCallerId(out var currentSenderId))
             return;
 
-        for (var i = 0; i < messages.Count; i++)
+        for (var messageIndex = 0; messageIndex < messages.Count; messageIndex++)
         {
-            messages[i].ShowReadReceipt = false;
+            messages[messageIndex].ShowReadReceipt = false;
         }
 
-        for (var i = messages.Count - 1; i >= 0; i--)
+        for (var reverseMessageIndex = messages.Count - 1; reverseMessageIndex >= 0; reverseMessageIndex--)
         {
-            if (messages[i].SenderId == currentSenderId)
+            if (messages[reverseMessageIndex].SenderId == currentSenderId)
             {
-                messages[i].ShowReadReceipt = true;
+                messages[reverseMessageIndex].ShowReadReceipt = true;
                 break;
             }
         }
@@ -509,12 +509,12 @@ public class ChatViewModel : ObservableObject
         var latestById = latestChats.ToDictionary(c => c.ChatId);
         var selectedChatId = SelectedChat?.ChatId;
 
-        for (var i = Chats.Count - 1; i >= 0; i--)
+        for (var existingChatIndex = Chats.Count - 1; existingChatIndex >= 0; existingChatIndex--)
         {
-            var chatId = Chats[i].ChatId;
+            var chatId = Chats[existingChatIndex].ChatId;
             if (!latestById.ContainsKey(chatId) && (!selectedChatId.HasValue || chatId != selectedChatId.Value))
             {
-                Chats.RemoveAt(i);
+                Chats.RemoveAt(existingChatIndex);
                 changed = true;
             }
         }
@@ -524,11 +524,11 @@ public class ChatViewModel : ObservableObject
             var latest = latestChats[targetIndex];
             var currentIndex = -1;
 
-            for (var i = 0; i < Chats.Count; i++)
+            for (var currentChatIndex = 0; currentChatIndex < Chats.Count; currentChatIndex++)
             {
-                if (Chats[i].ChatId == latest.ChatId)
+                if (Chats[currentChatIndex].ChatId == latest.ChatId)
                 {
-                    currentIndex = i;
+                    currentIndex = currentChatIndex;
                     break;
                 }
             }
@@ -577,10 +577,10 @@ public class ChatViewModel : ObservableObject
         if (Messages.Count != latestMessages.Count)
             return true;
 
-        for (var i = 0; i < latestMessages.Count; i++)
+        for (var messageIndex = 0; messageIndex < latestMessages.Count; messageIndex++)
         {
-            var current = Messages[i];
-            var latest = latestMessages[i];
+            var current = Messages[messageIndex];
+            var latest = latestMessages[messageIndex];
 
             if (current.MessageId != latest.MessageId ||
                 current.IsRead != latest.IsRead ||
@@ -795,9 +795,9 @@ public class ChatViewModel : ObservableObject
 
             File.Copy(sourcePath, targetPath, overwrite: true);
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
-            ErrorMessage = ex.Message;
+            ErrorMessage = exception.Message;
         }
     }
 
@@ -1054,9 +1054,9 @@ public class ChatViewModel : ObservableObject
                 UpdateVisibility();
             }
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
-            ErrorMessage = ex.Message;
+            ErrorMessage = exception.Message;
         }
     }
 
@@ -1092,9 +1092,9 @@ public class ChatViewModel : ObservableObject
                 UpdateVisibility();
             }
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
-            ErrorMessage = ex.Message;
+            ErrorMessage = exception.Message;
         }
     }
 
@@ -1122,9 +1122,9 @@ public class ChatViewModel : ObservableObject
 
             UpdateVisibility();
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
-            ErrorMessage = ex.Message;
+            ErrorMessage = exception.Message;
         }
     }
 

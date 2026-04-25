@@ -226,11 +226,11 @@ public class CompanyStatusViewModel : ObservableObject
                 PageMessage = $"{Applications.Count} applicant(s) are Accepted, Rejected, or In Review.";
             }
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
             Applications.Clear();
             CancelEvaluation();
-            ReportError($"Could not load applicants: {ex.Message}");
+            ReportError($"Could not load applicants: {exception.Message}");
         }
         finally
         {
@@ -280,9 +280,9 @@ public class CompanyStatusViewModel : ObservableObject
             RaiseCommandStates();
             return true;
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
-            ReportError($"Could not load applicant details: {ex.Message}");
+            ReportError($"Could not load applicant details: {exception.Message}");
             return false;
         }
     }

@@ -234,10 +234,10 @@ public class CompanyRecommendationViewModel : ObservableObject
             _recommendationService.LoadApplicants(_session.CurrentCompanyId.Value);
             LoadNextApplicant();
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
             CurrentApplicant = null;
-            ReportError($"Could not load applicants: {ex.Message}");
+            ReportError($"Could not load applicants: {exception.Message}");
         }
         finally
         {
@@ -287,9 +287,9 @@ public class CompanyRecommendationViewModel : ObservableObject
             _recommendationService.MoveToNext();
             LoadNextApplicant();
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
-            ReportError($"Could not advance applicant: {ex.Message}");
+            ReportError($"Could not advance applicant: {exception.Message}");
         }
     }
 
@@ -318,9 +318,9 @@ public class CompanyRecommendationViewModel : ObservableObject
             _recommendationService.MoveToNext();
             LoadNextApplicant();
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
-            ReportError($"Could not skip applicant: {ex.Message}");
+            ReportError($"Could not skip applicant: {exception.Message}");
         }
     }
 
@@ -346,9 +346,9 @@ public class CompanyRecommendationViewModel : ObservableObject
 
             RaiseDerivedPropertyChanges();
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
-            ReportError($"Could not undo: {ex.Message}");
+            ReportError($"Could not undo: {exception.Message}");
         }
     }
 

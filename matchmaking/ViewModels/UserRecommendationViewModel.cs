@@ -230,9 +230,9 @@ public sealed class UserRecommendationViewModel : ObservableObject
                 ErrorMessage = string.Empty;
             }
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
-            ReportError(ex.Message);
+            ReportError(exception.Message);
         }
         finally
         {
@@ -273,9 +273,9 @@ public sealed class UserRecommendationViewModel : ObservableObject
                 ErrorMessage = string.Empty;
             }
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
-            ReportError(ex.Message);
+            ReportError(exception.Message);
         }
         finally
         {
@@ -318,9 +318,9 @@ public sealed class UserRecommendationViewModel : ObservableObject
             IsDetailOpen = false;
             await AdvanceAfterActionAsync(userId);
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
-            ReportError(ex.Message);
+            ReportError(exception.Message);
         }
         finally
         {
@@ -348,7 +348,7 @@ public sealed class UserRecommendationViewModel : ObservableObject
                 return;
             }
 
-            var recId = _service.ApplyDismiss(userId, job);
+            var dismissedRecommendationId = _service.ApplyDismiss(userId, job);
             if (!_undoConsumedThisSession)
             {
                 _undoSnapshot = new UndoSnapshot
@@ -356,16 +356,16 @@ public sealed class UserRecommendationViewModel : ObservableObject
                     Card = job,
                     WasApply = false,
                     MatchId = null,
-                    RecommendationId = recId
+                    RecommendationId = dismissedRecommendationId
                 };
                 CanUndo = true;
             }
             IsDetailOpen = false;
             await AdvanceAfterActionAsync(userId);
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
-            ReportError(ex.Message);
+            ReportError(exception.Message);
         }
         finally
         {
@@ -382,8 +382,8 @@ public sealed class UserRecommendationViewModel : ObservableObject
 
     public async Task UndoAsync()
     {
-        var snap = _undoSnapshot;
-        if (snap is null || !CanUndo)
+        var currentUndoSnapshot = _undoSnapshot;
+        if (currentUndoSnapshot is null || !CanUndo)
         {
             return;
         }
@@ -393,23 +393,23 @@ public sealed class UserRecommendationViewModel : ObservableObject
         try
         {
             await Task.Yield();
-            if (snap.WasApply && snap.MatchId is { } mid)
+            if (currentUndoSnapshot.WasApply && currentUndoSnapshot.MatchId is { } matchId)
             {
-                _service.UndoLike(mid, snap.Card.DisplayRecommendationId);
+                _service.UndoLike(matchId, currentUndoSnapshot.Card.DisplayRecommendationId);
             }
-            else if (!snap.WasApply && snap.RecommendationId is { } rid)
+            else if (!currentUndoSnapshot.WasApply && currentUndoSnapshot.RecommendationId is { } recommendationId)
             {
-                _service.UndoDismiss(rid, snap.Card.DisplayRecommendationId);
+                _service.UndoDismiss(recommendationId, currentUndoSnapshot.Card.DisplayRecommendationId);
             }
 
-            CurrentJob = snap.Card;
+            CurrentJob = currentUndoSnapshot.Card;
             _undoSnapshot = null;
             _undoConsumedThisSession = true;
             CanUndo = false;
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
-            ReportError(ex.Message);
+            ReportError(exception.Message);
         }
         finally
         {

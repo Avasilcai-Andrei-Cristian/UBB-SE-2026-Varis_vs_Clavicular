@@ -37,14 +37,14 @@ public class DeveloperViewModel : ObservableObject
         }
         else if (parameter == "mitigation factor")
         {
-            if (!double.TryParse(value, out double val) || val < 1)
+            if (!double.TryParse(value, out double parsedNumericValue) || parsedNumericValue < 1)
             {
                 return "Mitigation factor must be a number greater than or equal to 1.";
             }
         }
         else
         {
-            if (!double.TryParse(value, out double val) || val < 0 || val > 100)
+            if (!double.TryParse(value, out double parsedNumericValue) || parsedNumericValue < 0 || parsedNumericValue > 100)
             {
                 return "Weight value must be a number between 0 and 100.";
             }
