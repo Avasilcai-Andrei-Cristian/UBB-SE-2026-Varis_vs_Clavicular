@@ -12,18 +12,18 @@ public sealed class RecommendationAlgorithmTests
         var algorithm = new RecommendationAlgorithm();
         var user = TestDataFactory.CreateUser();
         var job = TestDataFactory.CreateJob();
-        var userSkills = new List<Skill>
+        var userSkillsList = new List<Skill>
         {
             TestDataFactory.CreateSkill(user.UserId, 1, "C#", 90),
             TestDataFactory.CreateSkill(user.UserId, 2, "React", 75)
         };
-        var jobSkills = new List<Skill>
+        var jobSkillsList = new List<Skill>
         {
             TestDataFactory.CreateSkill(0, 1, "C#", 80),
             TestDataFactory.CreateSkill(0, 2, "React", 70)
         };
 
-        var score = algorithm.CalculateCompatibilityScore(user, job, userSkills, jobSkills);
+        var score = algorithm.CalculateCompatibilityScore(user, job, userSkillsList, jobSkillsList);
 
         score.Should().BeGreaterThan(0);
         score.Should().BeLessThanOrEqualTo(100);
@@ -34,16 +34,16 @@ public sealed class RecommendationAlgorithmTests
     {
         var user = TestDataFactory.CreateUser();
         var job = TestDataFactory.CreateJob();
-        var userSkills = new List<Skill>
+        var userSkillsList = new List<Skill>
         {
             TestDataFactory.CreateSkill(user.UserId, 1, "C#", 80)
         };
-        var jobSkills = new List<Skill>
+        var jobSkillsList = new List<Skill>
         {
             TestDataFactory.CreateSkill(0, 1, "C#", 70)
         };
 
-        var posts = new List<Post>
+        var postsList = new List<Post>
         {
             TestDataFactory.CreatePost(1, 1, PostParameterType.WeightedDistanceScoreWeight, "40"),
             TestDataFactory.CreatePost(2, 1, PostParameterType.JobResumeSimilarityScoreWeight, "30"),
@@ -51,13 +51,13 @@ public sealed class RecommendationAlgorithmTests
             TestDataFactory.CreatePost(4, 1, PostParameterType.PromotionScoreWeight, "10"),
             TestDataFactory.CreatePost(5, 1, PostParameterType.RelevantKeyword, "react")
         };
-        var interactions = new List<Interaction>
+        var interactionsList = new List<Interaction>
         {
             TestDataFactory.CreateInteraction(1, 2, 5, InteractionType.Like)
         };
 
-        var algorithm = new RecommendationAlgorithm(new FakePostRepository(posts), new FakeInteractionRepository(interactions));
-        var score = algorithm.CalculateCompatibilityScore(user, job, userSkills, jobSkills);
+        var algorithm = new RecommendationAlgorithm(new FakePostRepository(postsList), new FakeInteractionRepository(interactionsList));
+        var score = algorithm.CalculateCompatibilityScore(user, job, userSkillsList, jobSkillsList);
 
         score.Should().BeGreaterThanOrEqualTo(0);
         score.Should().BeLessThanOrEqualTo(100);
@@ -97,16 +97,16 @@ public sealed class RecommendationAlgorithmTests
     {
         var user = TestDataFactory.CreateUser();
         var job = TestDataFactory.CreateJob();
-        var userSkills = new List<Skill>
+        var userSkillsList = new List<Skill>
         {
             TestDataFactory.CreateSkill(user.UserId, 1, "C#", 95)
         };
-        var jobSkills = new List<Skill>
+        var jobSkillsList = new List<Skill>
         {
             TestDataFactory.CreateSkill(0, 1, "C#", 50)
         };
 
-        var posts = new List<Post>
+        var postsList = new List<Post>
         {
             TestDataFactory.CreatePost(1, 1, PostParameterType.WeightedDistanceScoreWeight, "0"),
             TestDataFactory.CreatePost(2, 1, PostParameterType.JobResumeSimilarityScoreWeight, "0"),
@@ -116,15 +116,15 @@ public sealed class RecommendationAlgorithmTests
             TestDataFactory.CreatePost(6, 1, PostParameterType.RelevantKeyword, "  c#  "),
             TestDataFactory.CreatePost(7, 1, PostParameterType.RelevantKeyword, string.Empty)
         };
-        var interactions = new List<Interaction>
+        var interactionsList = new List<Interaction>
         {
             TestDataFactory.CreateInteraction(1, 2, 6, InteractionType.Like),
             TestDataFactory.CreateInteraction(2, 3, 6, InteractionType.Dislike),
             TestDataFactory.CreateInteraction(3, 4, 7, InteractionType.Like)
         };
 
-        var algorithm = new RecommendationAlgorithm(new FakePostRepository(posts), new FakeInteractionRepository(interactions));
-        var score = algorithm.CalculateCompatibilityScore(user, job, userSkills, jobSkills);
+        var algorithm = new RecommendationAlgorithm(new FakePostRepository(postsList), new FakeInteractionRepository(interactionsList));
+        var score = algorithm.CalculateCompatibilityScore(user, job, userSkillsList, jobSkillsList);
 
         score.Should().BeInRange(0, 100);
     }
@@ -149,17 +149,17 @@ public sealed class RecommendationAlgorithmTests
         var job = TestDataFactory.CreateJob();
         job.JobDescription = "csharp";
 
-        var posts = new List<Post>
+        var postsList = new List<Post>
         {
             TestDataFactory.CreatePost(1, 1, PostParameterType.RelevantKeyword, "csharp")
         };
 
-        var interactions = Enumerable.Range(1, 10)
+        var interactionsList = Enumerable.Range(1, 10)
             .Select(index => TestDataFactory.CreateInteraction(index, index, 1, InteractionType.Dislike))
             .ToList();
 
         var algorithm = new RecommendationAlgorithm();
-        var score = algorithm.CalculateCompatibilityScore(user, job, new List<Skill>(), new List<JobSkill>(), posts, interactions);
+        var score = algorithm.CalculateCompatibilityScore(user, job, new List<Skill>(), new List<JobSkill>(), postsList, interactionsList);
 
         score.Should().BeInRange(0, 100);
     }
@@ -171,10 +171,10 @@ public sealed class RecommendationAlgorithmTests
         var user = TestDataFactory.CreateUser();
         var job = TestDataFactory.CreateJob();
 
-        var userSkills = new List<Skill> { TestDataFactory.CreateSkill(user.UserId, 999, "C#", 90) };
-        var jobSkills = new List<Skill> { TestDataFactory.CreateSkill(0, 1, "C#", 80) };
+        var userSkillsList = new List<Skill> { TestDataFactory.CreateSkill(user.UserId, 999, "C#", 90) };
+        var jobSkillsList = new List<Skill> { TestDataFactory.CreateSkill(0, 1, "C#", 80) };
 
-        var score = algorithm.CalculateCompatibilityScore(user, job, userSkills, jobSkills);
+        var score = algorithm.CalculateCompatibilityScore(user, job, userSkillsList, jobSkillsList);
 
         score.Should().BeGreaterThan(0);
     }
@@ -184,20 +184,20 @@ public sealed class RecommendationAlgorithmTests
     {
         var user = TestDataFactory.CreateUser();
         var job = TestDataFactory.CreateJob();
-        var userSkills = new List<Skill> { TestDataFactory.CreateSkill(user.UserId, 1, "C#", 90) };
-        var jobSkills = new List<Skill> { TestDataFactory.CreateSkill(0, 1, "C#", 50) };
+        var userSkillsList = new List<Skill> { TestDataFactory.CreateSkill(user.UserId, 1, "C#", 90) };
+        var jobSkillsList = new List<Skill> { TestDataFactory.CreateSkill(0, 1, "C#", 50) };
 
-        var posts = new List<Post>
+        var postsList = new List<Post>
         {
             TestDataFactory.CreatePost(1, 1, PostParameterType.MitigationFactor, "0.5")
         };
-        var interactions = new List<Interaction>
+        var interactionsList = new List<Interaction>
         {
             TestDataFactory.CreateInteraction(1, 1, 1, InteractionType.Like)
         };
 
-        var algorithm = new RecommendationAlgorithm(new FakePostRepository(posts), new FakeInteractionRepository(interactions));
-        var score = algorithm.CalculateCompatibilityScore(user, job, userSkills, jobSkills);
+        var algorithm = new RecommendationAlgorithm(new FakePostRepository(postsList), new FakeInteractionRepository(interactionsList));
+        var score = algorithm.CalculateCompatibilityScore(user, job, userSkillsList, jobSkillsList);
 
         score.Should().BeInRange(0, 100);
     }
@@ -210,21 +210,21 @@ public sealed class RecommendationAlgorithmTests
         var job = TestDataFactory.CreateJob();
         job.JobDescription = "csharp";
 
-        var posts = new List<Post>
+        var postsList = new List<Post>
         {
             TestDataFactory.CreatePost(1, 1, PostParameterType.RelevantKeyword, "csharp"),
             TestDataFactory.CreatePost(2, 1, PostParameterType.RelevantKeyword, " CSharp ")
         };
 
-        var interactions = new List<Interaction>
+        var interactionsList = new List<Interaction>
         {
             TestDataFactory.CreateInteraction(1, 1, 1, InteractionType.Like),
             TestDataFactory.CreateInteraction(2, 1, 2, InteractionType.Like)
         };
 
-        var algorithm = new RecommendationAlgorithm(new FakePostRepository(posts), new FakeInteractionRepository(interactions));
+        var algorithm = new RecommendationAlgorithm(new FakePostRepository(postsList), new FakeInteractionRepository(interactionsList));
 
-        var score = algorithm.CalculateCompatibilityScore(user, job, new List<Skill>(), new List<JobSkill>(), posts, interactions);
+        var score = algorithm.CalculateCompatibilityScore(user, job, new List<Skill>(), new List<JobSkill>(), postsList, interactionsList);
 
         score.Should().BeInRange(0, 100);
     }
@@ -235,12 +235,12 @@ public sealed class RecommendationAlgorithmTests
         var user = TestDataFactory.CreateUser();
         var job = TestDataFactory.CreateJob();
 
-        var posts = new List<Post>
+        var postsList = new List<Post>
         {
             TestDataFactory.CreatePost(1, 1, PostParameterType.WeightedDistanceScoreWeight, "abc")
         };
 
-        var algorithm = new RecommendationAlgorithm(new FakePostRepository(posts), new FakeInteractionRepository(Array.Empty<Interaction>()));
+        var algorithm = new RecommendationAlgorithm(new FakePostRepository(postsList), new FakeInteractionRepository(Array.Empty<Interaction>()));
 
         var score = algorithm.CalculateCompatibilityScore(user, job, new List<Skill>(), new List<Skill>());
 
