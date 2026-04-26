@@ -1,3 +1,5 @@
+using matchmaking.Models;
+
 namespace matchmaking.Tests;
 
 public sealed class StatusServiceCoverageTests
@@ -101,6 +103,97 @@ public sealed class StatusServiceCoverageTests
         service.AddInteraction(1, 1, InteractionType.Dislike);
 
         interaction.Type.Should().Be(InteractionType.Dislike);
+    }
+
+    [Fact]
+    public void SkillGapService_GetUnderscoredSkills_WhenSameSkillAppearsInMultipleRejectedJobs_AveragesRequiredScores()
+    {
+        var user = TestDataFactory.CreateUser();
+        var job1 = TestDataFactory.CreateJob(jobId: 100, companyId: 1);
+        var job2 = TestDataFactory.CreateJob(jobId: 101, companyId: 1);
+        var match1 = TestDataFactory.CreateMatch(matchId: 1, userId: user.UserId, jobId: job1.JobId, status: MatchStatus.Rejected);
+        var match2 = TestDataFactory.CreateMatch(matchId: 2, userId: user.UserId, jobId: job2.JobId, status: MatchStatus.Rejected);
+
+        var service = new SkillGapService(
+            new FakeMatchRepository(new[] { match1, match2 }),
+            new JobSkillService(new FakeJobSkillRepository(new[]
+            {
+                TestDataFactory.CreateJobSkill(job1.JobId, 1, "C#", 80),
+                TestDataFactory.CreateJobSkill(job2.JobId, 1, "C#", 100),
+            })),
+            new SkillService(new FakeSkillRepository(new[]
+            {
+                TestDataFactory.CreateSkill(user.UserId, 1, "C#", 60),
+            })));
+
+        var result = service.GetUnderscoredSkills(user.UserId);
+
+        result.Should().ContainSingle().Which.Should().BeEquivalentTo(
+            new UnderscoredSkillModel { SkillName = "C#", UserScore = 60, AverageRequiredScore = 90 },
+            options => options
+                .Including(item => item.SkillName)
+                .Including(item => item.UserScore)
+                .Including(item => item.AverageRequiredScore));
+    }
+
+    [Fact]
+    public void SkillGapService_GetUnderscoredSkills_WhenMultipleSkillsExist_SortsByLargestGapFirst()
+    {
+        var user = TestDataFactory.CreateUser();
+        var job = TestDataFactory.CreateJob();
+        var match = TestDataFactory.CreateMatch(userId: user.UserId, jobId: job.JobId, status: MatchStatus.Rejected);
+
+        var service = new SkillGapService(
+            new FakeMatchRepository(new[] { match }),
+            new JobSkillService(new FakeJobSkillRepository(new[]
+            {
+                TestDataFactory.CreateJobSkill(job.JobId, 1, "C#", 90),
+                TestDataFactory.CreateJobSkill(job.JobId, 2, "Python", 90),
+            })),
+            new SkillService(new FakeSkillRepository(new[]
+            {
+                TestDataFactory.CreateSkill(user.UserId, 1, "C#", 80),
+                TestDataFactory.CreateSkill(user.UserId, 2, "Python", 70),
+            })));
+
+        var result = service.GetUnderscoredSkills(user.UserId);
+
+        result.Should().HaveCount(2);
+        result[0].SkillName.Should().Be("Python");
+        result[1].SkillName.Should().Be("C#");
+    }
+
+    [Fact]
+    public void SkillGapService_GetMissingSkills_WhenSkillsAppearInMultipleRejections_SortsByFrequencyDescending()
+    {
+        var user = TestDataFactory.CreateUser();
+        var job1 = TestDataFactory.CreateJob(jobId: 200, companyId: 1);
+        var job2 = TestDataFactory.CreateJob(jobId: 201, companyId: 1);
+        var job3 = TestDataFactory.CreateJob(jobId: 202, companyId: 1);
+        var job4 = TestDataFactory.CreateJob(jobId: 203, companyId: 1);
+
+        var service = new SkillGapService(
+            new FakeMatchRepository(new[]
+            {
+                TestDataFactory.CreateMatch(matchId: 10, userId: user.UserId, jobId: job1.JobId, status: MatchStatus.Rejected),
+                TestDataFactory.CreateMatch(matchId: 11, userId: user.UserId, jobId: job2.JobId, status: MatchStatus.Rejected),
+                TestDataFactory.CreateMatch(matchId: 12, userId: user.UserId, jobId: job3.JobId, status: MatchStatus.Rejected),
+                TestDataFactory.CreateMatch(matchId: 13, userId: user.UserId, jobId: job4.JobId, status: MatchStatus.Rejected),
+            }),
+            new JobSkillService(new FakeJobSkillRepository(new[]
+            {
+                TestDataFactory.CreateJobSkill(job1.JobId, 10, "Rust", 80),
+                TestDataFactory.CreateJobSkill(job2.JobId, 10, "Rust", 80),
+                TestDataFactory.CreateJobSkill(job3.JobId, 10, "Rust", 80),
+                TestDataFactory.CreateJobSkill(job4.JobId, 11, "Go", 70),
+            })),
+            new SkillService(new FakeSkillRepository(Array.Empty<Skill>())));
+
+        var result = service.GetMissingSkills(user.UserId);
+
+        result.Should().HaveCount(2);
+        result[0].SkillName.Should().Be("Rust");
+        result[1].SkillName.Should().Be("Go");
     }
 
     private static SkillGapService CreateSkillGapService(IReadOnlyList<Match> matches)

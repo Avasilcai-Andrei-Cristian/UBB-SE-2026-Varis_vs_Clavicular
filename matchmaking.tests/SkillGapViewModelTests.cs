@@ -107,8 +107,8 @@ public sealed class SkillGapViewModelTests
 
         await viewModel.LoadData();
 
-        viewModel.HasSkillsToImprove.Should().Be(viewModel.SkillsToImprove.Count > 0);
-        viewModel.HasMissingSkills.Should().Be(viewModel.MissingSkills.Count > 0);
+        viewModel.HasSkillsToImprove.Should().BeTrue();
+        viewModel.HasMissingSkills.Should().BeFalse();
     }
 
     [Fact]

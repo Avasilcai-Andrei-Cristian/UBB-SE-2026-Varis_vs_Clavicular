@@ -140,7 +140,9 @@ public class ChatService : IChatService
         var chat = _chatRepository.GetChatById(chatId);
 
         if (chat.UserId != callerId && chat.SecondUserId != callerId && chat.CompanyId != callerId)
+        {
             throw new UnauthorizedAccessException("Only participants can access messages.");
+        }
 
         DateTime? visibleAfter = chat.UserId == callerId
             ? chat.DeletedAtByUser
@@ -152,7 +154,9 @@ public class ChatService : IChatService
     public List<Company> SearchCompanies(string query)
     {
         if (string.IsNullOrWhiteSpace(query))
+        {
             return new List<Company>();
+        }
 
         var companies = new List<Company>();
         foreach (var company in _companyRepository.GetAll())
@@ -169,7 +173,10 @@ public class ChatService : IChatService
     public List<User> SearchUsers(string query)
     {
         if (string.IsNullOrWhiteSpace(query))
+        {
             return new List<User>();
+        }
+
         var users = new List<User>();
         foreach (var user in _userRepository.GetAll())
         {
@@ -185,7 +192,9 @@ public class ChatService : IChatService
     public void SendMessage(int chatId, string content, int senderId, MessageType type)
     {
         if (string.IsNullOrWhiteSpace(content))
+        {
             throw new ArgumentException("Message content cannot be empty.");
+        }
 
         Chat chat = _chatRepository.GetChatById(chatId);
         if (chat.IsBlocked && chat.BlockedByUserId != senderId)
@@ -194,10 +203,14 @@ public class ChatService : IChatService
         }
 
         if (chat.IsBlocked)
+        {
             throw new InvalidOperationException("Cannot send message in a blocked chat.");
+        }
 
         if (MessageType.Text == type && content.Length > 2000)
+        {
             throw new ArgumentException("Text messages cannot exceed 2000 characters.");
+        }
 
         if (type == MessageType.Image || type == MessageType.File)
         {
@@ -220,24 +233,34 @@ public class ChatService : IChatService
     private string StoreAttachment(string sourcePath, MessageType type)
     {
         if (!File.Exists(sourcePath))
+        {
             throw new FileNotFoundException("Attachment file was not found.", sourcePath);
+        }
 
         var extension = Path.GetExtension(sourcePath);
         if (string.IsNullOrWhiteSpace(extension))
+        {
             throw new NotSupportedException("Attachment must have a valid file extension.");
+        }
 
         if (type == MessageType.Image && !AllowedImageExtensions.Contains(extension))
+        {
             throw new NotSupportedException("Image messages must be .jpg, .jpeg or .png");
+        }
 
         if (type == MessageType.File && !AllowedFileExtensions.Contains(extension))
+        {
             throw new NotSupportedException("File messages must be .pdf, .docx or .doc");
+        }
 
         var fileInfo = new FileInfo(sourcePath);
         var maxBytes = type == MessageType.Image ? 10 * 1024 * 1024 : 20 * 1024 * 1024;
         if (fileInfo.Length > maxBytes)
+        {
             throw new InvalidOperationException(type == MessageType.Image
                 ? "Image must be less than 10 MB"
                 : "File must be less than 20 MB");
+        }
 
         var now = DateTime.UtcNow;
         var targetDirectory = Path.Combine(
@@ -262,7 +285,7 @@ public class ChatService : IChatService
             "attachments");
     }
 
-    public void MarkMessageAsRead(int chatId, int readerId) 
+    public void MarkMessageAsRead(int chatId, int readerId)
     {
         _messageRepository.MarkAsRead(chatId, readerId);
     }
@@ -271,7 +294,10 @@ public class ChatService : IChatService
     {
         var chat = _chatRepository.GetChatById(chatId);
         if (chat.IsBlocked)
+        {
             throw new InvalidOperationException("Chat is already blocked.");
+        }
+
         _chatRepository.BlockChat(chatId, blockerId);
     }
 
@@ -279,9 +305,15 @@ public class ChatService : IChatService
     {
         var chat = _chatRepository.GetChatById(chatId);
         if (!chat.IsBlocked)
+        {
             throw new InvalidOperationException("Chat is not blocked.");
+        }
+
         if (chat.BlockedByUserId != unblockerId)
+        {
             throw new UnauthorizedAccessException("Only the user who blocked the chat can unblock it.");
+        }
+
         _chatRepository.UnblockUser(chatId, unblockerId);
     }
 
@@ -289,7 +321,10 @@ public class ChatService : IChatService
     {
         var chat = _chatRepository.GetChatById(chatId);
         if (chat.UserId != callerId && chat.SecondUserId != callerId && chat.CompanyId != callerId)
+        {
             throw new UnauthorizedAccessException("Only participants can delete the chat.");
+        }
+
         if (chat.UserId == callerId)
         {
             _chatRepository.DeletedByUser(chatId, callerId);
@@ -384,5 +419,4 @@ public class ChatService : IChatService
             return right.ChatId.CompareTo(left.ChatId);
         }
     }
-
 }

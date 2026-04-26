@@ -43,8 +43,8 @@ public sealed partial class AppHeaderControl : UserControl
 
     private void UpdateActiveButton(string activePage)
     {
-        var white       = new SolidColorBrush(Colors.White);
-        var black       = new SolidColorBrush(Colors.Black);
+        var white = new SolidColorBrush(Colors.White);
+        var black = new SolidColorBrush(Colors.Black);
         var transparent = new SolidColorBrush(Colors.Transparent);
 
         SetButtonState(RecommendationsButton, activePage == "Recommendations", white, black, transparent);
@@ -56,9 +56,9 @@ public sealed partial class AppHeaderControl : UserControl
         Button btn, bool isActive,
         SolidColorBrush white, SolidColorBrush black, SolidColorBrush transparent)
     {
-        btn.Background  = isActive ? white       : transparent;
-        btn.Foreground  = isActive ? black       : white;
-        btn.FontWeight  = isActive
+        btn.Background = isActive ? white : transparent;
+        btn.Foreground = isActive ? black : white;
+        btn.FontWeight = isActive
             ? Microsoft.UI.Text.FontWeights.SemiBold
             : Microsoft.UI.Text.FontWeights.Normal;
     }

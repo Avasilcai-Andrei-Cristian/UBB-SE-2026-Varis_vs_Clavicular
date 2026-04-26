@@ -295,7 +295,7 @@ public sealed partial class CompanyMatchmakingPage : Page
         storyboard.Children.Add(slideAnimation);
         storyboard.Children.Add(fadeAnimation);
 
-        void OnCompleted(object? _, object __)
+        void OnCompleted(object? discardedSender, object discardedEventArgs)
         {
             storyboard.Completed -= OnCompleted;
             completion.TrySetResult(true);

@@ -301,6 +301,41 @@ public sealed class RecommendationAlgorithmTests
         result.Should().Be(1.0);
     }
 
+    [Fact]
+    public void CalculateScoreBreakdown_WhenUserHasNoSkills_SkillScoreEqualsHundredMinusRequiredScore()
+    {
+        var algorithm = new RecommendationAlgorithm();
+        var user = TestDataFactory.CreateUser();
+        var job = TestDataFactory.CreateJob();
+
+        var breakdown = algorithm.CalculateScoreBreakdown(
+            user,
+            job,
+            new List<Skill>(),
+            new List<Skill> { TestDataFactory.CreateSkill(0, 1, "C#", 80) });
+
+        breakdown.SkillScore.Should().Be(20.0);
+    }
+
+    [Fact]
+    public void CalculateCompatibilityScore_WhenJobHasHigherPromotionLevel_ScoreExceedsLowPromotionJobScore()
+    {
+        var algorithm = new RecommendationAlgorithm();
+        var user = TestDataFactory.CreateUser();
+        var userSkills = new List<Skill> { TestDataFactory.CreateSkill(user.UserId, 1, "C#", 80) };
+        var jobSkills = new List<Skill> { TestDataFactory.CreateSkill(0, 1, "C#", 80) };
+
+        var lowPromotionJob = TestDataFactory.CreateJob();
+        lowPromotionJob.PromotionLevel = 0;
+        var highPromotionJob = TestDataFactory.CreateJob();
+        highPromotionJob.PromotionLevel = 100;
+
+        var lowScore = algorithm.CalculateCompatibilityScore(user, lowPromotionJob, userSkills, jobSkills);
+        var highScore = algorithm.CalculateCompatibilityScore(user, highPromotionJob, userSkills, jobSkills);
+
+        highScore.Should().BeGreaterThan(lowScore);
+    }
+
     private sealed class FakePostRepository : IPostRepository
     {
         private readonly IReadOnlyList<Post> posts;

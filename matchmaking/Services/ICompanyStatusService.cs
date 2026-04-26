@@ -1,6 +1,6 @@
-﻿using matchmaking.DTOs;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+using matchmaking.DTOs;
 
 namespace matchmaking.Services
 {

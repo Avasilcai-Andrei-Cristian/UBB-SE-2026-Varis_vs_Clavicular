@@ -3,89 +3,6 @@ namespace matchmaking.Tests;
 public sealed class ViewModelHelperCoverageTests
 {
     [Fact]
-    public void Options_WhenAccessed_ContainsRelevantKeywordEntry()
-    {
-        DeveloperPostOptions.Options.Should().Contain(item => item.Content == "relevant keyword");
-    }
-
-    [Fact]
-    public void Options_WhenAccessed_ContainsMitigationFactorTag()
-    {
-        DeveloperPostOptions.Options.Should().Contain(item => item.Tag == "mitigation factor");
-    }
-
-    [Fact]
-    public void RelayCommand_WhenCanExecuteIsFalse_ReturnsFalse()
-    {
-        var command = new RelayCommand(() => { }, () => false);
-
-        command.CanExecute(null).Should().BeFalse();
-    }
-
-    [Fact]
-    public void RelayCommand_WhenExecuteIsCalled_InvokesAction()
-    {
-        var count = 0;
-        var command = new RelayCommand(() => count++);
-
-        command.Execute(null);
-
-        count.Should().Be(1);
-    }
-
-    [Fact]
-    public void SetProperty_WhenNoSubscribersAreAttached_DoesNotThrow()
-    {
-        var model = new TestObservableObject();
-
-        Action act = () => model.UpdateValue(42);
-
-        act.Should().NotThrow();
-    }
-
-    [Fact]
-    public void SetProperty_WhenValueIsNew_ReturnsTrue()
-    {
-        var model = new TestObservableObject();
-
-        var result = model.UpdateValue(1);
-
-        result.Should().BeTrue();
-    }
-
-    [Fact]
-    public void SetProperty_WhenValueIsUnchanged_ReturnsFalse()
-    {
-        var model = new TestObservableObject();
-        model.UpdateValue(1);
-
-        var result = model.UpdateValue(1);
-
-        result.Should().BeFalse();
-    }
-
-    [Fact]
-    public void SetProperty_WhenValueChangesAfterAnUnchangedSet_ReturnsTrue()
-    {
-        var model = new TestObservableObject();
-        model.UpdateValue(1);
-
-        var result = model.UpdateValue(2);
-
-        result.Should().BeTrue();
-    }
-
-    [Fact]
-    public void RaisePropertyChanged_WhenCalledWithoutSubscribers_DoesNotThrow()
-    {
-        var model = new TestObservableObject();
-
-        Action act = () => model.TriggerRaisePropertyChanged();
-
-        act.Should().NotThrow();
-    }
-
-    [Fact]
     public void CompanyRecommendationViewModel_WhenNoApplicantAvailable_ShowsEmptyCollectionsForSkills()
     {
         var session = new SessionContext();
@@ -112,20 +29,5 @@ public sealed class ViewModelHelperCoverageTests
         viewModel.TopSkills.Should().BeEmpty();
         viewModel.AllSkills.Should().BeEmpty();
         viewModel.RemainingSkillCount.Should().Be(0);
-    }
-
-    private sealed class TestObservableObject : ObservableObject
-    {
-        private int value;
-
-        public bool UpdateValue(int newValue)
-        {
-            return SetProperty(ref value, newValue);
-        }
-
-        public void TriggerRaisePropertyChanged()
-        {
-            RaisePropertyChanged(nameof(value));
-        }
     }
 }

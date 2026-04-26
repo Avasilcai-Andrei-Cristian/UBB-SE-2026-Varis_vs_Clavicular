@@ -1,7 +1,7 @@
-﻿using matchmaking.Domain.Entities;
-using matchmaking.Domain.Enums;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+using matchmaking.Domain.Entities;
+using matchmaking.Domain.Enums;
 
 namespace matchmaking.Services
 {

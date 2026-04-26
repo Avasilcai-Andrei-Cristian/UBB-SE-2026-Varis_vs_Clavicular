@@ -1,14 +1,14 @@
 using System;
+using System.Runtime.InteropServices.WindowsRuntime;
+using matchmaking.Models;
+using matchmaking.ViewModels;
+using matchmaking.Views;
 using Microsoft.UI;
 using Microsoft.UI.Text;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 using Windows.UI;
-using matchmaking.Models;
-using matchmaking.ViewModels;
-using System.Runtime.InteropServices.WindowsRuntime;
-using matchmaking.Views;
 namespace matchmaking.Views.Pages;
 
 public sealed partial class UserStatusPage : Page
@@ -84,8 +84,6 @@ public sealed partial class UserStatusPage : Page
 
     private void ViewSkillGap_Click(object sender, RoutedEventArgs e)
         => Frame.Navigate(typeof(SkillGapPage));
-
-  
 
     private void SkillInsightsButton_Click(object sender, RoutedEventArgs e)
         => Frame.Navigate(typeof(SkillGapPage));
