@@ -38,7 +38,7 @@ public class ChatViewModel : ObservableObject
     private readonly SessionContext _sessionContext;
     private readonly IUserRepository _userRepository;
     private readonly ICompanyRepository _companyRepository;
-    private readonly NavigationService _navigationService;
+    private readonly INavigationService _navigationService;
 
     public bool HasPendingAttachments => false;
     public ObservableCollection<object> PendingAttachments { get; } = new();
@@ -49,7 +49,7 @@ public class ChatViewModel : ObservableObject
         SessionContext sessionContext,
         IUserRepository userRepository,
         ICompanyRepository companyRepository,
-        NavigationService navigationService)
+        INavigationService navigationService)
     {
         _chatService = chatService;
         _jobService = jobService;

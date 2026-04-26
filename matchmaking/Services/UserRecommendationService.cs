@@ -15,9 +15,9 @@ public sealed class UserRecommendationService : IUserRecommendationService
     private readonly ISkillRepository skillRepository;
     private readonly IJobSkillRepository jobSkillRepository;
     private readonly ICompanyRepository companyRepository;
-    private readonly MatchService matchService;
+    private readonly IMatchService matchService;
     private readonly IRecommendationRepository recommendationRepository;
-    private readonly CooldownService cooldownService;
+    private readonly ICooldownService cooldownService;
     private readonly IRecommendationAlgorithm algorithm;
 
     public UserRecommendationService(
@@ -26,9 +26,9 @@ public sealed class UserRecommendationService : IUserRecommendationService
         ISkillRepository skillRepository,
         IJobSkillRepository jobSkillRepository,
         ICompanyRepository companyRepository,
-        MatchService matchService,
+        IMatchService matchService,
         IRecommendationRepository recommendationRepository,
-        CooldownService cooldownService,
+        ICooldownService cooldownService,
         IRecommendationAlgorithm algorithm)
     {
         this.userRepository = userRepository;

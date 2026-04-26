@@ -9,13 +9,13 @@ namespace matchmaking.Services;
 
 public class CompanyStatusService : ICompanyStatusService
 {
-    private readonly MatchService matchService;
+    private readonly IMatchService matchService;
     private readonly IUserService userService;
     private readonly IJobService jobService;
     private readonly ISkillService skillService;
 
     public CompanyStatusService(
-        MatchService matchService,
+        IMatchService matchService,
         IUserService userService,
         IJobService jobService,
         ISkillService skillService)

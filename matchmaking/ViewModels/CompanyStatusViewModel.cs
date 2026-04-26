@@ -14,8 +14,8 @@ public class CompanyStatusViewModel : ObservableObject
 {
     private const int MaximumFeedbackLength = 500;
 
-    private readonly CompanyStatusService _companyStatusService;
-    private readonly MatchService _matchService;
+    private readonly ICompanyStatusService _companyStatusService;
+    private readonly IMatchService _matchService;
     private readonly ITestingModuleAdapter _testingModuleAdapter;
     private readonly SessionContext _session;
 
@@ -35,8 +35,8 @@ public class CompanyStatusViewModel : ObservableObject
     public event Action<string>? ErrorOccurred;
 
     public CompanyStatusViewModel(
-        CompanyStatusService companyStatusService,
-        MatchService matchService,
+        ICompanyStatusService companyStatusService,
+        IMatchService matchService,
         ITestingModuleAdapter testingModuleAdapter,
         SessionContext session)
     {

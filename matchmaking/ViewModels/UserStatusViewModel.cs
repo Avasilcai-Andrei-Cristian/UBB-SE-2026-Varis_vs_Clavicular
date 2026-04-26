@@ -15,9 +15,9 @@ public class UserStatusViewModel : ObservableObject
 {
     private const int DefaultCurrentUserId = 1;
 
-    private readonly UserStatusService _userStatusService;
-    private readonly SkillGapService _skillGapService;
-    private readonly JobSkillService _jobSkillService;
+    private readonly IUserStatusService _userStatusService;
+    private readonly ISkillGapService _skillGapService;
+    private readonly IJobSkillService _jobSkillService;
 
     private bool _isLoading;
     private bool _hasError;
@@ -77,9 +77,9 @@ public class UserStatusViewModel : ObservableObject
     }
 
     public UserStatusViewModel(
-        UserStatusService userStatusService,
-        SkillGapService skillGapService,
-        JobSkillService jobSkillService,
+        IUserStatusService userStatusService,
+        ISkillGapService skillGapService,
+        IJobSkillService jobSkillService,
         SessionContext sessionContext)
     {
         _userStatusService = userStatusService;

@@ -11,7 +11,7 @@ namespace matchmaking.ViewModels;
 
 public class SkillGapViewModel : ObservableObject
 {
-    private readonly SkillGapService skillGapService;
+    private readonly ISkillGapService skillGapService;
 
     private bool isLoading;
     private bool showContent;
@@ -53,7 +53,7 @@ public class SkillGapViewModel : ObservableObject
         MissingSkills.CollectionChanged += OnCollectionChanged;
     }
 
-    public SkillGapViewModel(SkillGapService skillGapService, SessionContext sessionContext)
+    public SkillGapViewModel(ISkillGapService skillGapService, SessionContext sessionContext)
     {
         this.skillGapService = skillGapService;
 

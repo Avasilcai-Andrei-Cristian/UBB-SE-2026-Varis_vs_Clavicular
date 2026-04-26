@@ -9,7 +9,7 @@ namespace matchmaking.Services;
 
 public class CompanyRecommendationService : ICompanyRecommendationService
 {
-    private readonly MatchService matchService;
+    private readonly IMatchService matchService;
     private readonly IUserService userService;
     private readonly IJobService jobService;
     private readonly ISkillService skillService;
@@ -20,7 +20,7 @@ public class CompanyRecommendationService : ICompanyRecommendationService
     private int currentIndex;
 
     public CompanyRecommendationService(
-        MatchService matchService,
+        IMatchService matchService,
         IUserService userService,
         IJobService jobService,
         ISkillService skillService,

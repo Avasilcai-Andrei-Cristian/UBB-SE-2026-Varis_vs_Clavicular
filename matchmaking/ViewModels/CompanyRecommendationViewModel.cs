@@ -11,8 +11,8 @@ namespace matchmaking.ViewModels;
 
 public class CompanyRecommendationViewModel : ObservableObject
 {
-    private readonly CompanyRecommendationService _recommendationService;
-    private readonly MatchService _matchService;
+    private readonly ICompanyRecommendationService _recommendationService;
+    private readonly IMatchService _matchService;
     private readonly SessionContext _session;
 
     private readonly RelayCommand _advanceCommand;
@@ -37,8 +37,8 @@ public class CompanyRecommendationViewModel : ObservableObject
     public event Action<string>? ErrorOccurred;
 
     public CompanyRecommendationViewModel(
-        CompanyRecommendationService recommendationService,
-        MatchService matchService,
+        ICompanyRecommendationService recommendationService,
+        IMatchService matchService,
         SessionContext session)
     {
         _recommendationService = recommendationService;

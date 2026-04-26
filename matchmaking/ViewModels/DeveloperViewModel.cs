@@ -8,12 +8,12 @@ namespace matchmaking.ViewModels;
 
 public class DeveloperViewModel : ObservableObject
 {
-    private readonly DeveloperService _developerService;
+    private readonly IDeveloperService _developerService;
     private readonly SessionContext _sessionContext;
 
     public ObservableCollection<PostCardViewModel> Posts { get; } = new ObservableCollection<PostCardViewModel>();
 
-    public DeveloperViewModel(DeveloperService developerService, SessionContext sessionContext)
+    public DeveloperViewModel(IDeveloperService developerService, SessionContext sessionContext)
     {
         _developerService = developerService;
         _sessionContext = sessionContext;

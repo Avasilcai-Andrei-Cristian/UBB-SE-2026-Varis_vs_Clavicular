@@ -14,7 +14,7 @@ namespace matchmaking.ViewModels;
 
 public sealed class UserRecommendationViewModel : ObservableObject
 {
-    private readonly UserRecommendationService _service;
+    private readonly IUserRecommendationService _service;
     private readonly SessionContext _session;
 
     public event Action<string>? ErrorOccurred;
@@ -41,7 +41,7 @@ public sealed class UserRecommendationViewModel : ObservableObject
     private readonly UserMatchmakingFilters _appliedFilters = UserMatchmakingFilters.Empty();
     private string _draftLocation = string.Empty;
 
-    public UserRecommendationViewModel(UserRecommendationService service, SessionContext session)
+    public UserRecommendationViewModel(IUserRecommendationService service, SessionContext session)
     {
         _service = service;
         _session = session;
