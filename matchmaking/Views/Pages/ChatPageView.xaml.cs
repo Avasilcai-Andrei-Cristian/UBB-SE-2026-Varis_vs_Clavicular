@@ -1,3 +1,10 @@
+using System;
+using System.Collections.Generic;
+using System.Collections.Specialized;
+using System.IO;
+using System.Linq;
+using System.Runtime.InteropServices.WindowsRuntime;
+using System.Runtime.Versioning;
 using matchmaking.Domain.Entities;
 using matchmaking.Domain.Enums;
 using matchmaking.Domain.Session;
@@ -8,13 +15,6 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Navigation;
-using System;
-using System.Collections.Generic;
-using System.Collections.Specialized;
-using System.IO;
-using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
-using System.Runtime.Versioning;
 using Windows.Storage.Pickers;
 
 namespace matchmaking.Views.Pages;
@@ -301,10 +301,14 @@ public sealed partial class ChatPageView : Page
         if (parameter is IReadOnlyDictionary<string, object> dict)
         {
             if (!dict.TryGetValue("CompanyId", out var companyIdObj))
+            {
                 return false;
+            }
 
             if (companyIdObj is not int id || id <= 0)
+            {
                 return false;
+            }
 
             companyId = id;
 
@@ -322,7 +326,9 @@ public sealed partial class ChatPageView : Page
     private async void MessageList_ItemClick(object sender, ItemClickEventArgs e)
     {
         if (e.ClickedItem is not Message message)
+        {
             return;
+        }
 
         await DownloadAttachmentAsync(message);
     }
@@ -330,7 +336,9 @@ public sealed partial class ChatPageView : Page
     private async void AttachmentMessage_Click(object sender, RoutedEventArgs e)
     {
         if (sender is not Button { Tag: Message message })
+        {
             return;
+        }
 
         await DownloadAttachmentAsync(message);
     }
@@ -338,7 +346,9 @@ public sealed partial class ChatPageView : Page
     private async System.Threading.Tasks.Task DownloadAttachmentAsync(Message message)
     {
         if (message.Type != MessageType.File && message.Type != MessageType.Image)
+        {
             return;
+        }
 
         try
         {
@@ -386,7 +396,9 @@ public sealed partial class ChatPageView : Page
     private void QueueScrollToLatestMessage()
     {
         if (_isScrollToLatestQueued)
+        {
             return;
+        }
 
         _isScrollToLatestQueued = true;
 
@@ -396,7 +408,9 @@ public sealed partial class ChatPageView : Page
     private void ScrollToLatestMessage()
     {
         if (MessageList.Items.Count == 0)
+        {
             return;
+        }
 
         var lastMessage = MessageList.Items[MessageList.Items.Count - 1];
         MessageList.ScrollIntoView(lastMessage);

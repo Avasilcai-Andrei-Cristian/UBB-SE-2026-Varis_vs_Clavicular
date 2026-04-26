@@ -17,7 +17,7 @@ public class TestingModuleAdapterStub : ITestingModuleAdapter
     public Task<TestResult?> GetLatestResultForCandidateAsync(int externalUserId, int positionId)
     {
         var currentUtcDateTime = DateTime.UtcNow;
-        var testId = positionId * 10 + 1;
+        var testId = (positionId * 10) + 1;
 
         var result = new TestResult
         {
@@ -37,7 +37,7 @@ public class TestingModuleAdapterStub : ITestingModuleAdapter
             },
             Attempt = new TestAttemptRecord
             {
-                UserTestId = externalUserId * 1000 + testId,
+                UserTestId = (externalUserId * 1000) + testId,
                 TestId = testId,
                 ExternalUserId = externalUserId,
                 Score = 82.5m,
@@ -48,7 +48,7 @@ public class TestingModuleAdapterStub : ITestingModuleAdapter
             },
             InterviewSession = new InterviewSessionRecord
             {
-                SessionId = positionId * 100 + externalUserId,
+                SessionId = (positionId * 100) + externalUserId,
                 PositionId = positionId,
                 ExternalUserId = externalUserId,
                 InterviewerId = 10001,
@@ -61,27 +61,27 @@ public class TestingModuleAdapterStub : ITestingModuleAdapter
             [
                 new QuestionRecord
                 {
-                    QuestionId = testId * 100 + 1,
+                    QuestionId = (testId * 100) + 1,
                     PositionId = positionId,
                     TestId = testId,
                     QuestionText = "Explain the difference between interfaces and abstract classes.",
                     QuestionType = "open-ended",
                     QuestionScore = 30m,
-                    QuestionAnswer = ""
+                    QuestionAnswer = string.Empty
                 },
                 new QuestionRecord
                 {
-                    QuestionId = testId * 100 + 2,
+                    QuestionId = (testId * 100) + 2,
                     PositionId = positionId,
                     TestId = testId,
                     QuestionText = "Write a SQL query using JOIN and GROUP BY.",
                     QuestionType = "open-ended",
                     QuestionScore = 35m,
-                    QuestionAnswer = ""
+                    QuestionAnswer = string.Empty
                 },
                 new QuestionRecord
                 {
-                    QuestionId = testId * 100 + 3,
+                    QuestionId = (testId * 100) + 3,
                     PositionId = positionId,
                     TestId = testId,
                     QuestionText = "Which data structure gives O(1) average lookup?",

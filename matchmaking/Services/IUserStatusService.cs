@@ -1,5 +1,5 @@
-﻿using matchmaking.Models;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using matchmaking.Models;
 
 namespace matchmaking.Services
 {

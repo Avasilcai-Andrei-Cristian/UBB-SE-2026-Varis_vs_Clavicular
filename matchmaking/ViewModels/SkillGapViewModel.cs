@@ -50,7 +50,7 @@ public class SkillGapViewModel : ObservableObject
         RefreshCommand = new RelayCommand(Refresh);
 
         SkillsToImprove.CollectionChanged += OnCollectionChanged;
-        MissingSkills.CollectionChanged   += OnCollectionChanged;
+        MissingSkills.CollectionChanged += OnCollectionChanged;
     }
 
     public SkillGapViewModel(SkillGapService skillGapService, SessionContext sessionContext)
