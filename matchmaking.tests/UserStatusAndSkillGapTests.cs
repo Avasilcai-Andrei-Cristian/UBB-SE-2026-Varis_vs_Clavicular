@@ -19,8 +19,19 @@ public sealed class UserStatusAndSkillGapTests
         var applications = userStatusService.GetApplicationsForUser(user.UserId);
 
         applications.Should().ContainSingle();
-        applications[0].CompanyName.Should().Be(company.CompanyName);
-        applications[0].Status.Should().Be(MatchStatus.Accepted);
+        applications[0].Should().BeEquivalentTo(
+            new ApplicationCardModel
+            {
+                MatchId = match.MatchId,
+                CompanyName = company.CompanyName,
+                Status = MatchStatus.Accepted,
+                FeedbackMessage = "good fit"
+            },
+            options => options
+                .Including(card => card.MatchId)
+                .Including(card => card.CompanyName)
+                .Including(card => card.Status)
+                .Including(card => card.FeedbackMessage));
     }
 
     [Fact]

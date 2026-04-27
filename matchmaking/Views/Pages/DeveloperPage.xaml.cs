@@ -1,11 +1,11 @@
+using System;
+using matchmaking.Repositories;
+using matchmaking.Services;
+using matchmaking.ViewModels;
 using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
-using matchmaking.Repositories;
-using matchmaking.Services;
-using matchmaking.ViewModels;
-using System;
 
 namespace matchmaking.Views.Pages;
 

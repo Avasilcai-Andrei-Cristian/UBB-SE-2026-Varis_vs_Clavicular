@@ -7,8 +7,21 @@ namespace matchmaking.Repositories;
 
 public class CompanyRepository : ICompanyRepository
 {
-    private readonly List<Company> companies =
-    [
+    private readonly List<Company> companies;
+
+    public CompanyRepository()
+        : this(CreateDefaultCompanies())
+    {
+    }
+
+    public CompanyRepository(IEnumerable<Company> initialCompanies)
+    {
+        companies = initialCompanies.ToList();
+    }
+
+    private static IEnumerable<Company> CreateDefaultCompanies()
+    {
+        return [
         new () { CompanyId = 1, CompanyName = "TechNova", LogoText = "TN", Email = "hr@technova.com", Phone = "0311000001" },
         new () { CompanyId = 2, CompanyName = "CloudWorks", LogoText = "CW", Email = "jobs@cloudworks.com", Phone = "0311000002" },
         new () { CompanyId = 3, CompanyName = "DataForge", LogoText = "DF", Email = "careers@dataforge.com", Phone = "0311000003" },
@@ -19,15 +32,27 @@ public class CompanyRepository : ICompanyRepository
         new () { CompanyId = 8, CompanyName = "BrightSystems", LogoText = "BS", Email = "people@brightsystems.com", Phone = "0311000008" },
         new () { CompanyId = 9, CompanyName = "AI Valley", LogoText = "AV", Email = "hr@aivalley.com", Phone = "0311000009" },
         new () { CompanyId = 10, CompanyName = "CodeBridge", LogoText = "CB", Email = "careers@codebridge.com", Phone = "0311000010" }
-    ];
+        ];
+    }
 
-    public Company? GetById(int companyId) => companies.FirstOrDefault(c => c.CompanyId == companyId);
+    public Company? GetById(int companyId)
+    {
+        foreach (var company in companies)
+        {
+            if (company.CompanyId == companyId)
+            {
+                return company;
+            }
+        }
+
+        return null;
+    }
 
     public IReadOnlyList<Company> GetAll() => companies.ToList();
 
     public void Add(Company company)
     {
-        if (companies.Any(c => c.CompanyId == company.CompanyId))
+        if (HasCompanyId(company.CompanyId))
         {
             throw new InvalidOperationException($"Company with id {company.CompanyId} already exists.");
         }
@@ -48,5 +73,18 @@ public class CompanyRepository : ICompanyRepository
     {
         var existing = GetById(companyId) ?? throw new KeyNotFoundException($"Company with id {companyId} was not found.");
         companies.Remove(existing);
+    }
+
+    private bool HasCompanyId(int companyId)
+    {
+        foreach (var company in companies)
+        {
+            if (company.CompanyId == companyId)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

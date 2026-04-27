@@ -7,11 +7,14 @@ namespace matchmaking.Views.Converters;
 
 public sealed class PostTypeToBadgeBackgroundConverter : IValueConverter
 {
+    private static readonly Color JobPostBadgeColor = Color.FromArgb(0xFF, 0x16, 0xA3, 0x4A);
+    private static readonly Color ParameterPostBadgeColor = Color.FromArgb(0xFF, 0x25, 0x63, 0xEB);
+
     public static Color GetColor(bool isJobPost)
     {
         return isJobPost
-            ? Color.FromArgb(0xFF, 0x16, 0xA3, 0x4A)
-            : Color.FromArgb(0xFF, 0x25, 0x63, 0xEB);
+            ? JobPostBadgeColor
+            : ParameterPostBadgeColor;
     }
 
     public object Convert(object? value, Type targetType, object? parameter, string language)

@@ -6,878 +6,491 @@ public sealed class UserRecommendationViewModelTests
     [Fact]
     public async Task InitializeAsync_WhenRecommendationExists_PopulatesCurrentJob()
     {
-        var previousAvailability = GetAppFlag<bool>(nameof(App.IsDatabaseConnectionAvailable));
-        var previousError = GetAppFlag<string>(nameof(App.DatabaseConnectionError));
-        SetAppFlag(nameof(App.IsDatabaseConnectionAvailable), true);
-        SetAppFlag(nameof(App.DatabaseConnectionError), string.Empty);
+        using var scope = new AppStateScope(isDatabaseAvailable: true);
+        var user = TestDataFactory.CreateUser();
+        var job = TestDataFactory.CreateJob();
+        var viewModel = CreateViewModel(user, new[] { job });
 
-        try
-        {
-            var user = TestDataFactory.CreateUser();
-            var job = TestDataFactory.CreateJob();
-            var viewModel = CreateViewModel(user, new[] { job });
+        await viewModel.InitializeAsync();
 
-            await viewModel.InitializeAsync();
-
-            viewModel.HasCard.Should().BeTrue();
-            viewModel.CurrentJob.Should().NotBeNull();
-            viewModel.ShowEmptyDeck.Should().BeFalse();
-        }
-        finally
-        {
-            SetAppFlag(nameof(App.IsDatabaseConnectionAvailable), previousAvailability);
-            SetAppFlag(nameof(App.DatabaseConnectionError), previousError);
-        }
+        viewModel.HasCard.Should().BeTrue();
+        viewModel.CurrentJob.Should().NotBeNull();
+        viewModel.ShowEmptyDeck.Should().BeFalse();
     }
 
     [Fact]
     public async Task InitializeAsync_WhenUserSessionIsMissing_SetsErrorMessage()
     {
-        var previousAvailability = GetAppFlag<bool>(nameof(App.IsDatabaseConnectionAvailable));
-        var previousError = GetAppFlag<string>(nameof(App.DatabaseConnectionError));
-        SetAppFlag(nameof(App.IsDatabaseConnectionAvailable), true);
-        SetAppFlag(nameof(App.DatabaseConnectionError), string.Empty);
+        using var scope = new AppStateScope(isDatabaseAvailable: true);
+        var user = TestDataFactory.CreateUser();
+        var viewModel = CreateViewModel(user, new[] { TestDataFactory.CreateJob() });
+        GetSession(viewModel).Logout();
 
-        try
-        {
-            var user = TestDataFactory.CreateUser();
-            var viewModel = CreateViewModel(user, new[] { TestDataFactory.CreateJob() });
-            GetSession(viewModel).Logout();
+        await viewModel.InitializeAsync();
 
-            await viewModel.InitializeAsync();
-
-            viewModel.HasError.Should().BeTrue();
-            viewModel.ErrorMessage.Should().Be("User session is not available.");
-        }
-        finally
-        {
-            SetAppFlag(nameof(App.IsDatabaseConnectionAvailable), previousAvailability);
-            SetAppFlag(nameof(App.DatabaseConnectionError), previousError);
-        }
+        viewModel.HasError.Should().BeTrue();
+        viewModel.ErrorMessage.Should().Be("User session is not available.");
     }
 
     [Fact]
     public async Task InitializeAsync_WhenNoJobsExist_ShowsEmptyDeck()
     {
-        var previousAvailability = GetAppFlag<bool>(nameof(App.IsDatabaseConnectionAvailable));
-        var previousError = GetAppFlag<string>(nameof(App.DatabaseConnectionError));
-        SetAppFlag(nameof(App.IsDatabaseConnectionAvailable), true);
-        SetAppFlag(nameof(App.DatabaseConnectionError), string.Empty);
+        using var scope = new AppStateScope(isDatabaseAvailable: true);
+        var user = TestDataFactory.CreateUser();
+        var viewModel = CreateViewModel(user, Array.Empty<Job>());
 
-        try
-        {
-            var user = TestDataFactory.CreateUser();
-            var viewModel = CreateViewModel(user, Array.Empty<Job>());
+        await viewModel.InitializeAsync();
 
-            await viewModel.InitializeAsync();
-
-            viewModel.CurrentJob.Should().BeNull();
-            viewModel.ShowEmptyDeck.Should().BeTrue();
-        }
-        finally
-        {
-            SetAppFlag(nameof(App.IsDatabaseConnectionAvailable), previousAvailability);
-            SetAppFlag(nameof(App.DatabaseConnectionError), previousError);
-        }
+        viewModel.CurrentJob.Should().BeNull();
+        viewModel.ShowEmptyDeck.Should().BeTrue();
     }
 
     [Fact]
     public void LoadRecommendations_WhenDatabaseUnavailable_RaisesError()
     {
-        var previousAvailability = GetAppFlag<bool>(nameof(App.IsDatabaseConnectionAvailable));
-        var previousError = GetAppFlag<string>(nameof(App.DatabaseConnectionError));
-        SetAppFlag(nameof(App.IsDatabaseConnectionAvailable), false);
-        SetAppFlag(nameof(App.DatabaseConnectionError), "Database unavailable.");
+        using var scope = new AppStateScope(isDatabaseAvailable: false, databaseError: "Database unavailable.");
+        var user = TestDataFactory.CreateUser();
+        var viewModel = CreateViewModel(user, new[] { TestDataFactory.CreateJob() });
+        var raised = string.Empty;
+        viewModel.ErrorOccurred += message => raised = message;
 
-        try
-        {
-            var user = TestDataFactory.CreateUser();
-            var viewModel = CreateViewModel(user, new[] { TestDataFactory.CreateJob() });
-            var raised = string.Empty;
-            viewModel.ErrorOccurred += message => raised = message;
+        viewModel.LoadRecommendations();
 
-            viewModel.LoadRecommendations();
-
-            viewModel.HasError.Should().BeTrue();
-            viewModel.ErrorMessage.Should().Be("Database unavailable.");
-            raised.Should().Be("Database unavailable.");
-        }
-        finally
-        {
-            SetAppFlag(nameof(App.IsDatabaseConnectionAvailable), previousAvailability);
-            SetAppFlag(nameof(App.DatabaseConnectionError), previousError);
-        }
+        viewModel.HasError.Should().BeTrue();
+        viewModel.ErrorMessage.Should().Be("Database unavailable.");
+        raised.Should().Be("Database unavailable.");
     }
 
     [Fact]
     public async Task LikeAsync_WhenCurrentJobExists_ClearsCurrentJobAndEnablesUndo()
     {
-        var previousAvailability = GetAppFlag<bool>(nameof(App.IsDatabaseConnectionAvailable));
-        var previousError = GetAppFlag<string>(nameof(App.DatabaseConnectionError));
-        SetAppFlag(nameof(App.IsDatabaseConnectionAvailable), true);
-        SetAppFlag(nameof(App.DatabaseConnectionError), string.Empty);
+        using var scope = new AppStateScope(isDatabaseAvailable: true);
+        var user = TestDataFactory.CreateUser();
+        var job = TestDataFactory.CreateJob();
+        var viewModel = CreateViewModel(user, new[] { job });
+        await viewModel.InitializeAsync();
 
-        try
-        {
-            var user = TestDataFactory.CreateUser();
-            var job = TestDataFactory.CreateJob();
-            var viewModel = CreateViewModel(user, new[] { job });
-            await viewModel.InitializeAsync();
+        await viewModel.LikeAsync();
 
-            await viewModel.LikeAsync();
-
-            viewModel.CanUndo.Should().BeTrue();
-            viewModel.CurrentJob.Should().BeNull();
-        }
-        finally
-        {
-            SetAppFlag(nameof(App.IsDatabaseConnectionAvailable), previousAvailability);
-            SetAppFlag(nameof(App.DatabaseConnectionError), previousError);
-        }
+        viewModel.CanUndo.Should().BeTrue();
+        viewModel.CurrentJob.Should().BeNull();
     }
 
     [Fact]
     public async Task UndoAsync_WhenLastActionWasLike_RestoresOriginalCard()
     {
-        var previousAvailability = GetAppFlag<bool>(nameof(App.IsDatabaseConnectionAvailable));
-        var previousError = GetAppFlag<string>(nameof(App.DatabaseConnectionError));
-        SetAppFlag(nameof(App.IsDatabaseConnectionAvailable), true);
-        SetAppFlag(nameof(App.DatabaseConnectionError), string.Empty);
+        using var scope = new AppStateScope(isDatabaseAvailable: true);
+        var user = TestDataFactory.CreateUser();
+        var job = TestDataFactory.CreateJob();
+        var viewModel = CreateViewModel(user, new[] { job });
+        await viewModel.InitializeAsync();
+        var originalCard = viewModel.CurrentJob;
+        await viewModel.LikeAsync();
 
-        try
-        {
-            var user = TestDataFactory.CreateUser();
-            var job = TestDataFactory.CreateJob();
-            var viewModel = CreateViewModel(user, new[] { job });
-            await viewModel.InitializeAsync();
-            var originalCard = viewModel.CurrentJob;
-            await viewModel.LikeAsync();
+        await viewModel.UndoAsync();
 
-            await viewModel.UndoAsync();
-
-            viewModel.CurrentJob.Should().Be(originalCard);
-            viewModel.CanUndo.Should().BeFalse();
-        }
-        finally
-        {
-            SetAppFlag(nameof(App.IsDatabaseConnectionAvailable), previousAvailability);
-            SetAppFlag(nameof(App.DatabaseConnectionError), previousError);
-        }
+        viewModel.CurrentJob.Should().Be(originalCard);
+        viewModel.CanUndo.Should().BeFalse();
     }
 
     [Fact]
     public async Task ResetDraftFilters_WhenFiltersWereSelected_ClearsAllSelections()
     {
-        var previousAvailability = GetAppFlag<bool>(nameof(App.IsDatabaseConnectionAvailable));
-        var previousError = GetAppFlag<string>(nameof(App.DatabaseConnectionError));
-        SetAppFlag(nameof(App.IsDatabaseConnectionAvailable), true);
-        SetAppFlag(nameof(App.DatabaseConnectionError), string.Empty);
+        using var scope = new AppStateScope(isDatabaseAvailable: true);
+        var user = TestDataFactory.CreateUser();
+        var viewModel = CreateViewModel(user, new[] { TestDataFactory.CreateJob() });
 
-        try
-        {
-            var user = TestDataFactory.CreateUser();
-            var viewModel = CreateViewModel(user, new[] { TestDataFactory.CreateJob() });
+        viewModel.DraftEmploymentSelections[0].IsChecked = true;
+        viewModel.DraftExperienceSelections[0].IsChecked = true;
+        viewModel.DraftSkillSelections[0].IsChecked = true;
+        viewModel.DraftLocation = "Cluj";
 
-            viewModel.DraftEmploymentSelections[0].IsChecked = true;
-            viewModel.DraftExperienceSelections[0].IsChecked = true;
-            viewModel.DraftSkillSelections[0].IsChecked = true;
-            viewModel.DraftLocation = "Cluj";
+        viewModel.ResetDraftFilters();
 
-            viewModel.ResetDraftFilters();
-
-            viewModel.DraftEmploymentSelections.Should().OnlyContain(item => !item.IsChecked);
-            viewModel.DraftExperienceSelections.Should().OnlyContain(item => !item.IsChecked);
-            viewModel.DraftSkillSelections.Should().OnlyContain(item => !item.IsChecked);
-            viewModel.DraftLocation.Should().BeEmpty();
-        }
-        finally
-        {
-            SetAppFlag(nameof(App.IsDatabaseConnectionAvailable), previousAvailability);
-            SetAppFlag(nameof(App.DatabaseConnectionError), previousError);
-        }
+        viewModel.DraftEmploymentSelections.Should().OnlyContain(item => !item.IsChecked);
+        viewModel.DraftExperienceSelections.Should().OnlyContain(item => !item.IsChecked);
+        viewModel.DraftSkillSelections.Should().OnlyContain(item => !item.IsChecked);
+        viewModel.DraftLocation.Should().BeEmpty();
     }
 
     [Fact]
     public async Task DismissAsync_WhenCurrentJobExists_EnablesUndo()
     {
-        var previousAvailability = GetAppFlag<bool>(nameof(App.IsDatabaseConnectionAvailable));
-        var previousError = GetAppFlag<string>(nameof(App.DatabaseConnectionError));
-        SetAppFlag(nameof(App.IsDatabaseConnectionAvailable), true);
-        SetAppFlag(nameof(App.DatabaseConnectionError), string.Empty);
+        using var scope = new AppStateScope(isDatabaseAvailable: true);
+        var user = TestDataFactory.CreateUser();
+        var job = TestDataFactory.CreateJob();
+        var viewModel = CreateViewModel(user, new[] { job });
+        await viewModel.InitializeAsync();
 
-        try
-        {
-            var user = TestDataFactory.CreateUser();
-            var job = TestDataFactory.CreateJob();
-            var viewModel = CreateViewModel(user, new[] { job });
-            await viewModel.InitializeAsync();
+        await viewModel.DismissAsync();
 
-            await viewModel.DismissAsync();
-
-            viewModel.CanUndo.Should().BeTrue();
-        }
-        finally
-        {
-            SetAppFlag(nameof(App.IsDatabaseConnectionAvailable), previousAvailability);
-            SetAppFlag(nameof(App.DatabaseConnectionError), previousError);
-        }
+        viewModel.CanUndo.Should().BeTrue();
     }
 
     [Fact]
     public async Task UndoAsync_WhenLastActionWasDismiss_RestoresOriginalCard()
     {
-        var previousAvailability = GetAppFlag<bool>(nameof(App.IsDatabaseConnectionAvailable));
-        var previousError = GetAppFlag<string>(nameof(App.DatabaseConnectionError));
-        SetAppFlag(nameof(App.IsDatabaseConnectionAvailable), true);
-        SetAppFlag(nameof(App.DatabaseConnectionError), string.Empty);
+        using var scope = new AppStateScope(isDatabaseAvailable: true);
+        var user = TestDataFactory.CreateUser();
+        var job = TestDataFactory.CreateJob();
+        var viewModel = CreateViewModel(user, new[] { job });
+        await viewModel.InitializeAsync();
+        var originalCard = viewModel.CurrentJob;
+        await viewModel.DismissAsync();
 
-        try
-        {
-            var user = TestDataFactory.CreateUser();
-            var job = TestDataFactory.CreateJob();
-            var viewModel = CreateViewModel(user, new[] { job });
-            await viewModel.InitializeAsync();
-            var originalCard = viewModel.CurrentJob;
-            await viewModel.DismissAsync();
+        await viewModel.UndoAsync();
 
-            await viewModel.UndoAsync();
-
-            viewModel.CurrentJob.Should().Be(originalCard);
-        }
-        finally
-        {
-            SetAppFlag(nameof(App.IsDatabaseConnectionAvailable), previousAvailability);
-            SetAppFlag(nameof(App.DatabaseConnectionError), previousError);
-        }
+        viewModel.CurrentJob.Should().Be(originalCard);
     }
 
     [Fact]
     public void LoadRecommendations_WhenSessionIsNotUserMode_SetsErrorMessage()
     {
-        var previousAvailability = GetAppFlag<bool>(nameof(App.IsDatabaseConnectionAvailable));
-        var previousError = GetAppFlag<string>(nameof(App.DatabaseConnectionError));
-        SetAppFlag(nameof(App.IsDatabaseConnectionAvailable), true);
-        SetAppFlag(nameof(App.DatabaseConnectionError), string.Empty);
+        using var scope = new AppStateScope(isDatabaseAvailable: true);
+        var user = TestDataFactory.CreateUser();
+        var viewModel = CreateViewModel(user, new[] { TestDataFactory.CreateJob() });
+        GetSession(viewModel).Logout();
 
-        try
-        {
-            var user = TestDataFactory.CreateUser();
-            var viewModel = CreateViewModel(user, new[] { TestDataFactory.CreateJob() });
-            GetSession(viewModel).Logout();
+        viewModel.LoadRecommendations();
 
-            viewModel.LoadRecommendations();
-
-            viewModel.HasError.Should().BeTrue();
-            viewModel.ErrorMessage.Should().Be("User session is not available.");
-        }
-        finally
-        {
-            SetAppFlag(nameof(App.IsDatabaseConnectionAvailable), previousAvailability);
-            SetAppFlag(nameof(App.DatabaseConnectionError), previousError);
-        }
+        viewModel.HasError.Should().BeTrue();
+        viewModel.ErrorMessage.Should().Be("User session is not available.");
     }
 
     [Fact]
     public async Task ApplyFiltersAsync_WhenFiltersAreSelected_SetsFilterState()
     {
-        var previousAvailability = GetAppFlag<bool>(nameof(App.IsDatabaseConnectionAvailable));
-        var previousError = GetAppFlag<string>(nameof(App.DatabaseConnectionError));
-        SetAppFlag(nameof(App.IsDatabaseConnectionAvailable), true);
-        SetAppFlag(nameof(App.DatabaseConnectionError), string.Empty);
+        using var scope = new AppStateScope(isDatabaseAvailable: true);
+        var user = TestDataFactory.CreateUser();
+        var viewModel = CreateViewModel(user, new[] { TestDataFactory.CreateJob() });
 
-        try
-        {
-            var user = TestDataFactory.CreateUser();
-            var viewModel = CreateViewModel(user, new[] { TestDataFactory.CreateJob() });
+        viewModel.DraftEmploymentSelections[0].IsChecked = true;
+        viewModel.DraftExperienceSelections[0].IsChecked = true;
+        viewModel.DraftSkillSelections[0].IsChecked = true;
+        viewModel.DraftLocation = "Cluj";
 
-            viewModel.DraftEmploymentSelections[0].IsChecked = true;
-            viewModel.DraftExperienceSelections[0].IsChecked = true;
-            viewModel.DraftSkillSelections[0].IsChecked = true;
-            viewModel.DraftLocation = "Cluj";
+        await viewModel.ApplyFiltersAsync();
 
-            await viewModel.ApplyFiltersAsync();
-
-            viewModel.IsFilterOpen.Should().BeFalse();
-        }
-        finally
-        {
-            SetAppFlag(nameof(App.IsDatabaseConnectionAvailable), previousAvailability);
-            SetAppFlag(nameof(App.DatabaseConnectionError), previousError);
-        }
+        viewModel.IsFilterOpen.Should().BeFalse();
     }
 
     [Fact]
     public async Task DismissAsync_WhenNoCurrentJob_DoesNothing()
     {
-        var previousAvailability = GetAppFlag<bool>(nameof(App.IsDatabaseConnectionAvailable));
-        var previousError = GetAppFlag<string>(nameof(App.DatabaseConnectionError));
-        SetAppFlag(nameof(App.IsDatabaseConnectionAvailable), true);
-        SetAppFlag(nameof(App.DatabaseConnectionError), string.Empty);
+        using var scope = new AppStateScope(isDatabaseAvailable: true);
+        var user = TestDataFactory.CreateUser();
+        var viewModel = CreateViewModel(user, new[] { TestDataFactory.CreateJob() });
 
-        try
-        {
-            var user = TestDataFactory.CreateUser();
-            var viewModel = CreateViewModel(user, new[] { TestDataFactory.CreateJob() });
+        await viewModel.DismissAsync();
 
-            await viewModel.DismissAsync();
-
-            viewModel.CurrentJob.Should().BeNull();
-            viewModel.CanUndo.Should().BeFalse();
-        }
-        finally
-        {
-            SetAppFlag(nameof(App.IsDatabaseConnectionAvailable), previousAvailability);
-            SetAppFlag(nameof(App.DatabaseConnectionError), previousError);
-        }
+        viewModel.CurrentJob.Should().BeNull();
+        viewModel.CanUndo.Should().BeFalse();
     }
 
     [Fact]
     public async Task InitializeAsync_WhenFirstJobIsOnCooldown_UsesFallbackCard()
     {
-        var previousAvailability = GetAppFlag<bool>(nameof(App.IsDatabaseConnectionAvailable));
-        var previousError = GetAppFlag<string>(nameof(App.DatabaseConnectionError));
-        SetAppFlag(nameof(App.IsDatabaseConnectionAvailable), true);
-        SetAppFlag(nameof(App.DatabaseConnectionError), string.Empty);
+        using var scope = new AppStateScope(isDatabaseAvailable: true);
+        var user = TestDataFactory.CreateUser();
+        var firstJob = TestDataFactory.CreateJob(jobId: 100);
+        var secondJob = TestDataFactory.CreateJob(jobId: 101);
+        var viewModel = CreateViewModel(user, new[] { firstJob, secondJob });
+        var recommendationRepository = GetRecommendationRepository(viewModel);
+        recommendationRepository.InsertReturningId(TestDataFactory.CreateRecommendation(userId: user.UserId, jobId: firstJob.JobId, timestamp: DateTime.UtcNow));
 
-        try
-        {
-            var user = TestDataFactory.CreateUser();
-            var firstJob = TestDataFactory.CreateJob(jobId: 100);
-            var secondJob = TestDataFactory.CreateJob(jobId: 101);
-            var viewModel = CreateViewModel(user, new[] { firstJob, secondJob });
-            var recommendationRepository = GetRecommendationRepository(viewModel);
-            recommendationRepository.InsertReturningId(TestDataFactory.CreateRecommendation(userId: user.UserId, jobId: firstJob.JobId, timestamp: DateTime.UtcNow));
+        await viewModel.InitializeAsync();
 
-            await viewModel.InitializeAsync();
-
-            viewModel.CurrentJob.Should().NotBeNull();
-            viewModel.CurrentJob!.Job.JobId.Should().Be(secondJob.JobId);
-        }
-        finally
-        {
-            SetAppFlag(nameof(App.IsDatabaseConnectionAvailable), previousAvailability);
-            SetAppFlag(nameof(App.DatabaseConnectionError), previousError);
-        }
+        viewModel.CurrentJob.Should().NotBeNull();
+        viewModel.CurrentJob!.Job.JobId.Should().Be(secondJob.JobId);
     }
 
     [Fact]
     public async Task LikeAsync_WhenNoCurrentJob_DoesNothing()
     {
-        var previousAvailability = GetAppFlag<bool>(nameof(App.IsDatabaseConnectionAvailable));
-        var previousError = GetAppFlag<string>(nameof(App.DatabaseConnectionError));
-        SetAppFlag(nameof(App.IsDatabaseConnectionAvailable), true);
-        SetAppFlag(nameof(App.DatabaseConnectionError), string.Empty);
+        using var scope = new AppStateScope(isDatabaseAvailable: true);
+        var user = TestDataFactory.CreateUser();
+        var viewModel = CreateViewModel(user, new[] { TestDataFactory.CreateJob() });
+        GetSession(viewModel).LoginAsCompany(1);
 
-        try
-        {
-            var user = TestDataFactory.CreateUser();
-            var viewModel = CreateViewModel(user, new[] { TestDataFactory.CreateJob() });
-            GetSession(viewModel).LoginAsCompany(1);
+        await viewModel.LikeAsync();
 
-            await viewModel.LikeAsync();
-
-            viewModel.ErrorMessage.Should().BeEmpty();
-        }
-        finally
-        {
-            SetAppFlag(nameof(App.IsDatabaseConnectionAvailable), previousAvailability);
-            SetAppFlag(nameof(App.DatabaseConnectionError), previousError);
-        }
+        viewModel.ErrorMessage.Should().BeEmpty();
     }
 
     [Fact]
     public void ResetDraftFilters_WhenNothingIsSelected_KeepsSelectionsCleared()
     {
-        var previousAvailability = GetAppFlag<bool>(nameof(App.IsDatabaseConnectionAvailable));
-        var previousError = GetAppFlag<string>(nameof(App.DatabaseConnectionError));
-        SetAppFlag(nameof(App.IsDatabaseConnectionAvailable), true);
-        SetAppFlag(nameof(App.DatabaseConnectionError), string.Empty);
+        using var scope = new AppStateScope(isDatabaseAvailable: true);
+        var user = TestDataFactory.CreateUser();
+        var viewModel = CreateViewModel(user, new[] { TestDataFactory.CreateJob() });
 
-        try
-        {
-            var user = TestDataFactory.CreateUser();
-            var viewModel = CreateViewModel(user, new[] { TestDataFactory.CreateJob() });
+        viewModel.ResetDraftFilters();
 
-            viewModel.ResetDraftFilters();
-
-            viewModel.DraftEmploymentSelections.Should().OnlyContain(item => !item.IsChecked);
-            viewModel.DraftLocation.Should().BeEmpty();
-        }
-        finally
-        {
-            SetAppFlag(nameof(App.IsDatabaseConnectionAvailable), previousAvailability);
-            SetAppFlag(nameof(App.DatabaseConnectionError), previousError);
-        }
+        viewModel.DraftEmploymentSelections.Should().OnlyContain(item => !item.IsChecked);
+        viewModel.DraftLocation.Should().BeEmpty();
     }
 
     [Fact]
     public async Task LikeAsync_WhenSessionIsNotUserMode_RaisesError()
     {
-        var previousAvailability = GetAppFlag<bool>(nameof(App.IsDatabaseConnectionAvailable));
-        var previousError = GetAppFlag<string>(nameof(App.DatabaseConnectionError));
-        SetAppFlag(nameof(App.IsDatabaseConnectionAvailable), true);
-        SetAppFlag(nameof(App.DatabaseConnectionError), string.Empty);
+        using var scope = new AppStateScope(isDatabaseAvailable: true);
+        var user = TestDataFactory.CreateUser();
+        var viewModel = CreateViewModel(user, new[] { TestDataFactory.CreateJob() });
+        SetSessionMode(GetSession(viewModel), AppMode.CompanyMode);
 
-        try
-        {
-            var user = TestDataFactory.CreateUser();
-            var viewModel = CreateViewModel(user, new[] { TestDataFactory.CreateJob() });
-            SetSessionMode(GetSession(viewModel), AppMode.CompanyMode);
+        await viewModel.LikeAsync();
 
-            await viewModel.LikeAsync();
-
-            viewModel.ErrorMessage.Should().BeEmpty();
-        }
-        finally
-        {
-            SetAppFlag(nameof(App.IsDatabaseConnectionAvailable), previousAvailability);
-            SetAppFlag(nameof(App.DatabaseConnectionError), previousError);
-        }
+        viewModel.ErrorMessage.Should().BeEmpty();
     }
 
     [Fact]
     public async Task DismissAsync_WhenSessionIsNotUserMode_RaisesError()
     {
-        var previousAvailability = GetAppFlag<bool>(nameof(App.IsDatabaseConnectionAvailable));
-        var previousError = GetAppFlag<string>(nameof(App.DatabaseConnectionError));
-        SetAppFlag(nameof(App.IsDatabaseConnectionAvailable), true);
-        SetAppFlag(nameof(App.DatabaseConnectionError), string.Empty);
+        using var scope = new AppStateScope(isDatabaseAvailable: true);
+        var user = TestDataFactory.CreateUser();
+        var viewModel = CreateViewModel(user, new[] { TestDataFactory.CreateJob() });
+        await viewModel.InitializeAsync();
+        SetSessionMode(GetSession(viewModel), AppMode.CompanyMode);
 
-        try
-        {
-            var user = TestDataFactory.CreateUser();
-            var viewModel = CreateViewModel(user, new[] { TestDataFactory.CreateJob() });
-            await viewModel.InitializeAsync();
-            SetSessionMode(GetSession(viewModel), AppMode.CompanyMode);
+        await viewModel.DismissAsync();
 
-            await viewModel.DismissAsync();
-
-            viewModel.ErrorMessage.Should().Be("Invalid session for this action.");
-        }
-        finally
-        {
-            SetAppFlag(nameof(App.IsDatabaseConnectionAvailable), previousAvailability);
-            SetAppFlag(nameof(App.DatabaseConnectionError), previousError);
-        }
+        viewModel.ErrorMessage.Should().Be("Invalid session for this action.");
     }
 
     [Fact]
     public async Task OpenDetailCommand_WhenExecuted_SetsIsDetailOpenTrue()
     {
-        var previousAvailability = GetAppFlag<bool>(nameof(App.IsDatabaseConnectionAvailable));
-        var previousError = GetAppFlag<string>(nameof(App.DatabaseConnectionError));
-        SetAppFlag(nameof(App.IsDatabaseConnectionAvailable), true);
-        SetAppFlag(nameof(App.DatabaseConnectionError), string.Empty);
+        using var scope = new AppStateScope(isDatabaseAvailable: true);
+        var user = TestDataFactory.CreateUser();
+        var viewModel = CreateViewModel(user, new[] { TestDataFactory.CreateJob() });
+        await viewModel.InitializeAsync();
 
-        try
-        {
-            var user = TestDataFactory.CreateUser();
-            var viewModel = CreateViewModel(user, new[] { TestDataFactory.CreateJob() });
-            await viewModel.InitializeAsync();
+        viewModel.OpenDetailCommand.Execute(null);
 
-            viewModel.OpenDetailCommand.Execute(null);
-
-            viewModel.IsDetailOpen.Should().BeTrue();
-        }
-        finally
-        {
-            SetAppFlag(nameof(App.IsDatabaseConnectionAvailable), previousAvailability);
-            SetAppFlag(nameof(App.DatabaseConnectionError), previousError);
-        }
+        viewModel.IsDetailOpen.Should().BeTrue();
     }
 
     [Fact]
     public async Task CloseDetailCommand_WhenDetailIsOpen_SetsIsDetailOpenFalse()
     {
-        var previousAvailability = GetAppFlag<bool>(nameof(App.IsDatabaseConnectionAvailable));
-        var previousError = GetAppFlag<string>(nameof(App.DatabaseConnectionError));
-        SetAppFlag(nameof(App.IsDatabaseConnectionAvailable), true);
-        SetAppFlag(nameof(App.DatabaseConnectionError), string.Empty);
+        using var scope = new AppStateScope(isDatabaseAvailable: true);
+        var user = TestDataFactory.CreateUser();
+        var viewModel = CreateViewModel(user, new[] { TestDataFactory.CreateJob() });
+        await viewModel.InitializeAsync();
+        viewModel.OpenDetailCommand.Execute(null);
 
-        try
-        {
-            var user = TestDataFactory.CreateUser();
-            var viewModel = CreateViewModel(user, new[] { TestDataFactory.CreateJob() });
-            await viewModel.InitializeAsync();
-            viewModel.OpenDetailCommand.Execute(null);
+        viewModel.CloseDetailCommand.Execute(null);
 
-            viewModel.CloseDetailCommand.Execute(null);
-
-            viewModel.IsDetailOpen.Should().BeFalse();
-        }
-        finally
-        {
-            SetAppFlag(nameof(App.IsDatabaseConnectionAvailable), previousAvailability);
-            SetAppFlag(nameof(App.DatabaseConnectionError), previousError);
-        }
+        viewModel.IsDetailOpen.Should().BeFalse();
     }
 
     [Fact]
     public async Task UndoAsync_WhenNoUndoAvailable_DoesNothing()
     {
-        var previousAvailability = GetAppFlag<bool>(nameof(App.IsDatabaseConnectionAvailable));
-        var previousError = GetAppFlag<string>(nameof(App.DatabaseConnectionError));
-        SetAppFlag(nameof(App.IsDatabaseConnectionAvailable), true);
-        SetAppFlag(nameof(App.DatabaseConnectionError), string.Empty);
+        using var scope = new AppStateScope(isDatabaseAvailable: true);
+        var user = TestDataFactory.CreateUser();
+        var viewModel = CreateViewModel(user, new[] { TestDataFactory.CreateJob() });
 
-        try
-        {
-            var user = TestDataFactory.CreateUser();
-            var viewModel = CreateViewModel(user, new[] { TestDataFactory.CreateJob() });
+        await viewModel.UndoAsync();
 
-            await viewModel.UndoAsync();
-
-            viewModel.CanUndo.Should().BeFalse();
-            viewModel.CurrentJob.Should().BeNull();
-        }
-        finally
-        {
-            SetAppFlag(nameof(App.IsDatabaseConnectionAvailable), previousAvailability);
-            SetAppFlag(nameof(App.DatabaseConnectionError), previousError);
-        }
+        viewModel.CanUndo.Should().BeFalse();
+        viewModel.CurrentJob.Should().BeNull();
     }
 
     [Fact]
     public void OpenFiltersCommand_WhenExecuted_SetsIsFilterOpenTrue()
     {
-        var previousAvailability = GetAppFlag<bool>(nameof(App.IsDatabaseConnectionAvailable));
-        var previousError = GetAppFlag<string>(nameof(App.DatabaseConnectionError));
-        SetAppFlag(nameof(App.IsDatabaseConnectionAvailable), true);
-        SetAppFlag(nameof(App.DatabaseConnectionError), string.Empty);
+        using var scope = new AppStateScope(isDatabaseAvailable: true);
+        var user = TestDataFactory.CreateUser();
+        var viewModel = CreateViewModel(user, new[] { TestDataFactory.CreateJob() });
 
-        try
-        {
-            var user = TestDataFactory.CreateUser();
-            var viewModel = CreateViewModel(user, new[] { TestDataFactory.CreateJob() });
+        viewModel.OpenFiltersCommand.Execute(null);
 
-            viewModel.OpenFiltersCommand.Execute(null);
-
-            viewModel.IsFilterOpen.Should().BeTrue();
-        }
-        finally
-        {
-            SetAppFlag(nameof(App.IsDatabaseConnectionAvailable), previousAvailability);
-            SetAppFlag(nameof(App.DatabaseConnectionError), previousError);
-        }
-    }
-
-    [Fact]
-    public void CommandProperties_WhenAccessed_ReturnCommandInstances()
-    {
-        var previousAvailability = GetAppFlag<bool>(nameof(App.IsDatabaseConnectionAvailable));
-        var previousError = GetAppFlag<string>(nameof(App.DatabaseConnectionError));
-        SetAppFlag(nameof(App.IsDatabaseConnectionAvailable), true);
-        SetAppFlag(nameof(App.DatabaseConnectionError), string.Empty);
-
-        try
-        {
-            var user = TestDataFactory.CreateUser();
-            var viewModel = CreateViewModel(user, new[] { TestDataFactory.CreateJob() });
-
-            viewModel.RefreshCommand.Should().NotBeNull();
-            viewModel.LikeCommand.Should().NotBeNull();
-            viewModel.DismissCommand.Should().NotBeNull();
-            viewModel.UndoCommand.Should().NotBeNull();
-            viewModel.ApplyFiltersCommand.Should().NotBeNull();
-            viewModel.ResetFiltersCommand.Should().NotBeNull();
-        }
-        finally
-        {
-            SetAppFlag(nameof(App.IsDatabaseConnectionAvailable), previousAvailability);
-            SetAppFlag(nameof(App.DatabaseConnectionError), previousError);
-        }
+        viewModel.IsFilterOpen.Should().BeTrue();
     }
 
     [Fact]
     public async Task InitializeAsync_WhenDatabaseUnavailable_SetsErrorAndNoCard()
     {
-        var previousAvailability = GetAppFlag<bool>(nameof(App.IsDatabaseConnectionAvailable));
-        var previousError = GetAppFlag<string>(nameof(App.DatabaseConnectionError));
-        SetAppFlag(nameof(App.IsDatabaseConnectionAvailable), false);
-        SetAppFlag(nameof(App.DatabaseConnectionError), "Database unavailable.");
+        using var scope = new AppStateScope(isDatabaseAvailable: false, databaseError: "Database unavailable.");
+        var user = TestDataFactory.CreateUser();
+        var viewModel = CreateViewModel(user, new[] { TestDataFactory.CreateJob() });
 
-        try
-        {
-            var user = TestDataFactory.CreateUser();
-            var viewModel = CreateViewModel(user, new[] { TestDataFactory.CreateJob() });
+        await viewModel.InitializeAsync();
 
-            await viewModel.InitializeAsync();
-
-            viewModel.ErrorMessage.Should().Be("Database unavailable.");
-            viewModel.CurrentJob.Should().BeNull();
-        }
-        finally
-        {
-            SetAppFlag(nameof(App.IsDatabaseConnectionAvailable), previousAvailability);
-            SetAppFlag(nameof(App.DatabaseConnectionError), previousError);
-        }
+        viewModel.ErrorMessage.Should().Be("Database unavailable.");
+        viewModel.CurrentJob.Should().BeNull();
     }
 
     [Fact]
     public void LoadRecommendations_WhenServiceThrows_RaisesError()
     {
-        var previousAvailability = GetAppFlag<bool>(nameof(App.IsDatabaseConnectionAvailable));
-        var previousError = GetAppFlag<string>(nameof(App.DatabaseConnectionError));
-        SetAppFlag(nameof(App.IsDatabaseConnectionAvailable), true);
-        SetAppFlag(nameof(App.DatabaseConnectionError), string.Empty);
+        using var scope = new AppStateScope(isDatabaseAvailable: true);
+        var session = new SessionContext();
+        session.LoginAsUser(1);
+        var viewModel = CreateViewModelWithCustomService(
+            new UserRecommendationService(
+                new FakeUserRepository(Array.Empty<User>()),
+                new FakeJobRepository(new[] { TestDataFactory.CreateJob() }),
+                new FakeSkillRepository(Array.Empty<Skill>()),
+                new FakeJobSkillRepository(Array.Empty<JobSkill>()),
+                new FakeCompanyRepository(new[] { TestDataFactory.CreateCompany() }),
+                new MatchService(new FakeMatchRepository(Array.Empty<Match>()), new JobService(new FakeJobRepository(new[] { TestDataFactory.CreateJob() }))),
+                new FakeRecommendationRepository(Array.Empty<Recommendation>()),
+                new CooldownService(new FakeRecommendationRepository(Array.Empty<Recommendation>()), TimeSpan.FromHours(1)),
+                new RecommendationAlgorithm()),
+            session);
+        var raised = string.Empty;
+        viewModel.ErrorOccurred += message => raised = message;
 
-        try
-        {
-            var session = new SessionContext();
-            session.LoginAsUser(1);
-            var viewModel = CreateViewModelWithCustomService(
-                new UserRecommendationService(
-                    new FakeUserRepository(Array.Empty<User>()),
-                    new FakeJobRepository(new[] { TestDataFactory.CreateJob() }),
-                    new FakeSkillRepository(Array.Empty<Skill>()),
-                    new FakeJobSkillRepository(Array.Empty<JobSkill>()),
-                    new FakeCompanyRepository(new[] { TestDataFactory.CreateCompany() }),
-                    new MatchService(new FakeMatchRepository(Array.Empty<Match>()), new JobService(new FakeJobRepository(new[] { TestDataFactory.CreateJob() }))),
-                    new FakeRecommendationRepository(Array.Empty<Recommendation>()),
-                    new CooldownService(new FakeRecommendationRepository(Array.Empty<Recommendation>()), TimeSpan.FromHours(1)),
-                    new RecommendationAlgorithm()),
-                session);
-            var raised = string.Empty;
-            viewModel.ErrorOccurred += message => raised = message;
+        viewModel.LoadRecommendations();
 
-            viewModel.LoadRecommendations();
-
-            viewModel.HasError.Should().BeTrue();
-            raised.Should().NotBeEmpty();
-        }
-        finally
-        {
-            SetAppFlag(nameof(App.IsDatabaseConnectionAvailable), previousAvailability);
-            SetAppFlag(nameof(App.DatabaseConnectionError), previousError);
-        }
+        viewModel.HasError.Should().BeTrue();
+        raised.Should().NotBeEmpty();
     }
 
     [Fact]
     public async Task LikeAsync_WhenSessionSwitchesAwayFromUserMode_RaisesError()
     {
-        var previousAvailability = GetAppFlag<bool>(nameof(App.IsDatabaseConnectionAvailable));
-        var previousError = GetAppFlag<string>(nameof(App.DatabaseConnectionError));
-        SetAppFlag(nameof(App.IsDatabaseConnectionAvailable), true);
-        SetAppFlag(nameof(App.DatabaseConnectionError), string.Empty);
+        using var scope = new AppStateScope(isDatabaseAvailable: true);
+        var user = TestDataFactory.CreateUser();
+        var viewModel = CreateViewModel(user, new[] { TestDataFactory.CreateJob() });
+        await viewModel.InitializeAsync();
+        SetSessionMode(GetSession(viewModel), AppMode.CompanyMode);
 
-        try
-        {
-            var user = TestDataFactory.CreateUser();
-            var viewModel = CreateViewModel(user, new[] { TestDataFactory.CreateJob() });
-            await viewModel.InitializeAsync();
-            SetSessionMode(GetSession(viewModel), AppMode.CompanyMode);
+        await viewModel.LikeAsync();
 
-            await viewModel.LikeAsync();
-
-            viewModel.ErrorMessage.Should().Be("Invalid session for this action.");
-        }
-        finally
-        {
-            SetAppFlag(nameof(App.IsDatabaseConnectionAvailable), previousAvailability);
-            SetAppFlag(nameof(App.DatabaseConnectionError), previousError);
-        }
+        viewModel.ErrorMessage.Should().Be("Invalid session for this action.");
     }
 
     [Fact]
     public async Task DismissAsync_WhenServiceThrows_RaisesError()
     {
-        var previousAvailability = GetAppFlag<bool>(nameof(App.IsDatabaseConnectionAvailable));
-        var previousError = GetAppFlag<string>(nameof(App.DatabaseConnectionError));
-        SetAppFlag(nameof(App.IsDatabaseConnectionAvailable), true);
-        SetAppFlag(nameof(App.DatabaseConnectionError), string.Empty);
+        using var scope = new AppStateScope(isDatabaseAvailable: true);
+        var user = TestDataFactory.CreateUser();
+        var session = new SessionContext();
+        session.LoginAsUser(user.UserId);
+        var throwingRepo = new ThrowingRecommendationRepository(throwOnInsert: true, throwOnRemove: true, allowFirstInsert: false);
+        var job = TestDataFactory.CreateJob();
+        var jobRepo = new FakeJobRepository(new[] { job });
+        var viewModel = CreateViewModelWithCustomService(
+            new UserRecommendationService(
+                new FakeUserRepository(new[] { user }),
+                jobRepo,
+                new FakeSkillRepository(new[] { TestDataFactory.CreateSkill(user.UserId, 1, "C#", 90) }),
+                new FakeJobSkillRepository(new[] { TestDataFactory.CreateJobSkill(job.JobId, 1, "C#", 80) }),
+                new FakeCompanyRepository(new[] { TestDataFactory.CreateCompany(job.CompanyId) }),
+                new MatchService(new FakeMatchRepository(Array.Empty<Match>()), new JobService(jobRepo)),
+                throwingRepo,
+                new CooldownService(throwingRepo, TimeSpan.FromHours(1)),
+                new RecommendationAlgorithm()),
+            session);
 
-        try
-        {
-            var user = TestDataFactory.CreateUser();
-            var session = new SessionContext();
-            session.LoginAsUser(user.UserId);
-            var throwingRepo = new ThrowingRecommendationRepository(throwOnInsert: true, throwOnRemove: true, allowFirstInsert: false);
-            var job = TestDataFactory.CreateJob();
-            var jobRepo = new FakeJobRepository(new[] { job });
-            var viewModel = CreateViewModelWithCustomService(
-                new UserRecommendationService(
-                    new FakeUserRepository(new[] { user }),
-                    jobRepo,
-                    new FakeSkillRepository(new[] { TestDataFactory.CreateSkill(user.UserId, 1, "C#", 90) }),
-                    new FakeJobSkillRepository(new[] { TestDataFactory.CreateJobSkill(job.JobId, 1, "C#", 80) }),
-                    new FakeCompanyRepository(new[] { TestDataFactory.CreateCompany(job.CompanyId) }),
-                    new MatchService(new FakeMatchRepository(Array.Empty<Match>()), new JobService(jobRepo)),
-                    throwingRepo,
-                    new CooldownService(throwingRepo, TimeSpan.FromHours(1)),
-                    new RecommendationAlgorithm()),
-                session);
+        await viewModel.InitializeAsync();
+        await viewModel.DismissAsync();
 
-            await viewModel.InitializeAsync();
-            await viewModel.DismissAsync();
-
-            viewModel.HasError.Should().BeTrue();
-        }
-        finally
-        {
-            SetAppFlag(nameof(App.IsDatabaseConnectionAvailable), previousAvailability);
-            SetAppFlag(nameof(App.DatabaseConnectionError), previousError);
-        }
+        viewModel.HasError.Should().BeTrue();
     }
 
     [Fact]
     public void CanActDrivenCommands_WhenSessionInvalid_AreNotExecutable()
     {
-        var previousAvailability = GetAppFlag<bool>(nameof(App.IsDatabaseConnectionAvailable));
-        var previousError = GetAppFlag<string>(nameof(App.DatabaseConnectionError));
-        SetAppFlag(nameof(App.IsDatabaseConnectionAvailable), true);
-        SetAppFlag(nameof(App.DatabaseConnectionError), string.Empty);
+        using var scope = new AppStateScope(isDatabaseAvailable: true);
+        var user = TestDataFactory.CreateUser();
+        var viewModel = CreateViewModel(user, new[] { TestDataFactory.CreateJob() });
+        GetSession(viewModel).Logout();
 
-        try
-        {
-            var user = TestDataFactory.CreateUser();
-            var viewModel = CreateViewModel(user, new[] { TestDataFactory.CreateJob() });
-            GetSession(viewModel).Logout();
-
-            viewModel.LikeCommand.CanExecute(null).Should().BeFalse();
-            viewModel.DismissCommand.CanExecute(null).Should().BeFalse();
-        }
-        finally
-        {
-            SetAppFlag(nameof(App.IsDatabaseConnectionAvailable), previousAvailability);
-            SetAppFlag(nameof(App.DatabaseConnectionError), previousError);
-        }
+        viewModel.LikeCommand.CanExecute(null).Should().BeFalse();
+        viewModel.DismissCommand.CanExecute(null).Should().BeFalse();
     }
 
     [Fact]
     public void LoadRecommendations_WhenDeckIsEmpty_KeepsErrorMessageEmpty()
     {
-        var previousAvailability = GetAppFlag<bool>(nameof(App.IsDatabaseConnectionAvailable));
-        var previousError = GetAppFlag<string>(nameof(App.DatabaseConnectionError));
-        SetAppFlag(nameof(App.IsDatabaseConnectionAvailable), true);
-        SetAppFlag(nameof(App.DatabaseConnectionError), string.Empty);
+        using var scope = new AppStateScope(isDatabaseAvailable: true);
+        var user = TestDataFactory.CreateUser();
+        var viewModel = CreateViewModel(user, Array.Empty<Job>());
 
-        try
-        {
-            var user = TestDataFactory.CreateUser();
-            var viewModel = CreateViewModel(user, Array.Empty<Job>());
+        viewModel.LoadRecommendations();
 
-            viewModel.LoadRecommendations();
-
-            viewModel.CurrentJob.Should().BeNull();
-            viewModel.ErrorMessage.Should().BeEmpty();
-        }
-        finally
-        {
-            SetAppFlag(nameof(App.IsDatabaseConnectionAvailable), previousAvailability);
-            SetAppFlag(nameof(App.DatabaseConnectionError), previousError);
-        }
+        viewModel.CurrentJob.Should().BeNull();
+        viewModel.ErrorMessage.Should().BeEmpty();
     }
 
     [Fact]
     public async Task DismissAsync_WhenApplyDismissThrowsInAction_CatchesAndSetsError()
     {
-        var previousAvailability = GetAppFlag<bool>(nameof(App.IsDatabaseConnectionAvailable));
-        var previousError = GetAppFlag<string>(nameof(App.DatabaseConnectionError));
-        SetAppFlag(nameof(App.IsDatabaseConnectionAvailable), true);
-        SetAppFlag(nameof(App.DatabaseConnectionError), string.Empty);
+        using var scope = new AppStateScope(isDatabaseAvailable: true);
+        var user = TestDataFactory.CreateUser();
+        var job = TestDataFactory.CreateJob();
+        var session = new SessionContext();
+        session.LoginAsUser(user.UserId);
+        var repo = new ThrowingRecommendationRepository(throwOnInsert: true, throwOnRemove: false, allowFirstInsert: true);
+        var jobRepo = new FakeJobRepository(new[] { job });
+        var viewModel = CreateViewModelWithCustomService(
+            new UserRecommendationService(
+                new FakeUserRepository(new[] { user }),
+                jobRepo,
+                new FakeSkillRepository(new[] { TestDataFactory.CreateSkill(user.UserId, 1, "C#", 90) }),
+                new FakeJobSkillRepository(new[] { TestDataFactory.CreateJobSkill(job.JobId, 1, "C#", 80) }),
+                new FakeCompanyRepository(new[] { TestDataFactory.CreateCompany(job.CompanyId) }),
+                new MatchService(new FakeMatchRepository(Array.Empty<Match>()), new JobService(jobRepo)),
+                repo,
+                new CooldownService(repo, TimeSpan.FromHours(1)),
+                new RecommendationAlgorithm()),
+            session);
 
-        try
-        {
-            var user = TestDataFactory.CreateUser();
-            var job = TestDataFactory.CreateJob();
-            var session = new SessionContext();
-            session.LoginAsUser(user.UserId);
-            var repo = new ThrowingRecommendationRepository(throwOnInsert: true, throwOnRemove: false, allowFirstInsert: true);
-            var jobRepo = new FakeJobRepository(new[] { job });
-            var viewModel = CreateViewModelWithCustomService(
-                new UserRecommendationService(
-                    new FakeUserRepository(new[] { user }),
-                    jobRepo,
-                    new FakeSkillRepository(new[] { TestDataFactory.CreateSkill(user.UserId, 1, "C#", 90) }),
-                    new FakeJobSkillRepository(new[] { TestDataFactory.CreateJobSkill(job.JobId, 1, "C#", 80) }),
-                    new FakeCompanyRepository(new[] { TestDataFactory.CreateCompany(job.CompanyId) }),
-                    new MatchService(new FakeMatchRepository(Array.Empty<Match>()), new JobService(jobRepo)),
-                    repo,
-                    new CooldownService(repo, TimeSpan.FromHours(1)),
-                    new RecommendationAlgorithm()),
-                session);
+        await viewModel.InitializeAsync();
+        await viewModel.DismissAsync();
 
-            await viewModel.InitializeAsync();
-            await viewModel.DismissAsync();
-
-            viewModel.HasError.Should().BeTrue();
-        }
-        finally
-        {
-            SetAppFlag(nameof(App.IsDatabaseConnectionAvailable), previousAvailability);
-            SetAppFlag(nameof(App.DatabaseConnectionError), previousError);
-        }
+        viewModel.HasError.Should().BeTrue();
     }
 
     [Fact]
     public async Task UndoAsync_WhenUndoOperationThrows_CatchesAndSetsError()
     {
-        var previousAvailability = GetAppFlag<bool>(nameof(App.IsDatabaseConnectionAvailable));
-        var previousError = GetAppFlag<string>(nameof(App.DatabaseConnectionError));
-        SetAppFlag(nameof(App.IsDatabaseConnectionAvailable), true);
-        SetAppFlag(nameof(App.DatabaseConnectionError), string.Empty);
+        using var scope = new AppStateScope(isDatabaseAvailable: true);
+        var user = TestDataFactory.CreateUser();
+        var job = TestDataFactory.CreateJob();
+        var session = new SessionContext();
+        session.LoginAsUser(user.UserId);
+        var repo = new ThrowingRecommendationRepository(throwOnInsert: false, throwOnRemove: true, allowFirstInsert: false);
+        var jobRepo = new FakeJobRepository(new[] { job });
+        var viewModel = CreateViewModelWithCustomService(
+            new UserRecommendationService(
+                new FakeUserRepository(new[] { user }),
+                jobRepo,
+                new FakeSkillRepository(new[] { TestDataFactory.CreateSkill(user.UserId, 1, "C#", 90) }),
+                new FakeJobSkillRepository(new[] { TestDataFactory.CreateJobSkill(job.JobId, 1, "C#", 80) }),
+                new FakeCompanyRepository(new[] { TestDataFactory.CreateCompany(job.CompanyId) }),
+                new MatchService(new FakeMatchRepository(Array.Empty<Match>()), new JobService(jobRepo)),
+                repo,
+                new CooldownService(repo, TimeSpan.FromHours(1)),
+                new RecommendationAlgorithm()),
+            session);
 
-        try
-        {
-            var user = TestDataFactory.CreateUser();
-            var job = TestDataFactory.CreateJob();
-            var session = new SessionContext();
-            session.LoginAsUser(user.UserId);
-            var repo = new ThrowingRecommendationRepository(throwOnInsert: false, throwOnRemove: true, allowFirstInsert: false);
-            var jobRepo = new FakeJobRepository(new[] { job });
-            var viewModel = CreateViewModelWithCustomService(
-                new UserRecommendationService(
-                    new FakeUserRepository(new[] { user }),
-                    jobRepo,
-                    new FakeSkillRepository(new[] { TestDataFactory.CreateSkill(user.UserId, 1, "C#", 90) }),
-                    new FakeJobSkillRepository(new[] { TestDataFactory.CreateJobSkill(job.JobId, 1, "C#", 80) }),
-                    new FakeCompanyRepository(new[] { TestDataFactory.CreateCompany(job.CompanyId) }),
-                    new MatchService(new FakeMatchRepository(Array.Empty<Match>()), new JobService(jobRepo)),
-                    repo,
-                    new CooldownService(repo, TimeSpan.FromHours(1)),
-                    new RecommendationAlgorithm()),
-                session);
+        await viewModel.InitializeAsync();
+        await viewModel.DismissAsync();
+        await viewModel.UndoAsync();
 
-            await viewModel.InitializeAsync();
-            await viewModel.DismissAsync();
-            await viewModel.UndoAsync();
-
-            viewModel.HasError.Should().BeTrue();
-        }
-        finally
-        {
-            SetAppFlag(nameof(App.IsDatabaseConnectionAvailable), previousAvailability);
-            SetAppFlag(nameof(App.DatabaseConnectionError), previousError);
-        }
+        viewModel.HasError.Should().BeTrue();
     }
 
     [Fact]
     public async Task LikeAsync_WhenApplyLikeThrows_CatchesAndSetsError()
     {
-        var previousAvailability = GetAppFlag<bool>(nameof(App.IsDatabaseConnectionAvailable));
-        var previousError = GetAppFlag<string>(nameof(App.DatabaseConnectionError));
-        SetAppFlag(nameof(App.IsDatabaseConnectionAvailable), true);
-        SetAppFlag(nameof(App.DatabaseConnectionError), string.Empty);
+        using var scope = new AppStateScope(isDatabaseAvailable: true);
+        var user = TestDataFactory.CreateUser();
+        var job = TestDataFactory.CreateJob();
+        var viewModel = CreateViewModel(user, new[] { job });
+        await viewModel.InitializeAsync();
 
-        try
-        {
-            var user = TestDataFactory.CreateUser();
-            var job = TestDataFactory.CreateJob();
-            var viewModel = CreateViewModel(user, new[] { job });
-            await viewModel.InitializeAsync();
+        var matchRepository = GetMatchRepository(viewModel);
+        matchRepository.Add(TestDataFactory.CreateMatch(matchId: 777, userId: user.UserId, jobId: job.JobId, status: MatchStatus.Applied));
 
-            var matchRepository = GetMatchRepository(viewModel);
-            matchRepository.Add(TestDataFactory.CreateMatch(matchId: 777, userId: user.UserId, jobId: job.JobId, status: MatchStatus.Applied));
+        await viewModel.LikeAsync();
 
-            await viewModel.LikeAsync();
-
-            viewModel.HasError.Should().BeTrue();
-        }
-        finally
-        {
-            SetAppFlag(nameof(App.IsDatabaseConnectionAvailable), previousAvailability);
-            SetAppFlag(nameof(App.DatabaseConnectionError), previousError);
-        }
+        viewModel.HasError.Should().BeTrue();
     }
 
     private static UserRecommendationViewModel CreateViewModel(User user, IReadOnlyList<Job> jobs)
@@ -954,6 +567,26 @@ public sealed class UserRecommendationViewModelTests
     private static void SetSessionMode(SessionContext session, AppMode mode)
     {
         typeof(SessionContext).GetProperty(nameof(SessionContext.CurrentMode))!.SetValue(session, mode);
+    }
+
+    private sealed class AppStateScope : IDisposable
+    {
+        private readonly bool previousAvailability;
+        private readonly string previousError;
+
+        public AppStateScope(bool isDatabaseAvailable, string databaseError = "")
+        {
+            previousAvailability = GetAppFlag<bool>(nameof(App.IsDatabaseConnectionAvailable));
+            previousError = GetAppFlag<string>(nameof(App.DatabaseConnectionError));
+            SetAppFlag(nameof(App.IsDatabaseConnectionAvailable), isDatabaseAvailable);
+            SetAppFlag(nameof(App.DatabaseConnectionError), databaseError);
+        }
+
+        public void Dispose()
+        {
+            SetAppFlag(nameof(App.IsDatabaseConnectionAvailable), previousAvailability);
+            SetAppFlag(nameof(App.DatabaseConnectionError), previousError);
+        }
     }
 
     private sealed class ThrowingRecommendationRepository : IRecommendationRepository

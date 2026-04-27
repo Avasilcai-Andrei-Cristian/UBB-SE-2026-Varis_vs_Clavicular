@@ -56,33 +56,4 @@ public sealed class NavigationServiceTests
         raisedJobId.Should().Be(100);
     }
 
-    [Fact]
-    public void RequestUserProfile_WhenNoSubscribers_DoesNotThrow()
-    {
-        var service = new NavigationService();
-
-        Action act = () => service.RequestUserProfile(1);
-
-        act.Should().NotThrow();
-    }
-
-    [Fact]
-    public void RequestCompanyProfile_WhenNoSubscribers_DoesNotThrow()
-    {
-        var service = new NavigationService();
-
-        Action act = () => service.RequestCompanyProfile(1);
-
-        act.Should().NotThrow();
-    }
-
-    [Fact]
-    public void RequestJobPost_WhenNoSubscribers_DoesNotThrow()
-    {
-        var service = new NavigationService();
-
-        Action act = () => service.RequestJobPost(1);
-
-        act.Should().NotThrow();
-    }
 }

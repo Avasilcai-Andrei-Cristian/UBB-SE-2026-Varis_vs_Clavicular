@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Windows.Input;
 using matchmaking.Domain.Entities;
 using matchmaking.Domain.Enums;
@@ -28,7 +27,7 @@ public class PostCardViewModel
 
     public PostCardViewModel(Post post, IEnumerable<Interaction> postInteractions, string authorName, int currentDeveloperId, Action<int> likePost, Action<int> dislikePost)
     {
-        var interactions = postInteractions.ToList();
+        var interactions = new List<Interaction>(postInteractions);
 
         _likePost = likePost;
         _dislikePost = dislikePost;
@@ -40,10 +39,10 @@ public class PostCardViewModel
         TypeLabel = IsKeyword ? "Keyword" : "Parameter";
         ParameterDisplayName = PostParameterTypeMapper.ToStorageValue(post.ParameterType);
         ValueDisplay = post.Value;
-        LikeCount = interactions.Count(i => i.Type == InteractionType.Like);
-        DislikeCount = interactions.Count(i => i.Type == InteractionType.Dislike);
+        LikeCount = CountByType(interactions, InteractionType.Like);
+        DislikeCount = CountByType(interactions, InteractionType.Dislike);
 
-        var currentUserInteraction = interactions.FirstOrDefault(i => i.DeveloperId == currentDeveloperId);
+        var currentUserInteraction = FindInteractionForDeveloper(interactions, currentDeveloperId);
         IsLikedByCurrentUser = currentUserInteraction?.Type == InteractionType.Like;
         IsDislikedByCurrentUser = currentUserInteraction?.Type == InteractionType.Dislike;
 
@@ -54,4 +53,31 @@ public class PostCardViewModel
     private void ExecuteLikePost() => _likePost(PostId);
 
     private void ExecuteDislikePost() => _dislikePost(PostId);
+
+    private static int CountByType(IReadOnlyList<Interaction> interactions, InteractionType interactionType)
+    {
+        var count = 0;
+        foreach (var interaction in interactions)
+        {
+            if (interaction.Type == interactionType)
+            {
+                count++;
+            }
+        }
+
+        return count;
+    }
+
+    private static Interaction? FindInteractionForDeveloper(IReadOnlyList<Interaction> interactions, int developerId)
+    {
+        foreach (var interaction in interactions)
+        {
+            if (interaction.DeveloperId == developerId)
+            {
+                return interaction;
+            }
+        }
+
+        return null;
+    }
 }

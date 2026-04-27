@@ -9,46 +9,62 @@ namespace matchmaking.Tests;
 
 public class JobSkillRepositoryTests
 {
-    private readonly JobSkillRepository repository = new ();
-
     [Fact]
-    public void GetById_ExistingCompositeId_ReturnsJobSkill()
+    public void GetById_AddedCompositeId_ReturnsJobSkill()
     {
-        var result = repository.GetById(1, 2);
+        var jobSkill = CreateJobSkill(1000, 1000);
+        var repository = CreateRepositoryWith(jobSkill);
+
+        var result = repository.GetById(jobSkill.JobId, jobSkill.SkillId);
 
         result.Should().NotBeNull();
-        result!.JobId.Should().Be(1);
-        result.SkillId.Should().Be(2);
+        result!.JobId.Should().Be(jobSkill.JobId);
+        result.SkillId.Should().Be(jobSkill.SkillId);
+        result.SkillName.Should().Be(jobSkill.SkillName);
     }
 
     [Fact]
     public void GetById_MissingCompositeId_ReturnsNull()
     {
+        var repository = CreateRepositoryWith();
+
         var result = repository.GetById(9999, 9999);
 
         result.Should().BeNull();
     }
 
     [Fact]
-    public void GetAll_WhenCalled_ReturnsAllJobSkills()
+    public void GetAll_WhenJobSkillsAdded_ReturnsAddedJobSkills()
     {
+        var firstJobSkill = CreateJobSkill(1000, 1000);
+        var secondJobSkill = CreateJobSkill(1001, 1001);
+        var repository = CreateRepositoryWith(firstJobSkill, secondJobSkill);
+
         var result = repository.GetAll();
 
-        result.Should().HaveCount(20);
+        result.Should().HaveCount(2);
+        result.Select(item => (item.JobId, item.SkillId)).Should().BeEquivalentTo(new[] { (firstJobSkill.JobId, firstJobSkill.SkillId), (secondJobSkill.JobId, secondJobSkill.SkillId) });
     }
 
     [Fact]
-    public void GetByJobId_ExistingJobId_ReturnsOnlyMatchingJobSkills()
+    public void GetByJobId_WhenMatchingJobSkillAdded_ReturnsOnlyMatchingJobSkills()
     {
-        var result = repository.GetByJobId(1);
+        var matchingJobId = 1000;
+        var matchingJobSkill = CreateJobSkill(matchingJobId, 1000);
+        var otherJobSkill = CreateJobSkill(jobId: 1001, skillId: 1001);
+        var repository = CreateRepositoryWith(matchingJobSkill, otherJobSkill);
 
-        result.Should().NotBeEmpty();
-        result.All(js => js.JobId == 1).Should().BeTrue();
+        var result = repository.GetByJobId(matchingJobId);
+
+        result.Should().ContainSingle(item => item.SkillId == matchingJobSkill.SkillId);
+        result.All(item => item.JobId == matchingJobId).Should().BeTrue();
     }
 
     [Fact]
     public void GetByJobId_MissingJobId_ReturnsEmptyList()
     {
+        var repository = CreateRepositoryWith(CreateJobSkill(1000, 1000));
+
         var result = repository.GetByJobId(9999);
 
         result.Should().BeEmpty();
@@ -57,19 +73,22 @@ public class JobSkillRepositoryTests
     [Fact]
     public void Add_NewJobSkill_AddsJobSkillToRepository()
     {
+        var repository = CreateRepositoryWith();
         var newJobSkill = CreateJobSkill(1000, 1000);
 
         repository.Add(newJobSkill);
-        var result = repository.GetById(1000, 1000);
+        var result = repository.GetById(newJobSkill.JobId, newJobSkill.SkillId);
 
         result.Should().NotBeNull();
-        result!.SkillName.Should().Be("Test Job Skill");
+        result!.SkillName.Should().Be(newJobSkill.SkillName);
     }
 
     [Fact]
     public void Add_DuplicateCompositeId_ThrowsInvalidOperationException()
     {
-        var duplicateJobSkill = CreateJobSkill(1, 2);
+        var existingJobSkill = CreateJobSkill(1000, 1000);
+        var repository = CreateRepositoryWith(existingJobSkill);
+        var duplicateJobSkill = CreateJobSkill(existingJobSkill.JobId, existingJobSkill.SkillId);
 
         Action act = () => repository.Add(duplicateJobSkill);
 
@@ -79,12 +98,14 @@ public class JobSkillRepositoryTests
     [Fact]
     public void Update_ExistingJobSkill_UpdatesStoredJobSkill()
     {
-        var updatedJobSkill = CreateJobSkill(1, 2);
+        var existingJobSkill = CreateJobSkill(1000, 1000);
+        var repository = CreateRepositoryWith(existingJobSkill);
+        var updatedJobSkill = CreateJobSkill(existingJobSkill.JobId, existingJobSkill.SkillId);
         updatedJobSkill.SkillName = "Updated Job Skill Name";
         updatedJobSkill.Score = 99;
 
         repository.Update(updatedJobSkill);
-        var result = repository.GetById(1, 2);
+        var result = repository.GetById(updatedJobSkill.JobId, updatedJobSkill.SkillId);
 
         result.Should().NotBeNull();
         result!.SkillName.Should().Be("Updated Job Skill Name");
@@ -94,6 +115,7 @@ public class JobSkillRepositoryTests
     [Fact]
     public void Update_MissingJobSkill_ThrowsKeyNotFoundException()
     {
+        var repository = CreateRepositoryWith();
         var missingJobSkill = CreateJobSkill(9999, 9999);
 
         Action act = () => repository.Update(missingJobSkill);
@@ -104,8 +126,11 @@ public class JobSkillRepositoryTests
     [Fact]
     public void Remove_ExistingJobSkill_RemovesJobSkillFromRepository()
     {
-        repository.Remove(1, 2);
-        var result = repository.GetById(1, 2);
+        var jobSkill = CreateJobSkill(1000, 1000);
+        var repository = CreateRepositoryWith(jobSkill);
+
+        repository.Remove(jobSkill.JobId, jobSkill.SkillId);
+        var result = repository.GetById(jobSkill.JobId, jobSkill.SkillId);
 
         result.Should().BeNull();
     }
@@ -113,9 +138,22 @@ public class JobSkillRepositoryTests
     [Fact]
     public void Remove_MissingJobSkill_ThrowsKeyNotFoundException()
     {
+        var repository = CreateRepositoryWith();
+
         Action act = () => repository.Remove(9999, 9999);
 
         act.Should().Throw<KeyNotFoundException>();
+    }
+
+    private static JobSkillRepository CreateRepositoryWith(params JobSkill[] jobSkills)
+    {
+        var repository = new JobSkillRepository([]);
+        foreach (var jobSkill in jobSkills)
+        {
+            repository.Add(jobSkill);
+        }
+
+        return repository;
     }
 
     private static JobSkill CreateJobSkill(int jobId, int skillId)

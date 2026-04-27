@@ -75,13 +75,13 @@ public sealed class SqlRecommendationRepositoryIntegrationTests
         repository.Add(first);
         repository.Add(second);
 
-        var all = repository.GetAll();
+        var allRecommendations = repository.GetAll();
 
-        all.Should().HaveCount(2);
+        allRecommendations.Should().HaveCount(2);
         first.RecommendationId.Should().BeGreaterThan(0);
         second.RecommendationId.Should().BeGreaterThan(0);
-        all.Should().Contain(item => item.RecommendationId == first.RecommendationId && item.UserId == 31 && item.JobId == 41);
-        all.Should().Contain(item => item.RecommendationId == second.RecommendationId && item.UserId == 32 && item.JobId == 42);
+        allRecommendations.Should().Contain(item => item.RecommendationId == first.RecommendationId && item.UserId == 31 && item.JobId == 41);
+        allRecommendations.Should().Contain(item => item.RecommendationId == second.RecommendationId && item.UserId == 32 && item.JobId == 42);
     }
 
     private int InsertRecommendation(int userId, int jobId, DateTime timestamp)

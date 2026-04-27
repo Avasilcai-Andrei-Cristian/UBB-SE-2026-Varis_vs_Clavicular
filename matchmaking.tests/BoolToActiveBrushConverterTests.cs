@@ -2,47 +2,20 @@ namespace matchmaking.Tests.Views.Converters;
 
 public class BoolToActiveBrushConverterTests
 {
+    private static readonly Windows.UI.Color ExpectedActiveColor = Windows.UI.Color.FromArgb(0xFF, 0x25, 0x63, 0xEB);
+    private static readonly Windows.UI.Color ExpectedInactiveColor = Windows.UI.Color.FromArgb(0xFF, 0x6B, 0x6B, 0x6B);
+
     private readonly BoolToActiveBrushConverter converter = new BoolToActiveBrushConverter();
 
     [Fact]
-    public void Convert_True_ReturnsActiveColor()
+    public void GetColor_ActiveAndInactiveStates_ReturnExpectedDistinctColors()
     {
-        var result = BoolToActiveBrushConverter.GetColor(true);
+        var activeColor = BoolToActiveBrushConverter.GetColor(true);
+        var inactiveColor = BoolToActiveBrushConverter.GetColor(false);
 
-        result.Should().NotBe(default);
-    }
-
-    [Fact]
-    public void Convert_False_ReturnsInactiveColor()
-    {
-        var result = BoolToActiveBrushConverter.GetColor(false);
-
-        result.Should().NotBe(default);
-    }
-
-    [Fact]
-    public void Convert_TrueAndFalse_ReturnDifferentColors()
-    {
-        var activeBrush = BoolToActiveBrushConverter.GetColor(true);
-        var inactiveBrush = BoolToActiveBrushConverter.GetColor(false);
-
-        activeBrush.Should().NotBe(inactiveBrush);
-    }
-
-    [Fact]
-    public void Convert_NonBoolValue_ReturnsInactiveColor()
-    {
-        var result = BoolToActiveBrushConverter.GetColor(false);
-
-        result.Should().NotBe(default);
-    }
-
-    [Fact]
-    public void Convert_NullValue_ReturnsInactiveColor()
-    {
-        var result = BoolToActiveBrushConverter.GetColor(false);
-
-        result.Should().NotBe(default);
+        activeColor.Should().Be(ExpectedActiveColor);
+        inactiveColor.Should().Be(ExpectedInactiveColor);
+        inactiveColor.Should().NotBe(activeColor);
     }
 
     [Fact]

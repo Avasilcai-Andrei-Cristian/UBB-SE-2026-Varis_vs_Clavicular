@@ -18,8 +18,8 @@ public sealed partial class ShellView : UserControl
         InitializeComponent();
         _viewModel = new ShellViewModel(
             onRecommendations: NavigateToRecommendations,
-            onMyStatus:        NavigateToMyStatus,
-            onChat:            NavigateToChat);
+            onMyStatus: NavigateToMyStatus,
+            onChat: NavigateToChat);
         DataContext = _viewModel;
 
         InitializeHeader();
@@ -40,8 +40,8 @@ public sealed partial class ShellView : UserControl
 
         var appHeader = new AppHeaderControl();
         appHeader.RecommendationsRequested += OnRecommendationsRequested;
-        appHeader.MyStatusRequested        += OnMyStatusRequested;
-        appHeader.ChatRequested            += OnChatRequested;
+        appHeader.MyStatusRequested += OnMyStatusRequested;
+        appHeader.ChatRequested += OnChatRequested;
         HeaderSlot.Content = appHeader;
     }
 
@@ -119,7 +119,9 @@ public sealed partial class ShellView : UserControl
     private void Navigate(Type pageType)
     {
         if (ContentHostFrame.CurrentSourcePageType == pageType)
+        {
             return;
+        }
 
         ContentHostFrame.Navigate(pageType);
     }

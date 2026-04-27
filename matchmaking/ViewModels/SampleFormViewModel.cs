@@ -26,7 +26,15 @@ public class SampleFormViewModel : ObservableObject
 
     public SampleFormViewModel()
     {
-        PrimaryActionCommand = new RelayCommand(() => { });
-        SecondaryActionCommand = new RelayCommand(() => { });
+        PrimaryActionCommand = new RelayCommand(ExecutePrimaryAction);
+        SecondaryActionCommand = new RelayCommand(ExecuteSecondaryAction);
+    }
+
+    private static void ExecutePrimaryAction()
+    {
+    }
+
+    private static void ExecuteSecondaryAction()
+    {
     }
 }

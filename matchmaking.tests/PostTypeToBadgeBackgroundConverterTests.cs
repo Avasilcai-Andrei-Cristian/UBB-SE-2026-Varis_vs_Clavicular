@@ -30,22 +30,6 @@ public class PostTypeToBadgeBackgroundConverterTests
     }
 
     [Fact]
-    public void Convert_NonBoolValue_ReturnsDeveloperPostColor()
-    {
-        var result = PostTypeToBadgeBackgroundConverter.GetColor(false);
-
-        result.Should().NotBe(default);
-    }
-
-    [Fact]
-    public void Convert_NullValue_ReturnsDeveloperPostColor()
-    {
-        var result = PostTypeToBadgeBackgroundConverter.GetColor(false);
-
-        result.Should().NotBe(default);
-    }
-
-    [Fact]
     public void ConvertBack_WhenInvoked_ThrowsNotSupportedException()
     {
         var act = () => converter.ConvertBack(null, typeof(object), null, string.Empty);

@@ -253,7 +253,8 @@ public sealed class UserRecommendationServiceTests
             recommendations: Array.Empty<Recommendation>());
 
         var card = service.GetNextCard(1, UserMatchmakingFilters.Empty());
-        var matchId = service.ApplyLike(1, card);
+        card.Should().NotBeNull();
+        var matchId = service.ApplyLike(1, card!);
 
         matchId.Should().BeGreaterThan(0);
     }
@@ -271,7 +272,8 @@ public sealed class UserRecommendationServiceTests
             recommendations: Array.Empty<Recommendation>());
 
         var card = service.GetNextCard(1, UserMatchmakingFilters.Empty());
-        var recommendationId = service.ApplyDismiss(1, card);
+        card.Should().NotBeNull();
+        var recommendationId = service.ApplyDismiss(1, card!);
 
         recommendationId.Should().BeGreaterThan(0);
     }

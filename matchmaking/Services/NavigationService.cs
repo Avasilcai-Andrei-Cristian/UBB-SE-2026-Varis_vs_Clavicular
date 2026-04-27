@@ -2,7 +2,7 @@ using System;
 
 namespace matchmaking.Services;
 
-public sealed class NavigationService
+public sealed class NavigationService : INavigationService
 {
     public event Action<int>? UserProfileRequested;
     public event Action<int>? CompanyProfileRequested;

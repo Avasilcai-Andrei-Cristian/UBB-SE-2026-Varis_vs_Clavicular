@@ -14,10 +14,13 @@ public sealed class MatchServiceStateTransitionTests
 
         createdId.Should().Be(1);
         repository.InsertedMatches.Should().ContainSingle();
-        repository.InsertedMatches[0].UserId.Should().Be(1);
-        repository.InsertedMatches[0].JobId.Should().Be(100);
-        repository.InsertedMatches[0].Status.Should().Be(MatchStatus.Applied);
-        repository.InsertedMatches[0].FeedbackMessage.Should().BeEmpty();
+        repository.InsertedMatches[0].Should().BeEquivalentTo(
+            new Match { UserId = 1, JobId = 100, Status = MatchStatus.Applied, FeedbackMessage = string.Empty },
+            options => options
+                .Including(item => item.UserId)
+                .Including(item => item.JobId)
+                .Including(item => item.Status)
+                .Including(item => item.FeedbackMessage));
     }
 
     [Fact]
@@ -86,8 +89,11 @@ public sealed class MatchServiceStateTransitionTests
         service.SubmitDecision(10, MatchStatus.Accepted, "  Great fit  ");
 
         repository.UpdatedMatches.Should().ContainSingle();
-        match.Status.Should().Be(MatchStatus.Accepted);
-        match.FeedbackMessage.Should().Be("Great fit");
+        match.Should().BeEquivalentTo(
+            new Match { Status = MatchStatus.Accepted, FeedbackMessage = "Great fit" },
+            options => options
+                .Including(item => item.Status)
+                .Including(item => item.FeedbackMessage));
         match.Timestamp.Should().BeAfter(before);
     }
 
@@ -128,20 +134,23 @@ public sealed class MatchServiceStateTransitionTests
         service.RevertToApplied(13);
 
         repository.UpdatedMatches.Should().ContainSingle();
-        match.Status.Should().Be(MatchStatus.Applied);
-        match.FeedbackMessage.Should().BeEmpty();
+        match.Should().BeEquivalentTo(
+            new Match { Status = MatchStatus.Applied, FeedbackMessage = string.Empty },
+            options => options
+                .Including(item => item.Status)
+                .Including(item => item.FeedbackMessage));
     }
 
     [Fact]
     public async Task GetByCompanyIdAsync_WhenCompanyHasJobs_ReturnsOnlyMatchingJobsSortedByTimestamp()
     {
-        var now = DateTime.UtcNow;
+        var currentUtcTime = DateTime.UtcNow;
         var matchingOlder = TestDataFactory.CreateMatch(matchId: 1, userId: 1, jobId: 100, status: MatchStatus.Applied);
-        matchingOlder.Timestamp = now.AddMinutes(-20);
+        matchingOlder.Timestamp = currentUtcTime.AddMinutes(-20);
         var matchingNewer = TestDataFactory.CreateMatch(matchId: 2, userId: 2, jobId: 101, status: MatchStatus.Advanced);
-        matchingNewer.Timestamp = now.AddMinutes(-5);
+        matchingNewer.Timestamp = currentUtcTime.AddMinutes(-5);
         var otherCompany = TestDataFactory.CreateMatch(matchId: 3, userId: 3, jobId: 999, status: MatchStatus.Applied);
-        otherCompany.Timestamp = now.AddMinutes(-1);
+        otherCompany.Timestamp = currentUtcTime.AddMinutes(-1);
 
         var repository = new FakeMatchRepository(new[] { matchingOlder, matchingNewer, otherCompany });
         IReadOnlyList<Job> jobs = new[] { TestDataFactory.CreateJob(jobId: 100, companyId: 1), TestDataFactory.CreateJob(jobId: 101, companyId: 1) };
@@ -197,8 +206,11 @@ public sealed class MatchServiceStateTransitionTests
 
         await service.AcceptAsync(21, "  accepted  ");
 
-        match.Status.Should().Be(MatchStatus.Accepted);
-        match.FeedbackMessage.Should().Be("accepted");
+        match.Should().BeEquivalentTo(
+            new Match { Status = MatchStatus.Accepted, FeedbackMessage = "accepted" },
+            options => options
+                .Including(item => item.Status)
+                .Including(item => item.FeedbackMessage));
         repository.UpdatedMatches.Should().ContainSingle(item => item.MatchId == 21);
     }
 
@@ -211,8 +223,11 @@ public sealed class MatchServiceStateTransitionTests
 
         await service.RejectAsync(22, "  rejected  ");
 
-        match.Status.Should().Be(MatchStatus.Rejected);
-        match.FeedbackMessage.Should().Be("rejected");
+        match.Should().BeEquivalentTo(
+            new Match { Status = MatchStatus.Rejected, FeedbackMessage = "rejected" },
+            options => options
+                .Including(item => item.Status)
+                .Including(item => item.FeedbackMessage));
         repository.UpdatedMatches.Should().ContainSingle(item => item.MatchId == 22);
     }
 
@@ -244,6 +259,24 @@ public sealed class MatchServiceStateTransitionTests
         var result = service.IsDecisionTransitionAllowed(match, requestedStatus);
 
         result.Should().Be(expected);
+    }
+
+    [Fact]
+    public void FullTransition_WhenAppliedThenAdvancedThenAccepted_MatchEndsAccepted()
+    {
+        var match = TestDataFactory.CreateMatch(matchId: 50, status: MatchStatus.Applied, feedback: string.Empty);
+        var repository = new FakeMatchRepository([match]);
+        var service = new MatchService(repository, new FakeJobService([]));
+
+        service.Advance(50);
+        service.SubmitDecision(50, MatchStatus.Accepted, "Great candidate");
+
+        repository.UpdatedMatches.Should().HaveCount(2);
+        match.Should().BeEquivalentTo(
+            new Match { Status = MatchStatus.Accepted, FeedbackMessage = "Great candidate" },
+            options => options
+                .Including(item => item.Status)
+                .Including(item => item.FeedbackMessage));
     }
 
     private sealed class FakeMatchRepository : IMatchRepository

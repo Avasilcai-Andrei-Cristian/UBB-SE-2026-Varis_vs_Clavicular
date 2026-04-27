@@ -8,49 +8,59 @@ namespace matchmaking.Tests;
 
 public class CompanyRepositoryTests
 {
-    private readonly CompanyRepository repository = new ();
-
     [Fact]
-    public void GetById_ExistingCompanyId_ReturnsCompany()
+    public void GetById_AddedCompanyId_ReturnsCompany()
     {
-        var result = repository.GetById(1);
+        var company = CreateCompany(1000);
+        var repository = CreateRepositoryWith(company);
+
+        var result = repository.GetById(company.CompanyId);
 
         result.Should().NotBeNull();
-        result!.CompanyId.Should().Be(1);
+        result!.CompanyId.Should().Be(company.CompanyId);
+        result.CompanyName.Should().Be(company.CompanyName);
     }
 
     [Fact]
     public void GetById_MissingCompanyId_ReturnsNull()
     {
+        var repository = CreateRepositoryWith();
+
         var result = repository.GetById(-1);
 
         result.Should().BeNull();
     }
 
     [Fact]
-    public void GetAll_WhenCalled_ReturnsAllCompanies()
+    public void GetAll_WhenCompanyAdded_ReturnsAddedCompany()
     {
+        var company = CreateCompany(1000);
+        var repository = CreateRepositoryWith(company);
+
         var result = repository.GetAll();
 
-        result.Should().HaveCount(10);
+        result.Should().ContainSingle(item => item.CompanyId == company.CompanyId);
     }
 
     [Fact]
     public void Add_NewCompany_AddsCompanyToRepository()
     {
+        var repository = CreateRepositoryWith();
         var newCompany = CreateCompany(1000);
 
         repository.Add(newCompany);
-        var result = repository.GetById(1000);
+        var result = repository.GetById(newCompany.CompanyId);
 
         result.Should().NotBeNull();
-        result!.CompanyName.Should().Be("Test Company");
+        result!.CompanyName.Should().Be(newCompany.CompanyName);
     }
 
     [Fact]
     public void Add_DuplicateCompanyId_ThrowsInvalidOperationException()
     {
-        var duplicateCompany = CreateCompany(1);
+        var existingCompany = CreateCompany(1000);
+        var repository = CreateRepositoryWith(existingCompany);
+        var duplicateCompany = CreateCompany(existingCompany.CompanyId);
 
         Action act = () => repository.Add(duplicateCompany);
 
@@ -60,13 +70,15 @@ public class CompanyRepositoryTests
     [Fact]
     public void Update_ExistingCompany_UpdatesStoredCompany()
     {
-        var updatedCompany = CreateCompany(1);
+        var existingCompany = CreateCompany(1000);
+        var repository = CreateRepositoryWith(existingCompany);
+        var updatedCompany = CreateCompany(existingCompany.CompanyId);
         updatedCompany.CompanyName = "Updated Company Name";
         updatedCompany.Email = "updated.company@mail.com";
         updatedCompany.Phone = "0319999999";
 
         repository.Update(updatedCompany);
-        var result = repository.GetById(1);
+        var result = repository.GetById(updatedCompany.CompanyId);
 
         result.Should().NotBeNull();
         result!.CompanyName.Should().Be("Updated Company Name");
@@ -77,6 +89,7 @@ public class CompanyRepositoryTests
     [Fact]
     public void Update_MissingCompany_ThrowsKeyNotFoundException()
     {
+        var repository = CreateRepositoryWith();
         var missingCompany = CreateCompany(9999);
 
         Action act = () => repository.Update(missingCompany);
@@ -87,8 +100,11 @@ public class CompanyRepositoryTests
     [Fact]
     public void Remove_ExistingCompany_RemovesCompanyFromRepository()
     {
-        repository.Remove(1);
-        var result = repository.GetById(1);
+        var company = CreateCompany(1000);
+        var repository = CreateRepositoryWith(company);
+
+        repository.Remove(company.CompanyId);
+        var result = repository.GetById(company.CompanyId);
 
         result.Should().BeNull();
     }
@@ -96,9 +112,22 @@ public class CompanyRepositoryTests
     [Fact]
     public void Remove_MissingCompany_ThrowsKeyNotFoundException()
     {
+        var repository = CreateRepositoryWith();
+
         Action act = () => repository.Remove(9999);
 
         act.Should().Throw<KeyNotFoundException>();
+    }
+
+    private static CompanyRepository CreateRepositoryWith(params Company[] companies)
+    {
+        var repository = new CompanyRepository([]);
+        foreach (var company in companies)
+        {
+            repository.Add(company);
+        }
+
+        return repository;
     }
 
     private static Company CreateCompany(int companyId)

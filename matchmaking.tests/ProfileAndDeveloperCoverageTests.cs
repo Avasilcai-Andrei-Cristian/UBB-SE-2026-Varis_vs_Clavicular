@@ -201,6 +201,10 @@ public sealed class ProfileAndDeveloperCoverageTests
         }
 
         public Developer? GetById(int developerId) => developers.FirstOrDefault(item => item.DeveloperId == developerId);
+        public IReadOnlyList<Developer> GetAll() => developers;
+        public void Add(Developer developer) { }
+        public void Update(Developer developer) { }
+        public void Remove(int developerId) { }
     }
 
     private sealed class FakePostRepository : IPostRepository
@@ -213,8 +217,12 @@ public sealed class ProfileAndDeveloperCoverageTests
         }
 
         public List<Post> AddedPosts { get; } = new List<Post>();
+        public Post? GetById(int postId) => posts.FirstOrDefault(item => item.PostId == postId);
         public IReadOnlyList<Post> GetAll() => posts;
+        public IReadOnlyList<Post> GetByDeveloperId(int developerId) => posts.Where(item => item.DeveloperId == developerId).ToList();
         public void Add(Post post) => AddedPosts.Add(post);
+        public void Update(Post post) { }
+        public void Remove(int postId) { }
     }
 
     private sealed class FakeInteractionRepository : IInteractionRepository
@@ -230,7 +238,10 @@ public sealed class ProfileAndDeveloperCoverageTests
         public List<Interaction> UpdatedInteractions { get; } = new List<Interaction>();
         public List<int> RemovedInteractionIds { get; } = new List<int>();
 
+        public Interaction? GetById(int interactionId) => interactions.FirstOrDefault(item => item.InteractionId == interactionId);
         public IReadOnlyList<Interaction> GetAll() => interactions;
+        public IReadOnlyList<Interaction> GetByDeveloperId(int developerId) => interactions.Where(item => item.DeveloperId == developerId).ToList();
+        public IReadOnlyList<Interaction> GetByPostId(int postId) => interactions.Where(item => item.PostId == postId).ToList();
         public Interaction? GetByDeveloperIdAndPostId(int developerId, int postId) => interactions.FirstOrDefault(item => item.DeveloperId == developerId && item.PostId == postId);
         public void Add(Interaction interaction) => AddedInteractions.Add(interaction);
         public void Update(Interaction interaction) => UpdatedInteractions.Add(interaction);

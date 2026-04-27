@@ -28,7 +28,7 @@ public sealed class ChatConverterCoverageTests
     }
 
     [Fact]
-    public void ChatNameConverter_WhenCompanyMode_ReturnsUserName()
+    public void ChatNameConverter_WhenChatHasResolvedOtherPartyName_ReturnsThatName()
     {
         var previousSession = GetAppSession();
         var session = new SessionContext();
@@ -38,7 +38,7 @@ public sealed class ChatConverterCoverageTests
         try
         {
             var converter = new ChatNameConverter();
-            var chat = new Chat { ChatId = 1, UserId = 2 };
+            var chat = new Chat { ChatId = 1, UserId = 2, OtherPartyName = "Bogdan Ionescu" };
 
             var result = converter.Convert(chat, typeof(string), null, string.Empty);
 
@@ -51,7 +51,7 @@ public sealed class ChatConverterCoverageTests
     }
 
     [Fact]
-    public void ChatNameConverter_WhenUserChatHasCompany_ReturnsCompanyName()
+    public void ChatNameConverter_WhenCompanyChatHasResolvedOtherPartyName_ReturnsCompanyName()
     {
         var previousSession = GetAppSession();
         var session = new SessionContext();
@@ -61,7 +61,7 @@ public sealed class ChatConverterCoverageTests
         try
         {
             var converter = new ChatNameConverter();
-            var chat = new Chat { ChatId = 1, UserId = 1, CompanyId = 1 };
+            var chat = new Chat { ChatId = 1, UserId = 1, CompanyId = 1, OtherPartyName = "TechNova" };
 
             var result = converter.Convert(chat, typeof(string), null, string.Empty);
 
@@ -126,7 +126,7 @@ public sealed class ChatConverterCoverageTests
         try
         {
             var converter = new ChatInitialsConverter();
-            var result = converter.Convert(new Chat { UserId = 1, CompanyId = 1 }, typeof(string), null, string.Empty);
+            var result = converter.Convert(new Chat { UserId = 1, CompanyId = 1, OtherPartyName = "TechNova" }, typeof(string), null, string.Empty);
 
             result.Should().Be("T");
         }
@@ -187,7 +187,7 @@ public sealed class ChatConverterCoverageTests
         try
         {
             var converter = new ChatNameConverter();
-            var chat = new Chat { ChatId = 1, UserId = 1, SecondUserId = 2 };
+            var chat = new Chat { ChatId = 1, UserId = 1, SecondUserId = 2, OtherPartyName = "Bogdan Ionescu" };
 
             var result = converter.Convert(chat, typeof(string), null, string.Empty);
 
@@ -282,7 +282,7 @@ public sealed class ChatConverterCoverageTests
         try
         {
             var converter = new ChatInitialsConverter();
-            var result = converter.Convert(new Chat { UserId = 2 }, typeof(string), null, string.Empty);
+            var result = converter.Convert(new Chat { UserId = 2, OtherPartyName = "Bogdan Ionescu" }, typeof(string), null, string.Empty);
 
             result.Should().Be("BI");
         }

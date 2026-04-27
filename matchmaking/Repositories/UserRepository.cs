@@ -7,8 +7,21 @@ namespace matchmaking.Repositories;
 
 public class UserRepository : IUserRepository
 {
-    private readonly List<User> users =
-    [
+    private readonly List<User> users;
+
+    public UserRepository()
+        : this(CreateDefaultUsers())
+    {
+    }
+
+    public UserRepository(IEnumerable<User> initialUsers)
+    {
+        users = initialUsers.ToList();
+    }
+
+    private static IEnumerable<User> CreateDefaultUsers()
+    {
+        return [
         new () { UserId = 1, Name = "Alice Pop", Location = "Cluj-Napoca", PreferredLocation = "Cluj-Napoca", Email = "alice.pop@mail.com", Phone = "0700000001", YearsOfExperience = 2, Education = "BSc Computer Science", Resume = "Frontend developer with React projects", PreferredEmploymentType = "Full-time" },
         new () { UserId = 2, Name = "Bogdan Ionescu", Location = "Bucharest", PreferredLocation = "Bucharest", Email = "bogdan.ionescu@mail.com", Phone = "0700000002", YearsOfExperience = 4, Education = "MSc Software Engineering", Resume = "Backend .NET and SQL developer", PreferredEmploymentType = "Full-time" },
         new () { UserId = 3, Name = "Carmen Radu", Location = "Iasi", PreferredLocation = "Iasi", Email = "carmen.radu@mail.com", Phone = "0700000003", YearsOfExperience = 1, Education = "BSc Informatics", Resume = "Junior QA and automation", PreferredEmploymentType = "Internship" },
@@ -29,15 +42,27 @@ public class UserRepository : IUserRepository
         new () { UserId = 18, Name = "Stefan Marinescu", Location = "Constanta", PreferredLocation = "Constanta", Email = "stefan.marinescu@mail.com", Phone = "0700000018", YearsOfExperience = 3, Education = "BSc Computer Science", Resume = "Full-stack developer with Angular and .NET Core", PreferredEmploymentType = "Hybrid" },
         new () { UserId = 19, Name = "Teodora Voinea", Location = "Craiova", PreferredLocation = "Craiova", Email = "teodora.voinea@mail.com", Phone = "0700000019", YearsOfExperience = 2, Education = "BSc Computer Science", Resume = "Frontend developer with Vue.js and TypeScript", PreferredEmploymentType = "Full-time" },
         new () { UserId = 20, Name = "Vlad Petrescu", Location = "Cluj-Napoca", PreferredLocation = "Cluj-Napoca", Email = "vlad.petrescu@mail.com", Phone = "0700000020", YearsOfExperience = 7, Education = "MSc Cloud Computing", Resume = "Cloud architect with AWS and Azure certifications", PreferredEmploymentType = "Remote" }
-    ];
+        ];
+    }
 
-    public User? GetById(int userId) => users.FirstOrDefault(u => u.UserId == userId);
+    public User? GetById(int userId)
+    {
+        foreach (var user in users)
+        {
+            if (user.UserId == userId)
+            {
+                return user;
+            }
+        }
+
+        return null;
+    }
 
     public IReadOnlyList<User> GetAll() => users.ToList();
 
     public void Add(User user)
     {
-        if (users.Any(u => u.UserId == user.UserId))
+        if (HasUserId(user.UserId))
         {
             throw new InvalidOperationException($"User with id {user.UserId} already exists.");
         }
@@ -63,5 +88,18 @@ public class UserRepository : IUserRepository
     {
         var existing = GetById(userId) ?? throw new KeyNotFoundException($"User with id {userId} was not found.");
         users.Remove(existing);
+    }
+
+    private bool HasUserId(int userId)
+    {
+        foreach (var user in users)
+        {
+            if (user.UserId == userId)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

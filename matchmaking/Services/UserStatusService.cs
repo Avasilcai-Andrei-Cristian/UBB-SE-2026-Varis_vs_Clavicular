@@ -5,7 +5,7 @@ using matchmaking.Repositories;
 
 namespace matchmaking.Services;
 
-public class UserStatusService
+public class UserStatusService : IUserStatusService
 {
     private readonly IUserStatusMatchRepository matchRepository;
     private readonly IJobService jobService;
@@ -35,13 +35,13 @@ public class UserStatusService
 
         foreach (var match in matches)
         {
-            var job = jobService.GetById(match.JobId);
-            if (job is null)
+            var matchedJob = jobService.GetById(match.JobId);
+            if (matchedJob is null)
             {
                 continue;
             }
 
-            var company = companyService.GetById(job.CompanyId);
+            var company = companyService.GetById(matchedJob.CompanyId);
             var jobSkills = jobSkillService.GetByJobId(match.JobId);
             var score = CalculateCompatibilityScore(userSkills, jobSkills);
 
@@ -50,7 +50,7 @@ public class UserStatusService
                 MatchId = match.MatchId,
                 JobId = match.JobId,
                 CompanyName = company?.CompanyName ?? "Unknown Company",
-                JobDescription = job.JobDescription,
+                JobDescription = matchedJob.JobDescription,
                 AppliedDate = match.Timestamp,
                 Status = match.Status,
                 CompatibilityScore = score,

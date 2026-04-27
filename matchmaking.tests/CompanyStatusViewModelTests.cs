@@ -317,12 +317,13 @@ public sealed class CompanyStatusViewModelTests
         session.LoginAsCompany(company.CompanyId);
 
         var jobRepository = new FakeJobRepository(new[] { job });
+        var skill = TestDataFactory.CreateSkill(user.UserId, 1, "C#", 70);
         var viewModel = new CompanyStatusViewModel(
             new CompanyStatusService(
                 new MatchService(new FakeMatchRepository(new[] { match }), new JobService(jobRepository)),
                 new UserService(new FakeUserRepository(new[] { user })),
                 new JobService(jobRepository),
-                new SkillService(new SkillRepository())),
+                new SkillService(new FakeSkillRepository(new[] { skill }))),
             new MatchService(new FakeMatchRepository(new[] { match }), new JobService(jobRepository)),
             adapter,
             session);
@@ -347,12 +348,13 @@ public sealed class CompanyStatusViewModelTests
         session.LoginAsCompany(company.CompanyId);
 
         var throwingJobService = new ThrowingJobService();
+        var skill = TestDataFactory.CreateSkill(user.UserId, 1, "C#", 70);
         var viewModel = new CompanyStatusViewModel(
             new CompanyStatusService(
                 new MatchService(new FakeMatchRepository(new[] { match }), throwingJobService),
-                new UserService(new UserRepository()),
+                new UserService(new FakeUserRepository(new[] { user })),
                 throwingJobService,
-                new SkillService(new SkillRepository())),
+                new SkillService(new FakeSkillRepository(new[] { skill }))),
             new MatchService(new FakeMatchRepository(new[] { match }), throwingJobService),
             new FakeTestingModuleAdapter(),
             session);
@@ -370,13 +372,14 @@ public sealed class CompanyStatusViewModelTests
         session.LoginAsCompany(company.CompanyId);
         var jobRepository = new FakeJobRepository(new[] { job });
         var throwingMatchService = new MatchService(new ThrowingUpdateMatchRepository(new[] { match }), new JobService(jobRepository));
+        var skill = TestDataFactory.CreateSkill(user.UserId, 1, "C#", 70);
 
         var viewModel = new CompanyStatusViewModel(
             new CompanyStatusService(
                 new MatchService(new FakeMatchRepository(new[] { match }), new JobService(jobRepository)),
-                new UserService(new UserRepository()),
+                new UserService(new FakeUserRepository(new[] { user })),
                 new JobService(jobRepository),
-                new SkillService(new SkillRepository())),
+                new SkillService(new FakeSkillRepository(new[] { skill }))),
             throwingMatchService,
             new FakeTestingModuleAdapter(new TestResult { IsValid = true }),
             session);

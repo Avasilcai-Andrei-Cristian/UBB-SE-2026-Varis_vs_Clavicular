@@ -56,17 +56,17 @@ public class SqlChatRepository : SqlRepositoryBase, IChatRepository
 
     public IReadOnlyDictionary<int, DateTime?> GetLatestMessageTimestamps(IEnumerable<int> chatIds)
     {
-        var ids = string.Join(",", chatIds);
-        if (string.IsNullOrEmpty(ids))
+        var chatIdList = string.Join(",", chatIds);
+        if (string.IsNullOrEmpty(chatIdList))
         {
             return new Dictionary<int, DateTime?>();
         }
 
         using var connection = OpenConnection();
         using var command = new SqlCommand(
-            $@"SELECT ChatId, MAX([Timestamp]) 
-           FROM Message 
-           WHERE ChatId IN ({ids}) 
+            $@"SELECT ChatId, MAX([Timestamp])
+           FROM Message
+           WHERE ChatId IN ({chatIdList})
            GROUP BY ChatId",
             connection);
 

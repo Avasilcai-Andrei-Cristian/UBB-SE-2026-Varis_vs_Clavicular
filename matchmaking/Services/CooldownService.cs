@@ -3,7 +3,7 @@ using matchmaking.Repositories;
 
 namespace matchmaking.Services;
 
-public sealed class CooldownService
+public sealed class CooldownService : ICooldownService
 {
     private readonly IRecommendationRepository recommendationRepository;
     private readonly TimeSpan cooldownPeriod;

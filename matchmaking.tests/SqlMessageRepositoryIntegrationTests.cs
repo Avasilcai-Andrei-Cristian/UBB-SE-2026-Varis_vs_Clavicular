@@ -20,12 +20,12 @@ public sealed class SqlMessageRepositoryIntegrationTests
         repository.Add(new Message { Content = "first", SenderId = 100, ChatId = chatId, Type = MessageType.Text, IsRead = false });
         repository.Add(new Message { Content = "second", SenderId = 20, ChatId = chatId, Type = MessageType.Image, IsRead = false });
 
-        var all = repository.GetByChatId(chatId);
-        all.Should().HaveCount(2);
-        all[0].Content.Should().Be("first");
-        all[1].Type.Should().Be(MessageType.Image);
+        var allMessages = repository.GetByChatId(chatId);
+        allMessages.Should().HaveCount(2);
+        allMessages[0].Content.Should().Be("first");
+        allMessages[1].Type.Should().Be(MessageType.Image);
 
-        repository.GetByChatId(chatId, all[1].Timestamp.AddSeconds(1)).Should().BeEmpty();
+        repository.GetByChatId(chatId, allMessages[1].Timestamp.AddSeconds(1)).Should().BeEmpty();
     }
 
     [Fact]
@@ -38,9 +38,9 @@ public sealed class SqlMessageRepositoryIntegrationTests
 
         repository.MarkAsRead(chatId, 7);
 
-        var all = repository.GetByChatId(chatId);
-        all.Single(item => item.SenderId == 7).IsRead.Should().BeFalse();
-        all.Single(item => item.SenderId == 8).IsRead.Should().BeTrue();
+        var allMessages = repository.GetByChatId(chatId);
+        allMessages.Single(item => item.SenderId == 7).IsRead.Should().BeFalse();
+        allMessages.Single(item => item.SenderId == 8).IsRead.Should().BeTrue();
     }
 
     private int InsertChat(int userId, int? companyId = null, int? secondUserId = null, int? jobId = null)

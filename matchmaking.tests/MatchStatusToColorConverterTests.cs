@@ -17,38 +17,6 @@ public class MatchStatusToColorConverterTests
     }
 
     [Fact]
-    public void Convert_WithNonMatchStatusValue_ReturnsAppliedColor()
-    {
-        var result = MatchStatusToColorConverter.GetColor(MatchStatus.Applied);
-
-        result.Should().NotBe(default);
-    }
-
-    [Fact]
-    public void Convert_WithNullValue_ReturnsAppliedColor()
-    {
-        var result = MatchStatusToColorConverter.GetColor(MatchStatus.Applied);
-
-        result.Should().NotBe(default);
-    }
-
-    [Fact]
-    public void Convert_WithAcceptedStatus_ReturnsSolidColorBrush()
-    {
-        var result = MatchStatusToColorConverter.GetColor(MatchStatus.Accepted);
-
-        result.Should().NotBe(default);
-    }
-
-    [Fact]
-    public void Convert_WithRejectedStatus_ReturnsSolidColorBrush()
-    {
-        var result = MatchStatusToColorConverter.GetColor(MatchStatus.Rejected);
-
-        result.Should().NotBe(default);
-    }
-
-    [Fact]
     public void Convert_AcceptedAndRejected_ReturnDifferentColors()
     {
         var acceptedBrush = MatchStatusToColorConverter.GetColor(MatchStatus.Accepted);

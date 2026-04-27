@@ -8,6 +8,13 @@ namespace matchmaking.Views.Converters;
 
 public sealed class MatchStatusDisplayConverter : IValueConverter
 {
+    private static readonly Color AcceptedBackgroundColor = Color.FromArgb(0xFF, 0xDC, 0xFC, 0xE7);
+    private static readonly Color RejectedBackgroundColor = Color.FromArgb(0xFF, 0xFE, 0xE2, 0xE2);
+    private static readonly Color DefaultBackgroundColor = Color.FromArgb(0xFF, 0xFE, 0xF3, 0xC7);
+    private static readonly Color AcceptedForegroundColor = Color.FromArgb(0xFF, 0x16, 0x65, 0x34);
+    private static readonly Color RejectedForegroundColor = Color.FromArgb(0xFF, 0x99, 0x1B, 0x1B);
+    private static readonly Color DefaultForegroundColor = Color.FromArgb(0xFF, 0x92, 0x40, 0x0E);
+
     public static string GetLabel(MatchStatus status)
     {
         return status switch
@@ -23,9 +30,9 @@ public sealed class MatchStatusDisplayConverter : IValueConverter
     {
         return status switch
         {
-            MatchStatus.Accepted => Color.FromArgb(0xFF, 0xDC, 0xFC, 0xE7),
-            MatchStatus.Rejected => Color.FromArgb(0xFF, 0xFE, 0xE2, 0xE2),
-            _ => Color.FromArgb(0xFF, 0xFE, 0xF3, 0xC7)
+            MatchStatus.Accepted => AcceptedBackgroundColor,
+            MatchStatus.Rejected => RejectedBackgroundColor,
+            _ => DefaultBackgroundColor
         };
     }
 
@@ -33,9 +40,9 @@ public sealed class MatchStatusDisplayConverter : IValueConverter
     {
         return status switch
         {
-            MatchStatus.Accepted => Color.FromArgb(0xFF, 0x16, 0x65, 0x34),
-            MatchStatus.Rejected => Color.FromArgb(0xFF, 0x99, 0x1B, 0x1B),
-            _ => Color.FromArgb(0xFF, 0x92, 0x40, 0x0E)
+            MatchStatus.Accepted => AcceptedForegroundColor,
+            MatchStatus.Rejected => RejectedForegroundColor,
+            _ => DefaultForegroundColor
         };
     }
 

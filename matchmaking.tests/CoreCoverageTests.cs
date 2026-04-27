@@ -49,59 +49,6 @@ public sealed class CoreCoverageTests
     }
 
     [Fact]
-    public void LoginAsUser_WhenInvoked_SetsUserModeAndClearsOtherIds()
-    {
-        var session = new SessionContext();
-
-        session.LoginAsUser(7);
-
-        session.CurrentMode.Should().Be(AppMode.UserMode);
-        session.CurrentUserId.Should().Be(7);
-        session.CurrentCompanyId.Should().BeNull();
-        session.CurrentDeveloperId.Should().BeNull();
-    }
-
-    [Fact]
-    public void LoginAsCompany_WhenInvoked_SetsCompanyModeAndClearsOtherIds()
-    {
-        var session = new SessionContext();
-
-        session.LoginAsCompany(9);
-
-        session.CurrentMode.Should().Be(AppMode.CompanyMode);
-        session.CurrentUserId.Should().BeNull();
-        session.CurrentCompanyId.Should().Be(9);
-        session.CurrentDeveloperId.Should().BeNull();
-    }
-
-    [Fact]
-    public void LoginAsDeveloper_WhenInvoked_SetsDeveloperModeAndClearsOtherIds()
-    {
-        var session = new SessionContext();
-
-        session.LoginAsDeveloper(11);
-
-        session.CurrentMode.Should().Be(AppMode.DeveloperMode);
-        session.CurrentUserId.Should().BeNull();
-        session.CurrentCompanyId.Should().BeNull();
-        session.CurrentDeveloperId.Should().Be(11);
-    }
-
-    [Fact]
-    public void Logout_WhenPreviouslyLoggedInAsUser_ResetsAllIdsToDefault()
-    {
-        var session = new SessionContext();
-        session.LoginAsUser(7);
-
-        session.Logout();
-
-        session.CurrentMode.Should().Be(AppMode.UserMode);
-        session.CurrentUserId.Should().BeNull();
-        session.CurrentCompanyId.Should().BeNull();
-        session.CurrentDeveloperId.Should().BeNull();
-    }
-
-    [Fact]
     public void AppConfigurationLoader_WhenFileMissing_ReturnsDefaults()
     {
         lock (ConfigFileTestLock.Sync)

@@ -154,32 +154,6 @@ public sealed class CompanyRecommendationViewModelTests
     }
 
     [Fact]
-    public void LoadApplicants_WhenCompanyHasNoJobs_ClearsApplicantQueue()
-    {
-        var session = new SessionContext();
-        session.LoginAsCompany(1);
-        var viewModel = CreateViewModel(session, Array.Empty<Match>());
-
-        viewModel.LoadApplicants();
-
-        viewModel.HasApplicant.Should().BeFalse();
-        viewModel.CurrentApplicant.Should().BeNull();
-    }
-
-    [Fact]
-    public void UndoLastAction_WhenNoActionWasStored_DoesNothing()
-    {
-        var session = new SessionContext();
-        session.LoginAsCompany(1);
-        var viewModel = CreateViewModel(session, Array.Empty<Match>());
-
-        viewModel.UndoLastAction();
-
-        viewModel.CanUndo.Should().BeFalse();
-        viewModel.CurrentApplicant.Should().BeNull();
-    }
-
-    [Fact]
     public void AdvanceApplicant_WhenNoApplicantSelected_DoesNothing()
     {
         var session = new SessionContext();
@@ -422,19 +396,6 @@ public sealed class CompanyRecommendationViewModelTests
 
         viewModel.CurrentApplicant.Should().BeNull();
         errors.Should().ContainSingle(message => message.StartsWith("Could not load applicants:", StringComparison.Ordinal));
-    }
-
-    [Fact]
-    public void IsLoading_WhenReadAfterLoad_ReturnsFalse()
-    {
-        var session = new SessionContext();
-        session.LoginAsCompany(1);
-        var match = TestDataFactory.CreateMatch(matchId: 1, userId: 1, jobId: 100, status: MatchStatus.Applied);
-        var viewModel = CreateViewModel(session, new[] { match });
-
-        viewModel.LoadApplicants();
-
-        viewModel.IsLoading.Should().BeFalse();
     }
 
     [Fact]

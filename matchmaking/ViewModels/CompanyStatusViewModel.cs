@@ -1,6 +1,5 @@
 using System;
 using System.Collections.ObjectModel;
-using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using matchmaking.Domain.Entities;
@@ -15,8 +14,8 @@ public class CompanyStatusViewModel : ObservableObject
 {
     private const int MaximumFeedbackLength = 500;
 
-    private readonly CompanyStatusService _companyStatusService;
-    private readonly MatchService _matchService;
+    private readonly ICompanyStatusService _companyStatusService;
+    private readonly IMatchService _matchService;
     private readonly ITestingModuleAdapter _testingModuleAdapter;
     private readonly SessionContext _session;
 
@@ -36,8 +35,8 @@ public class CompanyStatusViewModel : ObservableObject
     public event Action<string>? ErrorOccurred;
 
     public CompanyStatusViewModel(
-        CompanyStatusService companyStatusService,
-        MatchService matchService,
+        ICompanyStatusService companyStatusService,
+        IMatchService matchService,
         ITestingModuleAdapter testingModuleAdapter,
         SessionContext session)
     {
@@ -46,7 +45,7 @@ public class CompanyStatusViewModel : ObservableObject
         _testingModuleAdapter = testingModuleAdapter;
         _session = session;
 
-        _refreshCommand = new RelayCommand(async () => await RefreshAsync(), () => !IsLoading);
+        _refreshCommand = new RelayCommand(ExecuteRefreshCommand, CanExecuteRefreshCommand);
     }
 
     public ObservableCollection<UserApplicationResult> Applications { get; } = new ObservableCollection<UserApplicationResult>();
@@ -226,11 +225,11 @@ public class CompanyStatusViewModel : ObservableObject
                 PageMessage = $"{Applications.Count} applicant(s) are Accepted, Rejected, or In Review.";
             }
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
             Applications.Clear();
             CancelEvaluation();
-            ReportError($"Could not load applicants: {ex.Message}");
+            ReportError($"Could not load applicants: {exception.Message}");
         }
         finally
         {
@@ -280,9 +279,9 @@ public class CompanyStatusViewModel : ObservableObject
             RaiseCommandStates();
             return true;
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
-            ReportError($"Could not load applicant details: {ex.Message}");
+            ReportError($"Could not load applicant details: {exception.Message}");
             return false;
         }
     }
@@ -458,5 +457,15 @@ public class CompanyStatusViewModel : ObservableObject
         }
 
         return phone[..2] + new string('*', phone.Length - 5) + phone[^3..];
+    }
+
+    private bool CanExecuteRefreshCommand()
+    {
+        return !IsLoading;
+    }
+
+    private void ExecuteRefreshCommand()
+    {
+        _ = RefreshAsync();
     }
 }

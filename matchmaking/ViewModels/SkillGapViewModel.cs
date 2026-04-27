@@ -11,7 +11,7 @@ namespace matchmaking.ViewModels;
 
 public class SkillGapViewModel : ObservableObject
 {
-    private readonly SkillGapService skillGapService;
+    private readonly ISkillGapService skillGapService;
 
     private bool isLoading;
     private bool showContent;
@@ -50,10 +50,10 @@ public class SkillGapViewModel : ObservableObject
         RefreshCommand = new RelayCommand(Refresh);
 
         SkillsToImprove.CollectionChanged += OnCollectionChanged;
-        MissingSkills.CollectionChanged   += OnCollectionChanged;
+        MissingSkills.CollectionChanged += OnCollectionChanged;
     }
 
-    public SkillGapViewModel(SkillGapService skillGapService, SessionContext sessionContext)
+    public SkillGapViewModel(ISkillGapService skillGapService, SessionContext sessionContext)
     {
         this.skillGapService = skillGapService;
 
@@ -73,9 +73,9 @@ public class SkillGapViewModel : ObservableObject
         try
         {
             var userId = App.Session.CurrentUserId ?? 1;
-            var summary = await Task.Run(() => skillGapService.GetSummary(userId));
-            var missing = await Task.Run(() => skillGapService.GetMissingSkills(userId));
-            var underscored = await Task.Run(() => skillGapService.GetUnderscoredSkills(userId));
+            var summary = await Task.Run(GetSummaryForCurrentUser);
+            var missing = await Task.Run(GetMissingSkillsForCurrentUser);
+            var underscored = await Task.Run(GetUnderscoredSkillsForCurrentUser);
 
             SkillsToImprove.Clear();
             MissingSkills.Clear();
@@ -137,5 +137,23 @@ public class SkillGapViewModel : ObservableObject
     {
         OnPropertyChanged(nameof(HasSkillsToImprove));
         OnPropertyChanged(nameof(HasMissingSkills));
+    }
+
+    private SkillGapSummaryModel GetSummaryForCurrentUser()
+    {
+        var userId = App.Session.CurrentUserId ?? 1;
+        return skillGapService.GetSummary(userId);
+    }
+
+    private System.Collections.Generic.IReadOnlyList<MissingSkillModel> GetMissingSkillsForCurrentUser()
+    {
+        var userId = App.Session.CurrentUserId ?? 1;
+        return skillGapService.GetMissingSkills(userId);
+    }
+
+    private System.Collections.Generic.IReadOnlyList<UnderscoredSkillModel> GetUnderscoredSkillsForCurrentUser()
+    {
+        var userId = App.Session.CurrentUserId ?? 1;
+        return skillGapService.GetUnderscoredSkills(userId);
     }
 }

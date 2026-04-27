@@ -8,17 +8,17 @@ using matchmaking.Repositories;
 
 namespace matchmaking.Services;
 
-public sealed class UserRecommendationService
+public sealed class UserRecommendationService : IUserRecommendationService
 {
     private readonly IUserRepository userRepository;
     private readonly IJobRepository jobRepository;
     private readonly ISkillRepository skillRepository;
     private readonly IJobSkillRepository jobSkillRepository;
     private readonly ICompanyRepository companyRepository;
-    private readonly MatchService matchService;
+    private readonly IMatchService matchService;
     private readonly IRecommendationRepository recommendationRepository;
-    private readonly CooldownService cooldownService;
-    private readonly RecommendationAlgorithm algorithm;
+    private readonly ICooldownService cooldownService;
+    private readonly IRecommendationAlgorithm algorithm;
 
     public UserRecommendationService(
         IUserRepository userRepository,
@@ -26,10 +26,10 @@ public sealed class UserRecommendationService
         ISkillRepository skillRepository,
         IJobSkillRepository jobSkillRepository,
         ICompanyRepository companyRepository,
-        MatchService matchService,
+        IMatchService matchService,
         IRecommendationRepository recommendationRepository,
-        CooldownService cooldownService,
-        RecommendationAlgorithm algorithm)
+        ICooldownService cooldownService,
+        IRecommendationAlgorithm algorithm)
     {
         this.userRepository = userRepository;
         this.jobRepository = jobRepository;
@@ -50,8 +50,8 @@ public sealed class UserRecommendationService
             return null;
         }
 
-        var (job, score) = ranked[0];
-        return BuildCardWithShownRecord(userId, job, score);
+        var (topRankedJob, score) = ranked[0];
+        return BuildCardWithShownRecord(userId, topRankedJob, score);
     }
 
     public JobRecommendationResult? RecalculateTopCardIgnoringCooldown(int userId, UserMatchmakingFilters filters)
@@ -71,36 +71,39 @@ public sealed class UserRecommendationService
         var user = userRepository.GetById(userId)
             ?? throw new InvalidOperationException("User not found.");
 
-        var jobs = jobRepository.GetAll().Where(j => PassesFilters(j, filters, user)).ToList();
+        var jobs = GetFilteredJobs(filters, user);
         var userSkills = skillRepository.GetByUserId(userId).ToList();
 
         var ranked = new List<(Job Job, double Score)>();
-        foreach (var job in jobs)
+        foreach (var currentJob in jobs)
         {
-            if (matchService.GetByUserIdAndJobId(userId, job.JobId) is not null)
+            if (matchService.GetByUserIdAndJobId(userId, currentJob.JobId) is not null)
             {
                 continue;
             }
 
-            var score = ComputeCompatibilityScore(user, job, userSkills, userId);
-            ranked.Add((job, score));
+            var score = ComputeCompatibilityScore(user, currentJob, userSkills, userId);
+            ranked.Add((currentJob, score));
         }
 
-        return ranked.OrderByDescending(x => x.Score).ToList();
+        ranked.Sort(CompareRankedJobsByScoreDescending);
+        return ranked;
     }
 
     private double ComputeCompatibilityScore(User user, Job job, List<Skill> userSkills, int userId)
     {
         var skillsForRanking = jobSkillRepository.GetByJobId(job.JobId);
-        var jobSkillsAsUserSkills = skillsForRanking
-            .Select(js => new Skill
+        var jobSkillsAsUserSkills = new List<Skill>();
+        foreach (var jobSkill in skillsForRanking)
+        {
+            jobSkillsAsUserSkills.Add(new Skill
             {
                 UserId = userId,
-                SkillId = js.SkillId,
-                SkillName = js.SkillName,
-                Score = js.Score
-            })
-            .ToList();
+                SkillId = jobSkill.SkillId,
+                SkillName = jobSkill.SkillName,
+                Score = jobSkill.Score
+            });
+        }
 
         return algorithm.CalculateCompatibilityScore(user, job, userSkills, jobSkillsAsUserSkills);
     }
@@ -110,39 +113,40 @@ public sealed class UserRecommendationService
         var user = userRepository.GetById(userId)
             ?? throw new InvalidOperationException("User not found.");
 
-        var jobs = jobRepository.GetAll().Where(j => PassesFilters(j, filters, user)).ToList();
+        var jobs = GetFilteredJobs(filters, user);
         var userSkills = skillRepository.GetByUserId(userId).ToList();
 
         var ranked = new List<(Job Job, double Score)>();
-        foreach (var job in jobs)
+        foreach (var currentJob in jobs)
         {
-            if (matchService.GetByUserIdAndJobId(userId, job.JobId) is not null)
+            if (matchService.GetByUserIdAndJobId(userId, currentJob.JobId) is not null)
             {
                 continue;
             }
 
-            if (cooldownService.IsOnCooldown(userId, job.JobId, DateTime.UtcNow))
+            if (cooldownService.IsOnCooldown(userId, currentJob.JobId, DateTime.UtcNow))
             {
                 continue;
             }
 
-            var score = ComputeCompatibilityScore(user, job, userSkills, userId);
-            ranked.Add((job, score));
+            var score = ComputeCompatibilityScore(user, currentJob, userSkills, userId);
+            ranked.Add((currentJob, score));
         }
 
-        return ranked.OrderByDescending(x => x.Score).ToList();
+        ranked.Sort(CompareRankedJobsByScoreDescending);
+        return ranked;
     }
 
     private JobRecommendationResult BuildCardWithShownRecord(int userId, Job job, double score)
     {
-        var displayRec = new Recommendation
+        var displayRecommendation = new Recommendation
         {
             UserId = userId,
             JobId = job.JobId,
             Timestamp = DateTime.UtcNow
         };
 
-        var displayId = recommendationRepository.InsertReturningId(displayRec);
+        var displayId = recommendationRepository.InsertReturningId(displayRecommendation);
         return CreateCard(job, score, displayId);
     }
 
@@ -153,9 +157,11 @@ public sealed class UserRecommendationService
 
         var jobSkillRows = jobSkillRepository.GetByJobId(job.JobId).ToList();
         var topSkills = JobRecommendationResult.TakeTopSkills(jobSkillRows);
-        var allSkillLabels = jobSkillRows
-            .Select(js => $"{js.SkillName} (min {js.Score})")
-            .ToList();
+        var allSkillLabels = new List<string>();
+        foreach (var jobSkill in jobSkillRows)
+        {
+            allSkillLabels.Add($"{jobSkill.SkillName} (min {jobSkill.Score})");
+        }
 
         return new JobRecommendationResult
         {
@@ -170,42 +176,42 @@ public sealed class UserRecommendationService
 
     public int ApplyLike(int userId, JobRecommendationResult card)
     {
-        var job = card.Job;
-        if (matchService.GetByUserIdAndJobId(userId, job.JobId) is not null)
+        var targetJob = card.Job;
+        if (matchService.GetByUserIdAndJobId(userId, targetJob.JobId) is not null)
         {
             throw new InvalidOperationException("Already applied to this job.");
         }
 
-        return matchService.CreatePendingApplication(userId, job.JobId);
+        return matchService.CreatePendingApplication(userId, targetJob.JobId);
     }
 
     public int ApplyDismiss(int userId, JobRecommendationResult card)
     {
-        var rec = new Recommendation
+        var dismissedRecommendation = new Recommendation
         {
             UserId = userId,
             JobId = card.Job.JobId,
             Timestamp = DateTime.UtcNow
         };
 
-        return recommendationRepository.InsertReturningId(rec);
+        return recommendationRepository.InsertReturningId(dismissedRecommendation);
     }
 
     public void UndoLike(int matchId, int? displayRecommendationId)
     {
         matchService.RemoveApplication(matchId);
-        if (displayRecommendationId is { } rid)
+        if (displayRecommendationId is { } resolvedDisplayRecommendationId)
         {
-            recommendationRepository.Remove(rid);
+            recommendationRepository.Remove(resolvedDisplayRecommendationId);
         }
     }
 
     public void UndoDismiss(int dismissRecommendationId, int? displayRecommendationId)
     {
         recommendationRepository.Remove(dismissRecommendationId);
-        if (displayRecommendationId is { } did && did != dismissRecommendationId)
+        if (displayRecommendationId is { } resolvedDisplayRecommendationId && resolvedDisplayRecommendationId != dismissRecommendationId)
         {
-            recommendationRepository.Remove(did);
+            recommendationRepository.Remove(resolvedDisplayRecommendationId);
         }
     }
 
@@ -238,8 +244,8 @@ public sealed class UserRecommendationService
 
         if (filters.SkillIds.Count > 0)
         {
-            var jobSkillIds = jobSkillRepository.GetByJobId(job.JobId).Select(js => js.SkillId).ToHashSet();
-            if (!filters.SkillIds.Any(id => jobSkillIds.Contains(id)))
+            var jobSkillIds = GetJobSkillIdSet(job.JobId);
+            if (!HasAnySkillIntersection(filters.SkillIds, jobSkillIds))
             {
                 return false;
             }
@@ -258,5 +264,48 @@ public sealed class UserRecommendationService
             < 10 => "Director",
             _ => "Executive"
         };
+    }
+
+    private List<Job> GetFilteredJobs(UserMatchmakingFilters filters, User user)
+    {
+        var filteredJobs = new List<Job>();
+        foreach (var job in jobRepository.GetAll())
+        {
+            if (PassesFilters(job, filters, user))
+            {
+                filteredJobs.Add(job);
+            }
+        }
+
+        return filteredJobs;
+    }
+
+    private HashSet<int> GetJobSkillIdSet(int jobId)
+    {
+        var skillIds = new HashSet<int>();
+        foreach (var jobSkill in jobSkillRepository.GetByJobId(jobId))
+        {
+            skillIds.Add(jobSkill.SkillId);
+        }
+
+        return skillIds;
+    }
+
+    private static bool HasAnySkillIntersection(IReadOnlyCollection<int> filterSkillIds, HashSet<int> jobSkillIds)
+    {
+        foreach (var filterSkillId in filterSkillIds)
+        {
+            if (jobSkillIds.Contains(filterSkillId))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static int CompareRankedJobsByScoreDescending((Job Job, double Score) left, (Job Job, double Score) right)
+    {
+        return right.Score.CompareTo(left.Score);
     }
 }

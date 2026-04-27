@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using matchmaking;
@@ -15,7 +14,7 @@ namespace matchmaking.ViewModels;
 
 public sealed class UserRecommendationViewModel : ObservableObject
 {
-    private readonly UserRecommendationService _service;
+    private readonly IUserRecommendationService _service;
     private readonly SessionContext _session;
 
     public event Action<string>? ErrorOccurred;
@@ -42,7 +41,7 @@ public sealed class UserRecommendationViewModel : ObservableObject
     private readonly UserMatchmakingFilters _appliedFilters = UserMatchmakingFilters.Empty();
     private string _draftLocation = string.Empty;
 
-    public UserRecommendationViewModel(UserRecommendationService service, SessionContext session)
+    public UserRecommendationViewModel(IUserRecommendationService service, SessionContext session)
     {
         _service = service;
         _session = session;
@@ -62,14 +61,14 @@ public sealed class UserRecommendationViewModel : ObservableObject
             DraftSkillSelections.Add(new SkillFilterItem(skillId, name));
         }
 
-        _refreshCommand = new RelayCommand(LoadRecommendations, () => !IsLoading);
-        _likeCommand = new RelayCommand(async () => await LikeAsync(), () => CanAct());
-        _dismissCommand = new RelayCommand(async () => await DismissAsync(), () => CanAct());
-        _undoCommand = new RelayCommand(async () => await UndoAsync(), () => CanUndo && !IsLoading);
-        _openFiltersCommand = new RelayCommand(() => IsFilterOpen = true);
-        _applyFiltersCommand = new RelayCommand(async () => await ApplyFiltersAsync());
+        _refreshCommand = new RelayCommand(LoadRecommendations, CanRefresh);
+        _likeCommand = new RelayCommand(ExecuteLikeCommand, CanAct);
+        _dismissCommand = new RelayCommand(ExecuteDismissCommand, CanAct);
+        _undoCommand = new RelayCommand(ExecuteUndoCommand, CanUndoAction);
+        _openFiltersCommand = new RelayCommand(OpenFilters);
+        _applyFiltersCommand = new RelayCommand(ExecuteApplyFiltersCommand);
         _resetFiltersCommand = new RelayCommand(ResetDraftFilters);
-        _openDetailCommand = new RelayCommand(ExpandCard, () => CurrentJob is not null);
+        _openDetailCommand = new RelayCommand(ExpandCard, CanOpenDetail);
         _closeDetailCommand = new RelayCommand(CollapseCard);
     }
 
@@ -230,9 +229,9 @@ public sealed class UserRecommendationViewModel : ObservableObject
                 ErrorMessage = string.Empty;
             }
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
-            ReportError(ex.Message);
+            ReportError(exception.Message);
         }
         finally
         {
@@ -273,9 +272,9 @@ public sealed class UserRecommendationViewModel : ObservableObject
                 ErrorMessage = string.Empty;
             }
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
-            ReportError(ex.Message);
+            ReportError(exception.Message);
         }
         finally
         {
@@ -318,9 +317,9 @@ public sealed class UserRecommendationViewModel : ObservableObject
             IsDetailOpen = false;
             await AdvanceAfterActionAsync(userId);
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
-            ReportError(ex.Message);
+            ReportError(exception.Message);
         }
         finally
         {
@@ -348,7 +347,7 @@ public sealed class UserRecommendationViewModel : ObservableObject
                 return;
             }
 
-            var recId = _service.ApplyDismiss(userId, job);
+            var dismissedRecommendationId = _service.ApplyDismiss(userId, job);
             if (!_undoConsumedThisSession)
             {
                 _undoSnapshot = new UndoSnapshot
@@ -356,16 +355,16 @@ public sealed class UserRecommendationViewModel : ObservableObject
                     Card = job,
                     WasApply = false,
                     MatchId = null,
-                    RecommendationId = recId
+                    RecommendationId = dismissedRecommendationId
                 };
                 CanUndo = true;
             }
             IsDetailOpen = false;
             await AdvanceAfterActionAsync(userId);
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
-            ReportError(ex.Message);
+            ReportError(exception.Message);
         }
         finally
         {
@@ -382,8 +381,8 @@ public sealed class UserRecommendationViewModel : ObservableObject
 
     public async Task UndoAsync()
     {
-        var snap = _undoSnapshot;
-        if (snap is null || !CanUndo)
+        var currentUndoSnapshot = _undoSnapshot;
+        if (currentUndoSnapshot is null || !CanUndo)
         {
             return;
         }
@@ -393,23 +392,23 @@ public sealed class UserRecommendationViewModel : ObservableObject
         try
         {
             await Task.Yield();
-            if (snap.WasApply && snap.MatchId is { } mid)
+            if (currentUndoSnapshot.WasApply && currentUndoSnapshot.MatchId is { } matchId)
             {
-                _service.UndoLike(mid, snap.Card.DisplayRecommendationId);
+                _service.UndoLike(matchId, currentUndoSnapshot.Card.DisplayRecommendationId);
             }
-            else if (!snap.WasApply && snap.RecommendationId is { } rid)
+            else if (!currentUndoSnapshot.WasApply && currentUndoSnapshot.RecommendationId is { } recommendationId)
             {
-                _service.UndoDismiss(rid, snap.Card.DisplayRecommendationId);
+                _service.UndoDismiss(recommendationId, currentUndoSnapshot.Card.DisplayRecommendationId);
             }
 
-            CurrentJob = snap.Card;
+            CurrentJob = currentUndoSnapshot.Card;
             _undoSnapshot = null;
             _undoConsumedThisSession = true;
             CanUndo = false;
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
-            ReportError(ex.Message);
+            ReportError(exception.Message);
         }
         finally
         {
@@ -420,22 +419,31 @@ public sealed class UserRecommendationViewModel : ObservableObject
     public async Task ApplyFiltersAsync()
     {
         _appliedFilters.EmploymentTypes.Clear();
-        foreach (var item in DraftEmploymentSelections.Where(i => i.IsChecked))
+        foreach (var item in DraftEmploymentSelections)
         {
-            _appliedFilters.EmploymentTypes.Add(item.Label);
+            if (item.IsChecked)
+            {
+                _appliedFilters.EmploymentTypes.Add(item.Label);
+            }
         }
 
         _appliedFilters.ExperienceLevels.Clear();
-        foreach (var item in DraftExperienceSelections.Where(i => i.IsChecked))
+        foreach (var item in DraftExperienceSelections)
         {
-            _appliedFilters.ExperienceLevels.Add(item.Label);
+            if (item.IsChecked)
+            {
+                _appliedFilters.ExperienceLevels.Add(item.Label);
+            }
         }
 
         _appliedFilters.LocationSubstring = DraftLocation.Trim();
         _appliedFilters.SkillIds.Clear();
-        foreach (var s in DraftSkillSelections.Where(s => s.IsChecked))
+        foreach (var skill in DraftSkillSelections)
         {
-            _appliedFilters.SkillIds.Add(s.SkillId);
+            if (skill.IsChecked)
+            {
+                _appliedFilters.SkillIds.Add(skill.SkillId);
+            }
         }
 
         IsFilterOpen = false;
@@ -485,4 +493,43 @@ public sealed class UserRecommendationViewModel : ObservableObject
         public int? RecommendationId { get; init; }
     }
 
+    private bool CanRefresh()
+    {
+        return !IsLoading;
+    }
+
+    private bool CanUndoAction()
+    {
+        return CanUndo && !IsLoading;
+    }
+
+    private bool CanOpenDetail()
+    {
+        return CurrentJob is not null;
+    }
+
+    private void OpenFilters()
+    {
+        IsFilterOpen = true;
+    }
+
+    private void ExecuteLikeCommand()
+    {
+        _ = LikeAsync();
+    }
+
+    private void ExecuteDismissCommand()
+    {
+        _ = DismissAsync();
+    }
+
+    private void ExecuteUndoCommand()
+    {
+        _ = UndoAsync();
+    }
+
+    private void ExecuteApplyFiltersCommand()
+    {
+        _ = ApplyFiltersAsync();
+    }
 }

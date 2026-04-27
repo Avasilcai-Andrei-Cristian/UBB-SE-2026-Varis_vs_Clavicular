@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
 using matchmaking.Domain.Entities;
 using matchmaking.Domain.Session;
@@ -37,9 +36,9 @@ public class ChatViewModel : ObservableObject
     private readonly IChatService _chatService;
     private readonly IJobService _jobService;
     private readonly SessionContext _sessionContext;
-    private readonly UserRepository _userRepository;
-    private readonly CompanyRepository _companyRepository;
-    private readonly NavigationService _navigationService;
+    private readonly IUserRepository _userRepository;
+    private readonly ICompanyRepository _companyRepository;
+    private readonly INavigationService _navigationService;
 
     public bool HasPendingAttachments => false;
     public ObservableCollection<object> PendingAttachments { get; } = new();
@@ -48,9 +47,9 @@ public class ChatViewModel : ObservableObject
         IChatService chatService,
         IJobService jobService,
         SessionContext sessionContext,
-        UserRepository userRepository,
-        CompanyRepository companyRepository,
-        NavigationService navigationService)
+        IUserRepository userRepository,
+        ICompanyRepository companyRepository,
+        INavigationService navigationService)
     {
         _chatService = chatService;
         _jobService = jobService;
@@ -120,7 +119,9 @@ public class ChatViewModel : ObservableObject
             }
 
             if (!SetProperty(ref _isUsersTabActive, value))
+            {
                 return;
+            }
 
             if (value && _sessionContext.CurrentMode == AppMode.UserMode && ActiveTab != "Users")
             {
@@ -147,7 +148,9 @@ public class ChatViewModel : ObservableObject
             }
 
             if (!SetProperty(ref _isCompaniesTabActive, value))
+            {
                 return;
+            }
 
             if (value && _sessionContext.CurrentMode == AppMode.UserMode && ActiveTab != "Company")
             {
@@ -248,7 +251,7 @@ public class ChatViewModel : ObservableObject
         Chats.Clear();
         foreach (var chat in chats)
         {
-            PopulateChatPreview(chat);
+            PopulateChatDisplayData(chat);
             Chats.Add(chat);
         }
 
@@ -261,14 +264,16 @@ public class ChatViewModel : ObservableObject
     public void ApplyTabFilter()
     {
         if (_sessionContext.CurrentMode != AppMode.UserMode)
+        {
             return;
+        }
 
         var selectedChatId = SelectedChat?.ChatId;
 
         FilteredChats.Clear();
         var filtered = ActiveTab == "Users"
-            ? Chats.Where(c => c.SecondUserId.HasValue).ToList()
-            : Chats.Where(c => c.CompanyId.HasValue).ToList();
+            ? GetChatsWithSecondUser(Chats)
+            : GetChatsWithCompany(Chats);
 
         foreach (var chat in filtered)
         {
@@ -277,7 +282,7 @@ public class ChatViewModel : ObservableObject
 
         if (selectedChatId.HasValue)
         {
-            var restoredSelection = FilteredChats.FirstOrDefault(c => c.ChatId == selectedChatId.Value);
+            var restoredSelection = FindChatById(FilteredChats, selectedChatId.Value);
             if (restoredSelection is not null)
             {
                 SelectedChat = restoredSelection;
@@ -295,20 +300,23 @@ public class ChatViewModel : ObservableObject
 
     public void SelectChat(Chat chat)
     {
+        PopulateChatDisplayName(chat);
         SelectedChat = chat;
 
         if (!TryGetCurrentCallerId(out var currentCallerId))
+        {
             return;
+        }
 
         var messages = _chatService.GetMessages(SelectedChat.ChatId, currentCallerId);
 
         _chatService.MarkMessageAsRead(SelectedChat.ChatId, currentCallerId);
 
-        for (var i = 0; i < messages.Count; i++)
+        for (var messageIndex = 0; messageIndex < messages.Count; messageIndex++)
         {
-            if (messages[i].SenderId != currentCallerId)
+            if (messages[messageIndex].SenderId != currentCallerId)
             {
-                messages[i].IsRead = true;
+                messages[messageIndex].IsRead = true;
             }
         }
 
@@ -339,13 +347,19 @@ public class ChatViewModel : ObservableObject
         ErrorMessage = null;
 
         if (SelectedChat is null || string.IsNullOrWhiteSpace(MessageText))
+        {
             return;
+        }
 
         if (SelectedChat.IsBlocked)
+        {
             return;
+        }
 
         if (!TryGetCurrentCallerId(out var senderId))
+        {
             return;
+        }
 
         try
         {
@@ -362,7 +376,7 @@ public class ChatViewModel : ObservableObject
             if (_sessionContext.CurrentMode == AppMode.UserMode)
             {
                 MoveChatToTop(FilteredChats, selectedChatId);
-                var restoredSelection = FilteredChats.FirstOrDefault(c => c.ChatId == selectedChatId);
+                var restoredSelection = FindChatById(FilteredChats, selectedChatId);
                 if (restoredSelection is not null)
                 {
                     SelectedChat = restoredSelection;
@@ -370,27 +384,27 @@ public class ChatViewModel : ObservableObject
             }
             else
             {
-                var restoredSelection = Chats.FirstOrDefault(c => c.ChatId == selectedChatId);
+                var restoredSelection = FindChatById(Chats, selectedChatId);
                 if (restoredSelection is not null)
                 {
                     SelectedChat = restoredSelection;
                 }
             }
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
-            ErrorMessage = ex.Message;
+            ErrorMessage = exception.Message;
         }
     }
 
     private static void MoveChatToTop(ObservableCollection<Chat> chats, int chatId)
     {
         var index = -1;
-        for (var i = 0; i < chats.Count; i++)
+        for (var chatIndex = 0; chatIndex < chats.Count; chatIndex++)
         {
-            if (chats[i].ChatId == chatId)
+            if (chats[chatIndex].ChatId == chatId)
             {
-                index = i;
+                index = chatIndex;
                 break;
             }
         }
@@ -406,7 +420,9 @@ public class ChatViewModel : ObservableObject
         var selectedChatId = SelectedChat?.ChatId;
 
         if (!TryGetCurrentCallerId(out var currentCallerId))
+        {
             return;
+        }
 
         var latestChats = _sessionContext.CurrentMode == AppMode.UserMode
             ? _chatService.GetChatsForUser(currentCallerId)
@@ -414,7 +430,7 @@ public class ChatViewModel : ObservableObject
 
         foreach (var chat in latestChats)
         {
-            PopulateChatPreview(chat);
+            PopulateChatDisplayData(chat);
         }
 
         var chatsChanged = MergeChats(latestChats);
@@ -425,9 +441,11 @@ public class ChatViewModel : ObservableObject
         }
 
         if (!selectedChatId.HasValue)
+        {
             return;
+        }
 
-        var refreshedSelectedChat = Chats.FirstOrDefault(c => c.ChatId == selectedChatId.Value);
+        var refreshedSelectedChat = FindChatById(Chats, selectedChatId.Value);
         if (refreshedSelectedChat is null)
         {
             SelectedChat = null;
@@ -443,16 +461,16 @@ public class ChatViewModel : ObservableObject
 
         var latestMessages = _chatService.GetMessages(refreshedSelectedChat.ChatId, currentCallerId);
 
-        var hasUnreadFromOtherParty = latestMessages.Any(m => m.SenderId != currentCallerId && !m.IsRead);
+        var hasUnreadFromOtherParty = HasUnreadFromOtherParty(latestMessages, currentCallerId);
         if (hasUnreadFromOtherParty)
         {
             _chatService.MarkMessageAsRead(refreshedSelectedChat.ChatId, currentCallerId);
 
-            for (var i = 0; i < latestMessages.Count; i++)
+            for (var latestMessageIndex = 0; latestMessageIndex < latestMessages.Count; latestMessageIndex++)
             {
-                if (latestMessages[i].SenderId != currentCallerId)
+                if (latestMessages[latestMessageIndex].SenderId != currentCallerId)
                 {
-                    latestMessages[i].IsRead = true;
+                    latestMessages[latestMessageIndex].IsRead = true;
                 }
             }
         }
@@ -486,18 +504,20 @@ public class ChatViewModel : ObservableObject
     private void ApplyReadReceiptVisibility(IReadOnlyList<Message> messages)
     {
         if (!TryGetCurrentCallerId(out var currentSenderId))
-            return;
-
-        for (var i = 0; i < messages.Count; i++)
         {
-            messages[i].ShowReadReceipt = false;
+            return;
         }
 
-        for (var i = messages.Count - 1; i >= 0; i--)
+        for (var messageIndex = 0; messageIndex < messages.Count; messageIndex++)
         {
-            if (messages[i].SenderId == currentSenderId)
+            messages[messageIndex].ShowReadReceipt = false;
+        }
+
+        for (var reverseMessageIndex = messages.Count - 1; reverseMessageIndex >= 0; reverseMessageIndex--)
+        {
+            if (messages[reverseMessageIndex].SenderId == currentSenderId)
             {
-                messages[i].ShowReadReceipt = true;
+                messages[reverseMessageIndex].ShowReadReceipt = true;
                 break;
             }
         }
@@ -506,15 +526,15 @@ public class ChatViewModel : ObservableObject
     private bool MergeChats(IReadOnlyList<Chat> latestChats)
     {
         var changed = false;
-        var latestById = latestChats.ToDictionary(c => c.ChatId);
+        var latestById = BuildChatDictionaryById(latestChats);
         var selectedChatId = SelectedChat?.ChatId;
 
-        for (var i = Chats.Count - 1; i >= 0; i--)
+        for (var existingChatIndex = Chats.Count - 1; existingChatIndex >= 0; existingChatIndex--)
         {
-            var chatId = Chats[i].ChatId;
+            var chatId = Chats[existingChatIndex].ChatId;
             if (!latestById.ContainsKey(chatId) && (!selectedChatId.HasValue || chatId != selectedChatId.Value))
             {
-                Chats.RemoveAt(i);
+                Chats.RemoveAt(existingChatIndex);
                 changed = true;
             }
         }
@@ -524,11 +544,11 @@ public class ChatViewModel : ObservableObject
             var latest = latestChats[targetIndex];
             var currentIndex = -1;
 
-            for (var i = 0; i < Chats.Count; i++)
+            for (var currentChatIndex = 0; currentChatIndex < Chats.Count; currentChatIndex++)
             {
-                if (Chats[i].ChatId == latest.ChatId)
+                if (Chats[currentChatIndex].ChatId == latest.ChatId)
                 {
-                    currentIndex = i;
+                    currentIndex = currentChatIndex;
                     break;
                 }
             }
@@ -567,6 +587,7 @@ public class ChatViewModel : ObservableObject
                !Nullable.Equals(current.DeletedAtByUser, updated.DeletedAtByUser) ||
                !Nullable.Equals(current.DeletedAtBySecondParty, updated.DeletedAtBySecondParty) ||
                current.UnreadCount != updated.UnreadCount ||
+               !string.Equals(current.OtherPartyName, updated.OtherPartyName, StringComparison.Ordinal) ||
                !string.Equals(current.LastMessage, updated.LastMessage, StringComparison.Ordinal) ||
                !string.Equals(current.LastMessageSnippet, updated.LastMessageSnippet, StringComparison.Ordinal) ||
                !string.Equals(current.LastMessageTime, updated.LastMessageTime, StringComparison.Ordinal);
@@ -575,12 +596,14 @@ public class ChatViewModel : ObservableObject
     private bool HaveMessagesChanged(IReadOnlyList<Message> latestMessages)
     {
         if (Messages.Count != latestMessages.Count)
-            return true;
-
-        for (var i = 0; i < latestMessages.Count; i++)
         {
-            var current = Messages[i];
-            var latest = latestMessages[i];
+            return true;
+        }
+
+        for (var messageIndex = 0; messageIndex < latestMessages.Count; messageIndex++)
+        {
+            var current = Messages[messageIndex];
+            var latest = latestMessages[messageIndex];
 
             if (current.MessageId != latest.MessageId ||
                 current.IsRead != latest.IsRead ||
@@ -596,10 +619,48 @@ public class ChatViewModel : ObservableObject
         return false;
     }
 
+    private void PopulateChatDisplayData(Chat chat)
+    {
+        PopulateChatDisplayName(chat);
+        PopulateChatPreview(chat);
+    }
+
+    private void PopulateChatDisplayName(Chat chat)
+    {
+        chat.OtherPartyName = ResolveOtherPartyName(chat);
+    }
+
+    private string ResolveOtherPartyName(Chat chat)
+    {
+        if (_sessionContext.CurrentMode == AppMode.CompanyMode)
+        {
+            return _userRepository.GetById(chat.UserId)?.Name ?? $"User {chat.UserId}";
+        }
+
+        if (chat.CompanyId is int companyId)
+        {
+            return _companyRepository.GetById(companyId)?.CompanyName ?? $"Company {companyId}";
+        }
+
+        if (chat.SecondUserId is int secondUserId)
+        {
+            var currentUserId = _sessionContext.CurrentUserId;
+            var otherUserId = currentUserId.HasValue && chat.UserId == currentUserId.Value
+                ? secondUserId
+                : chat.UserId;
+
+            return _userRepository.GetById(otherUserId)?.Name ?? $"User {otherUserId}";
+        }
+
+        return "Chat";
+    }
+
     private void PopulateChatPreview(Chat chat)
     {
         if (!TryGetCurrentCallerId(out var currentCallerId))
+        {
             return;
+        }
 
         var messages = _chatService.GetMessages(chat.ChatId, currentCallerId);
         UpdateChatPreviewFromMessages(chat, messages, currentCallerId);
@@ -634,7 +695,7 @@ public class ChatViewModel : ObservableObject
 
         if (lastMessage.SenderId != currentCallerId && !lastMessage.IsRead)
         {
-            chat.UnreadCount = messages.Count(m => m.SenderId != currentCallerId && !m.IsRead);
+            chat.UnreadCount = CountUnreadFromOtherParty(messages, currentCallerId);
         }
         else
         {
@@ -645,11 +706,15 @@ public class ChatViewModel : ObservableObject
     private static string GetDisplayContent(Message message)
     {
         if (message.Type == MessageType.Text)
+        {
             return message.Content;
+        }
 
         var fileName = Path.GetFileName(message.Content);
         if (string.IsNullOrWhiteSpace(fileName))
+        {
             return message.Content;
+        }
 
         return message.Type == MessageType.Image
             ? $"📷 {fileName}"
@@ -795,9 +860,9 @@ public class ChatViewModel : ObservableObject
 
             File.Copy(sourcePath, targetPath, overwrite: true);
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
-            ErrorMessage = ex.Message;
+            ErrorMessage = exception.Message;
         }
     }
 
@@ -821,10 +886,7 @@ public class ChatViewModel : ObservableObject
                 results.AddRange(users);
 
                 // Filter FilteredChats for user-to-user chats matching the query
-                var matchingChats = FilteredChats
-                    .Where(c => c.SecondUserId.HasValue &&
-                        _userRepository.GetById(c.SecondUserId.Value)?.Name.Contains(SearchQuery, StringComparison.OrdinalIgnoreCase) == true)
-                    .ToList();
+                var matchingChats = FindUserTabMatchingChats(FilteredChats, SearchQuery);
 
                 foreach (var chat in matchingChats)
                 {
@@ -838,10 +900,7 @@ public class ChatViewModel : ObservableObject
                 results.AddRange(companies);
 
                 // Filter FilteredChats for user-to-company chats matching the query
-                var matchingChats = FilteredChats
-                    .Where(c => c.CompanyId.HasValue &&
-                        _companyRepository.GetById(c.CompanyId.Value)?.CompanyName.Contains(SearchQuery, StringComparison.OrdinalIgnoreCase) == true)
-                    .ToList();
+                var matchingChats = FindCompanyTabMatchingChats(FilteredChats, SearchQuery);
 
                 foreach (var chat in matchingChats)
                 {
@@ -856,10 +915,7 @@ public class ChatViewModel : ObservableObject
             results.AddRange(users);
 
             // Filter Chats for company-to-user chats matching the query
-            var matchingChats = Chats
-                .Where(c => c.UserId > 0 &&
-                    _userRepository.GetById(c.UserId)?.Name.Contains(SearchQuery, StringComparison.OrdinalIgnoreCase) == true)
-                .ToList();
+            var matchingChats = FindCompanyModeMatchingChats(Chats, SearchQuery);
 
             foreach (var chat in matchingChats)
             {
@@ -891,7 +947,9 @@ public class ChatViewModel : ObservableObject
             if (_sessionContext.CurrentMode == AppMode.CompanyMode)
             {
                 if (!TryGetCurrentCompanyId(out var companyId))
+                {
                     return;
+                }
 
                 var createdChat = _chatService.FindOrCreateUserCompanyChat(user.UserId, companyId, null);
                 if (createdChat is null)
@@ -904,7 +962,9 @@ public class ChatViewModel : ObservableObject
             else
             {
                 if (!TryGetCurrentUserId(out var currentUserId))
+                {
                     return;
+                }
 
                 var createdChat = _chatService.FindOrCreateUserUserChat(currentUserId, user.UserId);
                 if (createdChat is null)
@@ -918,7 +978,9 @@ public class ChatViewModel : ObservableObject
         else if (selectedResult is Company company)
         {
             if (!TryGetCurrentUserId(out var currentUserId))
+            {
                 return;
+            }
 
             var createdChat = _chatService.FindOrCreateUserCompanyChat(currentUserId, company.CompanyId, null);
             if (createdChat is null)
@@ -933,8 +995,10 @@ public class ChatViewModel : ObservableObject
             return;
         }
 
+        PopulateChatDisplayName(chat);
+
         // Remove old instance of the chat if it exists (could be a restored deleted chat)
-        var oldChat = Chats.FirstOrDefault(c => c.ChatId == chat.ChatId);
+        var oldChat = FindChatById(Chats, chat.ChatId);
         if (oldChat is not null)
         {
             Chats.Remove(oldChat);
@@ -958,7 +1022,7 @@ public class ChatViewModel : ObservableObject
             ApplyTabFilter();
 
             // Add to FilteredChats if not already present
-            var oldFilteredChat = FilteredChats.FirstOrDefault(c => c.ChatId == chat.ChatId);
+            var oldFilteredChat = FindChatById(FilteredChats, chat.ChatId);
             if (oldFilteredChat is not null)
             {
                 FilteredChats.Remove(oldFilteredChat);
@@ -998,7 +1062,9 @@ public class ChatViewModel : ObservableObject
             return;
         }
 
-        var oldChat = Chats.FirstOrDefault(c => c.ChatId == chat.ChatId);
+        PopulateChatDisplayName(chat);
+
+        var oldChat = FindChatById(Chats, chat.ChatId);
         if (oldChat is not null)
         {
             Chats.Remove(oldChat);
@@ -1009,7 +1075,7 @@ public class ChatViewModel : ObservableObject
         ActiveTab = "Company";
         ApplyTabFilter();
 
-        var oldFilteredChat = FilteredChats.FirstOrDefault(c => c.ChatId == chat.ChatId);
+        var oldFilteredChat = FindChatById(FilteredChats, chat.ChatId);
         if (oldFilteredChat is not null)
         {
             FilteredChats.Remove(oldFilteredChat);
@@ -1042,7 +1108,7 @@ public class ChatViewModel : ObservableObject
 
             LoadChats();
 
-            var refreshedChat = Chats.FirstOrDefault(c => c.ChatId == selectedChatId);
+            var refreshedChat = FindChatById(Chats, selectedChatId);
             if (refreshedChat is not null)
             {
                 SelectChat(refreshedChat);
@@ -1054,9 +1120,9 @@ public class ChatViewModel : ObservableObject
                 UpdateVisibility();
             }
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
-            ErrorMessage = ex.Message;
+            ErrorMessage = exception.Message;
         }
     }
 
@@ -1080,7 +1146,7 @@ public class ChatViewModel : ObservableObject
 
             LoadChats();
 
-            var refreshedChat = Chats.FirstOrDefault(c => c.ChatId == selectedChatId);
+            var refreshedChat = FindChatById(Chats, selectedChatId);
             if (refreshedChat is not null)
             {
                 SelectChat(refreshedChat);
@@ -1092,9 +1158,9 @@ public class ChatViewModel : ObservableObject
                 UpdateVisibility();
             }
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
-            ErrorMessage = ex.Message;
+            ErrorMessage = exception.Message;
         }
     }
 
@@ -1106,7 +1172,9 @@ public class ChatViewModel : ObservableObject
         }
 
         if (!TryGetCurrentCallerId(out var callerId))
+        {
             return;
+        }
 
         try
         {
@@ -1122,9 +1190,9 @@ public class ChatViewModel : ObservableObject
 
             UpdateVisibility();
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
-            ErrorMessage = ex.Message;
+            ErrorMessage = exception.Message;
         }
     }
 
@@ -1196,6 +1264,145 @@ public class ChatViewModel : ObservableObject
         }
 
         _navigationService.RequestJobPost(SelectedChat.JobId.Value);
+    }
+
+    private static List<Chat> GetChatsWithSecondUser(IEnumerable<Chat> chats)
+    {
+        var result = new List<Chat>();
+        foreach (var chat in chats)
+        {
+            if (chat.SecondUserId.HasValue)
+            {
+                result.Add(chat);
+            }
+        }
+
+        return result;
+    }
+
+    private static List<Chat> GetChatsWithCompany(IEnumerable<Chat> chats)
+    {
+        var result = new List<Chat>();
+        foreach (var chat in chats)
+        {
+            if (chat.CompanyId.HasValue)
+            {
+                result.Add(chat);
+            }
+        }
+
+        return result;
+    }
+
+    private static Chat? FindChatById(IEnumerable<Chat> chats, int chatId)
+    {
+        foreach (var chat in chats)
+        {
+            if (chat.ChatId == chatId)
+            {
+                return chat;
+            }
+        }
+
+        return null;
+    }
+
+    private static bool HasUnreadFromOtherParty(IReadOnlyList<Message> messages, int currentCallerId)
+    {
+        foreach (var message in messages)
+        {
+            if (message.SenderId != currentCallerId && !message.IsRead)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static Dictionary<int, Chat> BuildChatDictionaryById(IReadOnlyList<Chat> chats)
+    {
+        var result = new Dictionary<int, Chat>();
+        foreach (var chat in chats)
+        {
+            result[chat.ChatId] = chat;
+        }
+
+        return result;
+    }
+
+    private static int CountUnreadFromOtherParty(IReadOnlyList<Message> messages, int currentCallerId)
+    {
+        var count = 0;
+        foreach (var message in messages)
+        {
+            if (message.SenderId != currentCallerId && !message.IsRead)
+            {
+                count++;
+            }
+        }
+
+        return count;
+    }
+
+    private List<Chat> FindUserTabMatchingChats(IEnumerable<Chat> chats, string query)
+    {
+        var result = new List<Chat>();
+        foreach (var chat in chats)
+        {
+            if (!chat.SecondUserId.HasValue)
+            {
+                continue;
+            }
+
+            var user = _userRepository.GetById(chat.SecondUserId.Value);
+            if (user?.Name.Contains(query, StringComparison.OrdinalIgnoreCase) == true)
+            {
+                result.Add(chat);
+            }
+        }
+
+        return result;
+    }
+
+    private List<Chat> FindCompanyTabMatchingChats(IEnumerable<Chat> chats, string query)
+    {
+        var result = new List<Chat>();
+        foreach (var chat in chats)
+        {
+            if (!chat.CompanyId.HasValue)
+            {
+                continue;
+            }
+
+            var company = _companyRepository.GetById(chat.CompanyId.Value);
+            if (company?.CompanyName.Contains(query, StringComparison.OrdinalIgnoreCase) == true)
+            {
+                result.Add(chat);
+            }
+        }
+
+        return result;
+    }
+
+    private List<Chat> FindCompanyModeMatchingChats(IEnumerable<Chat> chats, string query)
+    {
+        var result = new List<Chat>();
+        foreach (var chat in chats)
+        {
+            if (chat.UserId <= 0)
+            {
+                continue;
+            }
+
+            var user = _userRepository.GetById(chat.UserId);
+            if (user?.Name.Contains(query, StringComparison.OrdinalIgnoreCase) == true)
+            {
+                result.Add(chat);
+            }
+        }
+
+        return result;
     }
 }
 

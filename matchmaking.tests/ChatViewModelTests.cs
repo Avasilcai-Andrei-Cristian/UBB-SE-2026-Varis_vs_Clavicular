@@ -271,6 +271,33 @@ public sealed class ChatViewModelTests
     }
 
     [Fact]
+    public void LoadChats_WhenCallerIsUser_PopulatesOtherPartyNames()
+    {
+        var session = new SessionContext();
+        session.LoginAsUser(1);
+        var viewModel = CreateViewModel(session);
+        SeedChats(viewModel, out _);
+
+        viewModel.LoadChats();
+
+        viewModel.Chats.Should().Contain(chat => chat.SecondUserId == 2 && chat.OtherPartyName == "Bogdan Ionescu");
+        viewModel.Chats.Should().Contain(chat => chat.CompanyId == 1 && chat.OtherPartyName == "TechNova");
+    }
+
+    [Fact]
+    public void LoadChats_WhenCallerIsCompany_PopulatesUserName()
+    {
+        var session = new SessionContext();
+        session.LoginAsCompany(1);
+        var viewModel = CreateViewModel(session);
+        SeedChats(viewModel, out _);
+
+        viewModel.LoadChats();
+
+        viewModel.Chats.Should().ContainSingle(chat => chat.UserId == 1 && chat.OtherPartyName == "Alice Pop");
+    }
+
+    [Fact]
     public void IsUsersTabActive_WhenToggledOnUserMode_SwitchesTabs()
     {
         var session = new SessionContext();
@@ -1503,12 +1530,18 @@ public sealed class ChatViewModelTests
 
     private static ChatViewModel CreateViewModel(SessionContext session, NavigationService? navigationService = null)
     {
+        var currentUser = TestDataFactory.CreateUser(userId: 1);
+        var otherUser = TestDataFactory.CreateUser(userId: 2);
+        otherUser.Name = "Bogdan Ionescu";
+        var company = TestDataFactory.CreateCompany(companyId: 1);
+        var linkedJob = TestDataFactory.CreateJob(jobId: 2, companyId: company.CompanyId);
+
         return new ChatViewModel(
             new FakeChatService(),
-            new JobService(new JobRepository()),
+            new JobService(new FakeJobRepository(new[] { linkedJob })),
             session,
-            new UserRepository(),
-            new CompanyRepository(),
+            new FakeUserRepository(new[] { currentUser, otherUser }),
+            new FakeCompanyRepository(new[] { company }),
             navigationService ?? new NavigationService());
     }
 

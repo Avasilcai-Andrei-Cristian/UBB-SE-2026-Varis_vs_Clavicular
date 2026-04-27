@@ -8,7 +8,7 @@ using matchmaking.Repositories;
 
 namespace matchmaking.Services;
 
-public class MatchService
+public class MatchService : IMatchService
 {
     private readonly IMatchRepository matchRepository;
     private readonly IJobService jobService;
@@ -49,21 +49,27 @@ public class MatchService
 
     public Task<IReadOnlyList<Match>> GetByCompanyIdAsync(int companyId)
     {
-        var companyJobIds = jobService
-            .GetByCompanyId(companyId)
-            .Select(job => job.JobId)
-            .ToHashSet();
+        var companyJobIds = new HashSet<int>();
+        foreach (var job in jobService.GetByCompanyId(companyId))
+        {
+            companyJobIds.Add(job.JobId);
+        }
 
         if (companyJobIds.Count == 0)
         {
             return Task.FromResult<IReadOnlyList<Match>>([]);
         }
 
-        var matches = matchRepository
-            .GetAll()
-            .Where(match => companyJobIds.Contains(match.JobId))
-            .OrderByDescending(match => match.Timestamp)
-            .ToList();
+        var matches = new List<Match>();
+        foreach (var match in matchRepository.GetAll())
+        {
+            if (companyJobIds.Contains(match.JobId))
+            {
+                matches.Add(match);
+            }
+        }
+
+        matches.Sort(CompareByTimestampDescending);
 
         return Task.FromResult<IReadOnlyList<Match>>(matches);
     }
@@ -162,5 +168,10 @@ public class MatchService
         {
             throw new ArgumentException("Feedback is required when rejecting an applicant.", nameof(feedback));
         }
+    }
+
+    private static int CompareByTimestampDescending(Match left, Match right)
+    {
+        return right.Timestamp.CompareTo(left.Timestamp);
     }
 }

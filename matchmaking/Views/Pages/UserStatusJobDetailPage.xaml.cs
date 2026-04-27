@@ -1,4 +1,4 @@
-using System.Linq;
+using System.Collections.Generic;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
@@ -32,9 +32,13 @@ public sealed partial class UserStatusJobDetailPage : Page
         ScoreText.Text = payload.Card.FormattedScore;
         DescriptionText.Text = payload.Card.JobDescription;
 
-        SkillList.ItemsSource = payload.JobSkills
-            .Select(skill => $"• {skill.SkillName} — minimum score: {skill.Score}")
-            .ToList();
+        var skillLabels = new List<string>();
+        foreach (var skill in payload.JobSkills)
+        {
+            skillLabels.Add($"- {skill.SkillName} minimum score: {skill.Score}");
+        }
+
+        SkillList.ItemsSource = skillLabels;
     }
 
     private void Close_Click(object sender, RoutedEventArgs e)

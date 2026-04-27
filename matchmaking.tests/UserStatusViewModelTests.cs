@@ -130,13 +130,11 @@ public sealed class UserStatusViewModelTests
     }
 
     [Fact]
-    public async Task Refresh_WhenCalled_ClearsCollections()
+    public void Refresh_WhenCalled_ClearsCollections()
     {
         var viewModel = CreateViewModel(Array.Empty<Match>());
 
         viewModel.Refresh();
-
-        await Task.Delay(1);
 
         viewModel.AppliedJobs.Should().BeEmpty();
         viewModel.FilteredJobs.Should().BeEmpty();
@@ -152,8 +150,8 @@ public sealed class UserStatusViewModelTests
 
         await viewModel.LoadMatches();
 
-        viewModel.HasUnderscoredSkills.Should().Be(viewModel.UnderscoredSkills.Count > 0);
-        viewModel.HasSidebarMissingSkills.Should().Be(viewModel.SkillGapMissingSkills.Count > 0);
+        viewModel.HasUnderscoredSkills.Should().BeTrue();
+        viewModel.HasSidebarMissingSkills.Should().BeFalse();
     }
 
     [Fact]
@@ -167,7 +165,8 @@ public sealed class UserStatusViewModelTests
         await viewModel.LoadMatches();
         var skills = viewModel.GetJobSkills(job.JobId);
 
-        skills.Should().NotBeNull();
+        skills.Should().NotBeEmpty();
+        skills.Should().ContainSingle(jobSkill => jobSkill.JobId == job.JobId);
     }
 
     [Fact]

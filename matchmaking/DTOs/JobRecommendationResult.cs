@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using matchmaking.Domain.Entities;
 
 namespace matchmaking.DTOs;
@@ -20,23 +19,23 @@ public sealed class JobRecommendationResult
             var title = Job.JobTitle.Trim();
             if (!string.IsNullOrEmpty(title))
             {
-                return title.Length > 80 ? title[..80] + "…" : title;
+                return title.Length > 80 ? title[..80] + "..." : title;
             }
 
-            var d = Job.JobDescription.Trim();
-            if (string.IsNullOrEmpty(d))
+            var trimmedDescription = Job.JobDescription.Trim();
+            if (string.IsNullOrEmpty(trimmedDescription))
             {
                 return string.Empty;
             }
 
-            var firstLine = d.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries).FirstOrDefault() ?? d;
-            return firstLine.Length > 80 ? firstLine[..80] + "…" : firstLine;
+            var firstLine = GetFirstLine(trimmedDescription);
+            return firstLine.Length > 80 ? firstLine[..80] + "..." : firstLine;
         }
     }
 
     public string DescriptionExcerpt => BuildExcerpt(Job.JobDescription, 150);
 
-    public string LocationEmploymentLine => $"{Job.Location} · {Job.EmploymentType}";
+    public string LocationEmploymentLine => $"{Job.Location} - {Job.EmploymentType}";
 
     public string MatchScoreDisplay => $"{CompatibilityScore:0.#}%";
 
@@ -46,7 +45,7 @@ public sealed class JobRecommendationResult
 
     public IReadOnlyList<string> AllSkillLabels { get; init; } = new List<string>();
 
-    public string ContactLine => $"{Company.Email} · {Company.Phone}";
+    public string ContactLine => $"{Company.Email} - {Company.Phone}";
 
     public static string BuildExcerpt(string description, int maxChars)
     {
@@ -61,14 +60,35 @@ public sealed class JobRecommendationResult
             return trimmed;
         }
 
-        return trimmed[..maxChars].TrimEnd() + "…";
+        return trimmed[..maxChars].TrimEnd() + "...";
     }
 
     public static IReadOnlyList<string> TakeTopSkills(IEnumerable<JobSkill> jobSkills, int count = 3)
     {
-        return jobSkills
-            .Take(count)
-            .Select(js => $"{js.SkillName} (min {js.Score})")
-            .ToList();
+        var skillLabels = new List<string>();
+        var index = 0;
+        foreach (var jobSkill in jobSkills)
+        {
+            if (index >= count)
+            {
+                break;
+            }
+
+            skillLabels.Add($"{jobSkill.SkillName} (min {jobSkill.Score})");
+            index++;
+        }
+
+        return skillLabels;
+    }
+
+    private static string GetFirstLine(string text)
+    {
+        var lines = text.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+        if (lines.Length == 0)
+        {
+            return text;
+        }
+
+        return lines[0];
     }
 }

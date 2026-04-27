@@ -21,11 +21,11 @@ public sealed class SqlPostRepositoryIntegrationTests
         repository.Add(new Post { DeveloperId = developerId, ParameterType = PostParameterType.MitigationFactor, Value = "3" });
         repository.Add(new Post { DeveloperId = otherDeveloperId, ParameterType = PostParameterType.RelevantKeyword, Value = "sql" });
 
-        var all = repository.GetAll();
-        all.Should().HaveCount(2);
-        all.Should().Contain(item => item.ParameterType == PostParameterType.MitigationFactor && item.Value == "3");
+        var allPosts = repository.GetAll();
+        allPosts.Should().HaveCount(2);
+        allPosts.Should().Contain(item => item.ParameterType == PostParameterType.MitigationFactor && item.Value == "3");
 
-        var first = all.Single(item => item.DeveloperId == developerId);
+        var first = allPosts.Single(item => item.DeveloperId == developerId);
         first.Value = "8";
         repository.Update(first);
 

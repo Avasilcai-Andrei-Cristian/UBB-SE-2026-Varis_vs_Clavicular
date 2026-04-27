@@ -1,3 +1,5 @@
+using Windows.UI;
+
 namespace matchmaking.Tests.Views.Converters;
 
 public class MatchStatusDisplayConverterTests
@@ -32,28 +34,50 @@ public class MatchStatusDisplayConverterTests
         result.Should().Be("Pending Review");
     }
 
-    [Theory]
-    [InlineData(MatchStatus.Accepted)]
-    [InlineData(MatchStatus.Rejected)]
-    [InlineData(MatchStatus.Applied)]
-    [InlineData(MatchStatus.Advanced)]
-    public void Convert_BackgroundMode_ReturnsSolidColorBrush(MatchStatus status)
+    [Fact]
+    public void GetBackgroundColor_WhenAccepted_ReturnsGreenTint()
     {
-        var result = MatchStatusDisplayConverter.GetBackgroundColor(status);
+        MatchStatusDisplayConverter.GetBackgroundColor(MatchStatus.Accepted)
+            .Should().Be(Color.FromArgb(0xFF, 0xDC, 0xFC, 0xE7));
+    }
 
-        result.Should().NotBe(default);
+    [Fact]
+    public void GetBackgroundColor_WhenRejected_ReturnsRedTint()
+    {
+        MatchStatusDisplayConverter.GetBackgroundColor(MatchStatus.Rejected)
+            .Should().Be(Color.FromArgb(0xFF, 0xFE, 0xE2, 0xE2));
     }
 
     [Theory]
-    [InlineData(MatchStatus.Accepted)]
-    [InlineData(MatchStatus.Rejected)]
     [InlineData(MatchStatus.Applied)]
     [InlineData(MatchStatus.Advanced)]
-    public void Convert_ForegroundMode_ReturnsSolidColorBrush(MatchStatus status)
+    public void GetBackgroundColor_WhenAppliedOrAdvanced_ReturnsYellowTint(MatchStatus status)
     {
-        var result = MatchStatusDisplayConverter.GetForegroundColor(status);
+        MatchStatusDisplayConverter.GetBackgroundColor(status)
+            .Should().Be(Color.FromArgb(0xFF, 0xFE, 0xF3, 0xC7));
+    }
 
-        result.Should().NotBe(default);
+    [Fact]
+    public void GetForegroundColor_WhenAccepted_ReturnsDarkGreen()
+    {
+        MatchStatusDisplayConverter.GetForegroundColor(MatchStatus.Accepted)
+            .Should().Be(Color.FromArgb(0xFF, 0x16, 0x65, 0x34));
+    }
+
+    [Fact]
+    public void GetForegroundColor_WhenRejected_ReturnsDarkRed()
+    {
+        MatchStatusDisplayConverter.GetForegroundColor(MatchStatus.Rejected)
+            .Should().Be(Color.FromArgb(0xFF, 0x99, 0x1B, 0x1B));
+    }
+
+    [Theory]
+    [InlineData(MatchStatus.Applied)]
+    [InlineData(MatchStatus.Advanced)]
+    public void GetForegroundColor_WhenAppliedOrAdvanced_ReturnsDarkOrange(MatchStatus status)
+    {
+        MatchStatusDisplayConverter.GetForegroundColor(status)
+            .Should().Be(Color.FromArgb(0xFF, 0x92, 0x40, 0x0E));
     }
 
     [Fact]

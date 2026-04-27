@@ -35,12 +35,27 @@ public sealed class CompanyRecommendationServiceTests
         service.LoadApplicants(job.CompanyId);
 
         service.HasMore.Should().BeTrue();
-        var nextApplicant = service.GetNextApplicant();
+        service.GetNextApplicant()!.Match.MatchId.Should().Be(match.MatchId);
+    }
 
-        nextApplicant.Should().NotBeNull();
+    [Fact]
+    public void GetBreakdown_WhenApplicantExists_ReturnsBreakdown()
+    {
+        var user = TestDataFactory.CreateUser();
+        var job = TestDataFactory.CreateJob();
+        var match = TestDataFactory.CreateMatch(1, user.UserId, job.JobId, MatchStatus.Applied);
 
-        nextApplicant!.Match.MatchId.Should().Be(match.MatchId);
-        service.GetBreakdown(nextApplicant).Should().NotBeNull();
+        var service = CreateService(
+            users: new[] { user },
+            jobs: new[] { job },
+            skills: new[] { TestDataFactory.CreateSkill(user.UserId, 1, "C#", 90) },
+            jobSkills: new[] { TestDataFactory.CreateJobSkill(job.JobId, 1, "C#", 80) },
+            matches: new[] { match });
+
+        service.LoadApplicants(job.CompanyId);
+        var applicant = service.GetNextApplicant();
+
+        service.GetBreakdown(applicant!).Should().NotBeNull();
     }
 
     [Fact]

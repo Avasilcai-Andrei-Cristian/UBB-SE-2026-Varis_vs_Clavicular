@@ -7,15 +7,15 @@ using matchmaking.DTOs;
 
 namespace matchmaking.Services;
 
-public class CompanyStatusService
+public class CompanyStatusService : ICompanyStatusService
 {
-    private readonly MatchService matchService;
+    private readonly IMatchService matchService;
     private readonly IUserService userService;
     private readonly IJobService jobService;
     private readonly ISkillService skillService;
 
     public CompanyStatusService(
-        MatchService matchService,
+        IMatchService matchService,
         IUserService userService,
         IJobService jobService,
         ISkillService skillService)
@@ -29,9 +29,14 @@ public class CompanyStatusService
     public async Task<IReadOnlyList<UserApplicationResult>> GetApplicantsForCompanyAsync(int companyId)
     {
         var matches = await matchService.GetByCompanyIdAsync(companyId);
-        var visibleMatches = matches
-            .Where(match => match.Status is MatchStatus.Accepted or MatchStatus.Rejected or MatchStatus.Advanced)
-            .ToList();
+        var visibleMatches = new List<Match>();
+        foreach (var match in matches)
+        {
+            if (IsVisibleMatch(match))
+            {
+                visibleMatches.Add(match);
+            }
+        }
 
         var results = new List<UserApplicationResult>(visibleMatches.Count);
 
@@ -49,9 +54,8 @@ public class CompanyStatusService
             results.Add(result);
         }
 
-        var ordered = results
-            .OrderByDescending(result => result.CompatibilityScore)
-            .ToList();
+        results.Sort(CompareByCompatibilityScoreDescending);
+        var ordered = results;
 
         return ordered;
     }
@@ -59,7 +63,15 @@ public class CompanyStatusService
     public async Task<UserApplicationResult?> GetApplicantByMatchIdAsync(int companyId, int matchId)
     {
         var applicants = await GetApplicantsForCompanyAsync(companyId);
-        return applicants.FirstOrDefault(result => result.Match.MatchId == matchId);
+        foreach (var result in applicants)
+        {
+            if (result.Match.MatchId == matchId)
+            {
+                return result;
+            }
+        }
+
+        return null;
     }
 
     private UserApplicationResult BuildResult(
@@ -86,7 +98,7 @@ public class CompanyStatusService
             return 0;
         }
 
-        var averageSkillScore = userSkills.Average(skill => skill.Score);
+        var averageSkillScore = ComputeAverageSkillScore(userSkills);
         var locationBonus = user.Location.Equals(job.Location, System.StringComparison.OrdinalIgnoreCase) ? 10 : 0;
         var employmentTypeBonus = user.PreferredEmploymentType.Equals(job.EmploymentType, System.StringComparison.OrdinalIgnoreCase)
             ? 10
@@ -94,5 +106,26 @@ public class CompanyStatusService
 
         var computed = averageSkillScore + locationBonus + employmentTypeBonus;
         return computed > 100 ? 100 : computed;
+    }
+
+    private static bool IsVisibleMatch(Match match)
+    {
+        return match.Status is MatchStatus.Accepted or MatchStatus.Rejected or MatchStatus.Advanced;
+    }
+
+    private static int CompareByCompatibilityScoreDescending(UserApplicationResult left, UserApplicationResult right)
+    {
+        return right.CompatibilityScore.CompareTo(left.CompatibilityScore);
+    }
+
+    private static double ComputeAverageSkillScore(IReadOnlyList<Skill> userSkills)
+    {
+        var sum = 0;
+        foreach (var skill in userSkills)
+        {
+            sum += skill.Score;
+        }
+
+        return (double)sum / userSkills.Count;
     }
 }

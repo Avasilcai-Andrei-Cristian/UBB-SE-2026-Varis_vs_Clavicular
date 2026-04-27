@@ -7,11 +7,14 @@ namespace matchmaking.Views.Converters;
 
 public sealed class BoolToActiveBrushConverter : IValueConverter
 {
+    private static readonly Color ActiveColor = Color.FromArgb(0xFF, 0x25, 0x63, 0xEB);
+    private static readonly Color InactiveColor = Color.FromArgb(0xFF, 0x6B, 0x6B, 0x6B);
+
     public static Color GetColor(bool isActive)
     {
         return isActive
-            ? Color.FromArgb(0xFF, 0x25, 0x63, 0xEB)
-            : Color.FromArgb(0xFF, 0x6B, 0x6B, 0x6B);
+            ? ActiveColor
+            : InactiveColor;
     }
 
     public object Convert(object? value, Type targetType, object? parameter, string language)

@@ -7,8 +7,21 @@ namespace matchmaking.Repositories;
 
 public class JobSkillRepository : IJobSkillRepository
 {
-    private readonly List<JobSkill> jobSkills =
-    [
+    private readonly List<JobSkill> jobSkills;
+
+    public JobSkillRepository()
+        : this(CreateDefaultJobSkills())
+    {
+    }
+
+    public JobSkillRepository(IEnumerable<JobSkill> initialJobSkills)
+    {
+        jobSkills = initialJobSkills.ToList();
+    }
+
+    private static IEnumerable<JobSkill> CreateDefaultJobSkills()
+    {
+        return [
         new () { JobId = 1, SkillId = 2, SkillName = "React", Score = 70 },
         new () { JobId = 1, SkillId = 12, SkillName = "Figma", Score = 45 },
         new () { JobId = 2, SkillId = 1, SkillName = "C#", Score = 80 },
@@ -29,19 +42,41 @@ public class JobSkillRepository : IJobSkillRepository
         new () { JobId = 9, SkillId = 2, SkillName = "React", Score = 70 },
         new () { JobId = 10, SkillId = 16, SkillName = "Cloud", Score = 86 },
         new () { JobId = 10, SkillId = 6, SkillName = "Docker", Score = 73 }
-    ];
+        ];
+    }
 
-    public JobSkill? GetById(int jobId, int skillId) =>
-        jobSkills.FirstOrDefault(js => js.JobId == jobId && js.SkillId == skillId);
+    public JobSkill? GetById(int jobId, int skillId)
+    {
+        foreach (var jobSkill in jobSkills)
+        {
+            if (jobSkill.JobId == jobId && jobSkill.SkillId == skillId)
+            {
+                return jobSkill;
+            }
+        }
+
+        return null;
+    }
 
     public IReadOnlyList<JobSkill> GetAll() => jobSkills.ToList();
 
-    public IReadOnlyList<JobSkill> GetByJobId(int jobId) =>
-        jobSkills.Where(js => js.JobId == jobId).ToList();
+    public IReadOnlyList<JobSkill> GetByJobId(int jobId)
+    {
+        var result = new List<JobSkill>();
+        foreach (var jobSkill in jobSkills)
+        {
+            if (jobSkill.JobId == jobId)
+            {
+                result.Add(jobSkill);
+            }
+        }
+
+        return result;
+    }
 
     public void Add(JobSkill jobSkill)
     {
-        if (jobSkills.Any(js => js.JobId == jobSkill.JobId && js.SkillId == jobSkill.SkillId))
+        if (ContainsJobSkill(jobSkill.JobId, jobSkill.SkillId))
         {
             throw new InvalidOperationException($"JobSkill ({jobSkill.JobId}, {jobSkill.SkillId}) already exists.");
         }
@@ -62,5 +97,18 @@ public class JobSkillRepository : IJobSkillRepository
         var existing = GetById(jobId, skillId)
             ?? throw new KeyNotFoundException($"JobSkill ({jobId}, {skillId}) was not found.");
         jobSkills.Remove(existing);
+    }
+
+    private bool ContainsJobSkill(int jobId, int skillId)
+    {
+        foreach (var jobSkill in jobSkills)
+        {
+            if (jobSkill.JobId == jobId && jobSkill.SkillId == skillId)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
